@@ -8,12 +8,15 @@ using UnityEngine.UI;
 public class CardDeck : MonoBehaviour
 {
     [SerializeField] private int totalCard;
-    private TextMeshProUGUI Deck;
+    CardManager cardManager;
+    private TextMeshProUGUI deck;
 
     private void Start()
     {
-        Deck = transform.GetChild(0).GetComponent<TextMeshProUGUI>();
-        Deck.text = totalCard.ToString();
+        deck = transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        deck.text = totalCard.ToString();
+        cardManager = FindObjectOfType<CardManager>();
+        GetComponent<Button_UI>().ClickFunc = () => cardManager.DrawCard();
     }
     public int GetTotalCards()
     {
@@ -22,6 +25,6 @@ public class CardDeck : MonoBehaviour
     public void RemoveCard(int count)
     {
         totalCard = Mathf.Max(0, totalCard - count);
-        Deck.text = totalCard.ToString();
+        deck.text = totalCard.ToString();
     }
 }
