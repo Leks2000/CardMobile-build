@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class EndTurn : MonoBehaviour
 {
-    [SerializeField] private Camera _camera;
+    [SerializeField] private Camera mainCam;
     [SerializeField] private float duration = 0.5f;
     [SerializeField] private float delay = 1f;
     [SerializeField] private float rotationDuration = 0.5f;
@@ -16,11 +16,9 @@ public class EndTurn : MonoBehaviour
 
     private void Start()
     {
-        // Сохраняем начальное положение и поворот камеры
-        initialPosition = _camera.transform.position;
-        initialRotation = _camera.transform.rotation;
+        initialPosition = mainCam.transform.position;
+        initialRotation = mainCam.transform.rotation;
 
-        // Определяем целевое положение и вращение
         targetPosition = new Vector3(0, 0, -10);
         targetRotation = Quaternion.Euler(86, 0, 0);
         intermediateRotation = Quaternion.Euler(75, 0, 0);
@@ -34,22 +32,20 @@ public class EndTurn : MonoBehaviour
     private IEnumerator MoveCamera()
     {
         float timeElapsed = 0;
-        Vector3 startPosition = _camera.transform.position;
-        Quaternion startRotation = _camera.transform.rotation;
+        Vector3 startPosition = mainCam.transform.position;
+        Quaternion startRotation = mainCam.transform.rotation;
 
-        // Двигаем камеру к целевому положению и вращению
         while (timeElapsed < duration)
         {
-            _camera.transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
-            _camera.transform.rotation = Quaternion.Lerp(startRotation, targetRotation, timeElapsed / duration);
+            mainCam.transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            mainCam.transform.rotation = Quaternion.Lerp(startRotation, targetRotation, timeElapsed / duration);
             timeElapsed += Time.deltaTime;
             yield return null;
         }
 
-        _camera.transform.position = targetPosition;
-        _camera.transform.rotation = targetRotation;
+        mainCam.transform.position = targetPosition;
+        mainCam.transform.rotation = targetRotation;
 
-        // Ждём указанное время перед сменой вращения
         yield return new WaitForSeconds(delay);
 
         StartCoroutine(ChangeRotation());
@@ -58,19 +54,17 @@ public class EndTurn : MonoBehaviour
     private IEnumerator ChangeRotation()
     {
         float timeElapsed = 0;
-        Quaternion startRotation = _camera.transform.rotation;
+        Quaternion startRotation = mainCam.transform.rotation;
 
-        // Меняем вращение камеры
         while (timeElapsed < rotationDuration)
         {
-            _camera.transform.rotation = Quaternion.Lerp(startRotation, intermediateRotation, timeElapsed / rotationDuration);
+            mainCam.transform.rotation = Quaternion.Lerp(startRotation, intermediateRotation, timeElapsed / rotationDuration);
             timeElapsed += Time.deltaTime;
             yield return null;
         }
 
-        _camera.transform.rotation = intermediateRotation;
+        mainCam.transform.rotation = intermediateRotation;
 
-        // Ждём немного перед возвратом в начальное состояние
         yield return new WaitForSeconds(delay);
 
         StartCoroutine(ReturnToInitialPosition());
@@ -79,19 +73,18 @@ public class EndTurn : MonoBehaviour
     private IEnumerator ReturnToInitialPosition()
     {
         float timeElapsed = 0;
-        Vector3 startPosition = _camera.transform.position;
-        Quaternion startRotation = _camera.transform.rotation;
+        Vector3 startPosition = mainCam.transform.position;
+        Quaternion startRotation = mainCam.transform.rotation;
 
-        // Возвращаем камеру в начальное положение и вращение
         while (timeElapsed < duration)
         {
-            _camera.transform.position = Vector3.Lerp(startPosition, initialPosition, timeElapsed / duration);
-            _camera.transform.rotation = Quaternion.Lerp(startRotation, initialRotation, timeElapsed / duration);
+            mainCam.transform.position = Vector3.Lerp(startPosition, initialPosition, timeElapsed / duration);
+            mainCam.transform.rotation = Quaternion.Lerp(startRotation, initialRotation, timeElapsed / duration);
             timeElapsed += Time.deltaTime;
             yield return null;
         }
 
-        _camera.transform.position = initialPosition;
-        _camera.transform.rotation = initialRotation;
+        mainCam.transform.position = initialPosition;
+        mainCam.transform.rotation = initialRotation;
     }
 }
