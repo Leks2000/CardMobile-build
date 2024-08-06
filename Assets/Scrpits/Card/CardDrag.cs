@@ -16,6 +16,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
         cardManag = FindObjectOfType<CardManager>().GetComponent<CardManager>();
+        NoramPos();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -51,27 +52,32 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvasGroup.blocksRaycasts = true;
         transform.SetParent(defaultParent);
 
-        rectTransform.pivot = new Vector2(0, 1);
-
-        RectTransform parentRectTransform = defaultParent.GetComponent<RectTransform>();
-        if (parentRectTransform != null)
-        {
-            Vector2 parentSize = parentRectTransform.rect.size;
-            Vector2 cardSize = rectTransform.rect.size;
-
-            Vector2 centeredPosition = new Vector2(
-                (parentSize.x - cardSize.x) / 2,
-                (cardSize.y - parentSize.y) / 2
-            );
-            rectTransform.anchoredPosition = centeredPosition;
-        }
-        transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
-        transform.localRotation = Quaternion.identity;
         if (defaultParent.CompareTag("Board"))
         {
+
+            RectTransform parentRectTransform = defaultParent.GetComponent<RectTransform>();
+            if (parentRectTransform != null)
+            {
+                Vector2 parentSize = parentRectTransform.rect.size;
+                Vector2 cardSize = rectTransform.rect.size;
+
+                Vector2 centeredPosition = new Vector2(
+                    (parentSize.x - cardSize.x) / 2,
+                    (cardSize.y - parentSize.y) / 2
+                );
+                rectTransform.anchoredPosition = centeredPosition;
+            }
+
+            NoramPos();
             isPlaced = true;
             int curCarInHand = cardManag.GetCardInHand;
             cardManag.GetCardInHand = curCarInHand + 1;
         }
+    }
+    private void NoramPos()
+    {
+        rectTransform.pivot = new Vector2(0, 1);
+        transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
+        transform.localRotation = Quaternion.identity;
     }
 }

@@ -16,6 +16,8 @@ public class EndTurnCamera : MonoBehaviour
     private Quaternion targetRotation;
     private Quaternion intermediateRotation;
 
+    AttackChecker attackLine;
+
     private void Start()
     {
         initialPosition = mainCam.transform.position;
@@ -26,6 +28,7 @@ public class EndTurnCamera : MonoBehaviour
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         cardManager = FindObjectOfType<CardManager>().GetComponent<CardManager>();
         GetComponent<Button_UI>().ClickFunc = () => StartCoroutine(MoveCamera());
+        attackLine = FindObjectOfType<AttackChecker>().GetComponent<AttackChecker>();
     }
 
 
@@ -47,12 +50,12 @@ public class EndTurnCamera : MonoBehaviour
         mainCam.transform.position = targetPosition;
         mainCam.transform.rotation = targetRotation;
 
-        yield return new WaitForSeconds(delay);
+        yield return new WaitForSeconds(delay + 0.1f);
 
-        StartCoroutine(ChangeRotation());
+        StartCoroutine(attackLine.changeLine());
     }
 
-    private IEnumerator ChangeRotation()
+    public IEnumerator ChangeRotation()
     {
         float timeElapsed = 0;
         Quaternion startRotation = mainCam.transform.rotation;
