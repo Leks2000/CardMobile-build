@@ -24,7 +24,7 @@ public class CardDeck : MonoBehaviour
     }
     public void RemoveCard(int count)
     {
-        totalCard = Mathf.Max(0, totalCard - count);
+        totalCard = Mathf.Max(totalCard - count);
         deck.text = totalCard.ToString();
     }
 }

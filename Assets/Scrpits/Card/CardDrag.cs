@@ -1,36 +1,41 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    RectTransform rectTransform;
-    Canvas canvas;
-    Vector2 initialPosition;
     public Transform defaultParent;
+    private bool isPlaced = false;
+    RectTransform rectTransform;
+    CardManager cardManag;
     CanvasGroup canvasGroup;
-    Bounds bounds;
+    Canvas canvas;
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
+        cardManag = FindObjectOfType<CardManager>().GetComponent<CardManager>();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        canvasGroup.alpha = 0.6f;
+        if (isPlaced)
+        {
+            return;
+        }
+        canvasGroup.alpha = 0.8f;
         canvasGroup.blocksRaycasts = false;
-        initialPosition = rectTransform.anchoredPosition;
         defaultParent = transform.parent;
         transform.SetParent(defaultParent.parent);
-        GetComponent<CanvasGroup>().blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (isPlaced)
+        {
+            return;
+        }
         Vector2 localPoint;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform.parent as RectTransform, eventData.position, canvas.worldCamera, out localPoint);
         rectTransform.anchoredPosition = localPoint;
@@ -38,9 +43,16 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        if (isPlaced)
+        {
+            return;
+        }
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
         transform.SetParent(defaultParent);
+
+        rectTransform.pivot = new Vector2(0, 1);
+
         RectTransform parentRectTransform = defaultParent.GetComponent<RectTransform>();
         if (parentRectTransform != null)
         {
@@ -49,14 +61,17 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 
             Vector2 centeredPosition = new Vector2(
                 (parentSize.x - cardSize.x) / 2,
-                (parentSize.y - cardSize.y) / 2
+                (cardSize.y - parentSize.y) / 2
             );
-            rectTransform.pivot = new Vector2(0, 1);
             rectTransform.anchoredPosition = centeredPosition;
-
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
-            transform.localRotation = Quaternion.identity;
         }
-
+        transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
+        transform.localRotation = Quaternion.identity;
+        if (defaultParent.CompareTag("Board"))
+        {
+            isPlaced = true;
+            int curCarInHand = cardManag.GetCardInHand;
+            cardManag.GetCardInHand = curCarInHand + 1;
+        }
     }
 }

@@ -1,8 +1,10 @@
 using System.Collections;
 using UnityEngine;
 
-public class EndTurn : MonoBehaviour
+public class EndTurnCamera : MonoBehaviour
 {
+    CardManager cardManager;
+
     [SerializeField] private Camera mainCam;
     [SerializeField] private float duration = 0.5f;
     [SerializeField] private float delay = 1f;
@@ -22,15 +24,14 @@ public class EndTurn : MonoBehaviour
         targetPosition = new Vector3(0, 0, -10);
         targetRotation = Quaternion.Euler(86, 0, 0);
         intermediateRotation = Quaternion.Euler(75, 0, 0);
+        cardManager = FindObjectOfType<CardManager>().GetComponent<CardManager>();
+        GetComponent<Button_UI>().ClickFunc = () => StartCoroutine(MoveCamera());
     }
 
-    public void EndRound()
-    {
-        StartCoroutine(MoveCamera());
-    }
 
     private IEnumerator MoveCamera()
     {
+        cardManager.TurnRound();
         float timeElapsed = 0;
         Vector3 startPosition = mainCam.transform.position;
         Quaternion startRotation = mainCam.transform.rotation;
