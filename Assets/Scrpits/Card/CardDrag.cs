@@ -1,14 +1,15 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public Transform defaultParent;
+    private Transform defaultParent;
     private bool isPlaced = false;
-    RectTransform rectTransform;
-    CardManager cardManag;
-    CanvasGroup canvasGroup;
-    Canvas canvas;
+    private RectTransform rectTransform;
+    private CardManager cardManag;
+    private CanvasGroup canvasGroup;
+    private Canvas canvas;
 
     private void Awake()
     {
@@ -16,7 +17,12 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
         cardManag = FindObjectOfType<CardManager>().GetComponent<CardManager>();
+        defaultParent = cardManag.gameObject.transform.parent;
         NoramPos();
+    }
+    public Transform GetParent
+    {
+        set { defaultParent = value; }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -37,8 +43,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
             return;
         }
-        Vector2 localPoint;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform.parent as RectTransform, eventData.position, canvas.worldCamera, out localPoint);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform.parent as RectTransform, eventData.position, canvas.worldCamera, out var localPoint);
         rectTransform.anchoredPosition = localPoint;
     }
 
@@ -55,13 +60,13 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (defaultParent.CompareTag("Board"))
         {
 
-            RectTransform parentRectTransform = defaultParent.GetComponent<RectTransform>();
+            var parentRectTransform = defaultParent.GetComponent<RectTransform>();
             if (parentRectTransform != null)
             {
-                Vector2 parentSize = parentRectTransform.rect.size;
-                Vector2 cardSize = rectTransform.rect.size;
+                var parentSize = parentRectTransform.rect.size;
+                var cardSize = rectTransform.rect.size;
 
-                Vector2 centeredPosition = new Vector2(
+                var centeredPosition = new Vector2(
                     (parentSize.x - cardSize.x) / 2,
                     (cardSize.y - parentSize.y) / 2
                 );
@@ -70,7 +75,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
             NoramPos();
             isPlaced = true;
-            int curCarInHand = cardManag.GetCardInHand;
+            var curCarInHand = cardManag.GetCardInHand;
             cardManag.GetCardInHand = curCarInHand + 1;
         }
     }

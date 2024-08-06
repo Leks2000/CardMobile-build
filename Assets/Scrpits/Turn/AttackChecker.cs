@@ -1,15 +1,15 @@
 ﻿using System.Collections;
-using Unity.VisualScripting;
+using Assets.Utility;
 using UnityEngine;
 
 public class AttackChecker : MonoBehaviour
 {
     public GameObject[] lines;
 
-    EndTurnCamera turnCamera;
-    RectTransform rectTransform;
-    MeshRenderer mesh;
-    Collider coll;
+    private RectTransform rectTransform;
+    private EndTurnCamera turnCamera;
+    private MeshRenderer mesh;
+    private Collider coll;
 
     private void Awake()
     {
@@ -22,9 +22,9 @@ public class AttackChecker : MonoBehaviour
     {
         mesh.enabled = true;
         coll.enabled = true;
-        for (int i = 0; i < lines.Length; i++)
+        for (var index = 0; index < lines.Length; index++)
         {
-            transform.SetParent(lines[i].transform);
+            transform.SetParent(lines[index].transform);
             rectTransform.anchoredPosition = new Vector2(
                 0,
                 0
@@ -39,7 +39,8 @@ public class AttackChecker : MonoBehaviour
     {
         if (hit.CompareTag("Card"))
         {
-            CardAttack cardAttack = hit.gameObject.GetComponentInParent<CardAttack>();
+            var cardAttack = hit.gameObject.GetComponentInParent<CardAttack>();
+            DebugUtility.HandleErrorIfNullGetComponent<CardAttack, AttackChecker>(cardAttack, this, gameObject);
             if (cardAttack != null)
             {
                 cardAttack.PerformAttack();

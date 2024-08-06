@@ -324,7 +324,7 @@ GameObject:
   - component: {fileID: 129235695}
   m_Layer: 5
   m_Name: PlayerCard
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647

@@ -1,14 +1,11 @@
 ﻿
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Animations;
-using UnityEngine.UI;
 
 public class CardDeck : MonoBehaviour
 {
     [SerializeField] private int totalCard;
-    CardManager cardManager;
+    private CardManager cardManager;
     private TextMeshProUGUI deck;
 
     private void Start()

@@ -35,9 +35,9 @@ public class EndTurnCamera : MonoBehaviour
     private IEnumerator MoveCamera()
     {
         cardManager.TurnRound();
-        float timeElapsed = 0;
-        Vector3 startPosition = mainCam.transform.position;
-        Quaternion startRotation = mainCam.transform.rotation;
+        var timeElapsed = 0f;
+        var startPosition = mainCam.transform.position;
+        var startRotation = mainCam.transform.rotation;
 
         while (timeElapsed < duration)
         {
@@ -57,8 +57,8 @@ public class EndTurnCamera : MonoBehaviour
 
     public IEnumerator ChangeRotation()
     {
-        float timeElapsed = 0;
-        Quaternion startRotation = mainCam.transform.rotation;
+        var timeElapsed = 0f;
+        var startRotation = mainCam.transform.rotation;
 
         while (timeElapsed < rotationDuration)
         {
@@ -76,9 +76,9 @@ public class EndTurnCamera : MonoBehaviour
 
     private IEnumerator ReturnToInitialPosition()
     {
-        float timeElapsed = 0;
-        Vector3 startPosition = mainCam.transform.position;
-        Quaternion startRotation = mainCam.transform.rotation;
+        var timeElapsed = 0f;
+        var startPosition = mainCam.transform.position;
+        var startRotation = mainCam.transform.rotation;
 
         while (timeElapsed < duration)
         {

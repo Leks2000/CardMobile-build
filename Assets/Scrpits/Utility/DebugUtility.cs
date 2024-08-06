@@ -54,7 +54,7 @@ namespace Assets.Utility
         }
 
         /// <summary>
-        /// Выводит ошибку, если ни компонент в данном контроллере не найден
+        /// Выводит ошибку, если ни один компонент в данном контроллере не найден
         /// </summary>
         /// <typeparam name="TO">То что мы ищем</typeparam>
         /// <typeparam name="TS">Где оно должно находиться</typeparam>
@@ -70,7 +70,7 @@ namespace Assets.Utility
             if (count == 0)
             {
                 Debug.LogError($"Ошибка: Компонент типа {typeof(TS)} on GameObject {source.gameObject.name}" +
-                               $" ожидается, что будет найден хотя бы один компонент типа {typeof(TO)} on GameObject " +
+                               $" ожидается, что будет найден хотя бы один компонент типа {typeof(TO)} на GameObject " +
                                $"{onObject.name}, но ни один из них не был найден.");
             }
         }

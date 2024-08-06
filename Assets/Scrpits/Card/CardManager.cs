@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class CardManager : MonoBehaviour
 {
-    private readonly object get;
     [SerializeField] private CardDeck cardDeck;
     [SerializeField] private GameObject card;
     [SerializeField] private int currentCardsInHand = 5;

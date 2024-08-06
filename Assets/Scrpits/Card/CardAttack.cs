@@ -2,28 +2,21 @@
 
 public class CardAttack : MonoBehaviour
 {
-    public float attackRange;
-    public float raycastDistance;
-
     public void PerformAttack()
     {
-        Vector3 direction = transform.up;
+        var direction = transform.up;
+        var raycastDistance = 100f;
 
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, direction, out hit, raycastDistance))
-        {
-            if (hit.collider.CompareTag("Enemy"))
-            {
-                Debug.Log("Враг найден: " + hit.collider.tag);
-            }
-            else
-            {
-                Debug.Log("Объект перед картой не является врагом: " + hit.collider.tag);
-            }
-        }
-        else
+        if (!Physics.Raycast(transform.position, direction, out var hit, raycastDistance))
         {
             Debug.Log("Впереди ничего нет.");
+            return;
         }
+        if (!hit.collider.CompareTag("Enemy"))
+        {
+            Debug.Log("Объект перед картой не является врагом: " + hit.collider.tag);
+            return;
+        }
+        Debug.Log("Враг найден: " + hit.collider.tag);
     }
 }
