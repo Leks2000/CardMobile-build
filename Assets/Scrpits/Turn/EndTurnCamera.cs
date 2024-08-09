@@ -16,7 +16,7 @@ public class EndTurnCamera : MonoBehaviour
     private Quaternion targetRotation;
     private Quaternion intermediateRotation;
 
-    AttackChecker attackLine;
+    LineAttack attackLine;
 
     private void Start()
     {
@@ -28,7 +28,7 @@ public class EndTurnCamera : MonoBehaviour
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         cardManager = FindObjectOfType<CardManager>().GetComponent<CardManager>();
         GetComponent<Button_UI>().ClickFunc = () => StartCoroutine(MoveCamera());
-        attackLine = FindObjectOfType<AttackChecker>().GetComponent<AttackChecker>();
+        attackLine = FindObjectOfType<LineAttack>().GetComponent<LineAttack>();
     }
 
 

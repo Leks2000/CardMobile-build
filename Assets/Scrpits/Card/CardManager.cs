@@ -3,7 +3,7 @@ using UnityEngine;
 public class CardManager : MonoBehaviour
 {
     [SerializeField] private CardDeck cardDeck;
-    [SerializeField] private GameObject card;
+    [SerializeField] private GameObject cardPrefab;
     [SerializeField] private int currentCardsInHand = 5;
 
     private int currentCardsPerRound;
@@ -15,7 +15,13 @@ public class CardManager : MonoBehaviour
             currentCardsPerRound += 1;
             currentCardsInHand -= 1;
             cardDeck.RemoveCard(1);
-            Instantiate(card, transform);
+            GameObject newCard = Instantiate(cardPrefab, transform);
+            Card cardComponent = newCard.GetComponent<Card>();
+            if (cardComponent != null)
+            {
+                cardComponent.Initialize();
+                cardComponent.UpdateCardDisplay();
+            }
         }
     }
     public int GetCardInHand

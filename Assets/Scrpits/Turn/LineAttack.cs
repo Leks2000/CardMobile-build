@@ -2,7 +2,7 @@
 using Assets.Utility;
 using UnityEngine;
 
-public class AttackChecker : MonoBehaviour
+public class LineAttack : MonoBehaviour
 {
     public GameObject[] lines;
 
@@ -39,8 +39,8 @@ public class AttackChecker : MonoBehaviour
     {
         if (hit.CompareTag("Card"))
         {
-            var cardAttack = hit.gameObject.GetComponentInParent<CardAttack>();
-            DebugUtility.HandleErrorIfNullGetComponent<CardAttack, AttackChecker>(cardAttack, this, gameObject);
+            var cardAttack = hit.gameObject.GetComponentInParent<CardMoveAttack>();
+            DebugUtility.HandleErrorIfNullGetComponent<CardMoveAttack, LineAttack>(cardAttack, this, gameObject);
             if (cardAttack != null)
             {
                 cardAttack.PerformAttack();
