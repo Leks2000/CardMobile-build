@@ -361,7 +361,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardDeck: {fileID: 1340979207}
-  cardPrefab: {fileID: 7481033376217071563, guid: 92ca5a95be6659d40baac7c9489e6daf, type: 3}
+  cardPrefab: {fileID: 7481033376217071563, guid: 2a9bd7e898f778c4797c9860f9a22ed2, type: 3}
   currentCardsInHand: 5
 --- !u!114 &129235695
 MonoBehaviour:

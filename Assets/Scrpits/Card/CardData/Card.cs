@@ -1,60 +1,47 @@
-﻿using TMPro;
+﻿using Assets.Utility;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static CardData;
 
 public class Card : MonoBehaviour
 {
-    private CardData cardData;
+    [SerializeField] private CardData cardData;
+    public CardData CardData { get; private set; }
+
     private DropCard dropCard;
-    private TMP_Text cardDmg;
     private TMP_Text cardHp;
+    private TMP_Text cardDmg;
+    private TMP_Text speedAttack;
     private Image typeAttack;
     private void Awake()
     {
         cardHp = transform.Find("HP").GetComponent<TMP_Text>();
         cardDmg = transform.Find("Damage").GetComponent<TMP_Text>();
+        speedAttack = transform.Find("speedAttack").GetComponent<TMP_Text>();
         typeAttack = transform.Find("TypeAttack").GetComponent<Image>();
-    }
-
-    public void Initialize()
-    {
-        var hp = int.Parse(cardHp.text);
-        var damage = int.Parse(cardDmg.text);
-        var attackType = GetAttackTypeFromImage(typeAttack.sprite);
-        cardData = new CardData(hp, damage, attackType);
-
+        CardData = cardData.Clone();
     }
     public void UpdateCardDisplay()
     {
-        cardHp.text = cardData.HP.ToString();
-        cardDmg.text = cardData.Damage.ToString();
-        Debug.Log($"HP: {cardData.HP}, Damage: {cardData.Damage}, Range: {cardData.Range}");
+        cardHp.text = CardData.HP.ToString();
+        cardDmg.text = CardData.Damage.ToString();
+        speedAttack.text = CardData.SpeedAttack.ToString();
+        Debug.Log($"HP: {CardData.HP}, Damage: {CardData.Damage}, Range: {CardData.distanceToAttack}, SpeedAttack: {CardData.SpeedAttack}");
     }
 
-    private AttackType GetAttackTypeFromImage(Sprite sprite)
+    public void TakeDamage(int damage)
     {
-        if (sprite.name == "CloseAttack")
-        {
-            return AttackType.CloseRange;
-        }
-        else
-        {
-            return AttackType.LongRange;
-        }
-    }
-    public CardData GetCardData()
-    {
-        return cardData;
-    }
-    public void SetHP(int newHP)
-    {
-        cardData.ApplyDamage(newHP);
+        CardData.ApplyDamage(damage);
         UpdateCardDisplay();
-        if (cardData.HP <= 0)
+        if (CardData.HP <= 0)
         {
             dropCard = GetComponentInParent<DropCard>();
-            dropCard.canDrop = true;
+            Assets.Utility.DebugUtility.HandleErrorIfNullGetComponent<DropCard, Card>(dropCard, this, gameObject);
+            if (dropCard != null)
+            {
+                dropCard.canDrop = true;
+            }
             Destroy(gameObject);
         }
     }

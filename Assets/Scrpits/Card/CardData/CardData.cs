@@ -1,36 +1,20 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class CardData
+[CreateAssetMenu(fileName = "NewCardData", menuName = "Card Data")]
+public class CardData : ScriptableObject
 {
-    public int HP { get; private set; }
-    public int Damage { get; private set; }
-    public int Range { get; private set; }
-    public enum AttackType
-    {
-        CloseRange,
-        LongRange
-    }
-    public CardData(int Hp, int Dmg, AttackType TypeAttack)
-    {
-        HP = Hp;
-        Damage = Dmg;
-        Range = GetRangeFromAttackType(TypeAttack);
-    }
-    private int GetRangeFromAttackType(AttackType type)
-    {
-        switch (type)
-        {
-            case AttackType.CloseRange:
-                return 50;
-            case AttackType.LongRange:
-                return 100;
-            default:
-                return 0;
-        }
-    }
+    public int HP;
+    public int Damage;
+    public float SpeedAttack;
+    public int distanceToAttack;
+    public float spawnChance;
+
     public void ApplyDamage(int damage)
     {
         HP -= damage;
+    }
+    public CardData Clone()
+    {
+        return Instantiate(this);
     }
 }

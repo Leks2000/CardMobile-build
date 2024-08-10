@@ -19,7 +19,6 @@ public class CardManager : MonoBehaviour
             Card cardComponent = newCard.GetComponent<Card>();
             if (cardComponent != null)
             {
-                cardComponent.Initialize();
                 cardComponent.UpdateCardDisplay();
             }
         }

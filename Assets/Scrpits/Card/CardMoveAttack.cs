@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using static UnityEngine.UI.Image;
 
 public class CardMoveAttack : MonoBehaviour
@@ -7,7 +8,7 @@ public class CardMoveAttack : MonoBehaviour
     public void PerformAttack()
     {
         var direction = transform.up;
-        var raycastDistance = card.GetCardData().Range;
+        var raycastDistance = card.CardData.distanceToAttack;
         if (!Physics.Raycast(transform.position, direction, out var hit, raycastDistance))
         {
             Debug.Log("Впереди ничего нет.");
@@ -19,11 +20,11 @@ public class CardMoveAttack : MonoBehaviour
             return;
         }
         Debug.Log("Враг найден: " + hit.collider.tag);
-        var enemyHP = hit.collider.GetComponentInParent<Card>();
-        Attack(enemyHP);
+        var enemyCard = hit.collider.GetComponentInParent<Card>();
+        Attack(enemyCard);
     }
     private void Attack(Card enemyData)
     {
-        enemyData.SetHP(card.GetCardData().Damage);
+        enemyData.TakeDamage(card.CardData.Damage);
     }
 }
