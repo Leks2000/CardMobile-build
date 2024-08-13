@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 
 public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    private Transform mapTrans;
     private Transform defaultParent;
     private bool isPlaced = false;
     private RectTransform rectTransform;
@@ -17,8 +18,9 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
         cardManag = FindObjectOfType<CardManager>().GetComponent<CardManager>();
+        mapTrans = GameObject.FindGameObjectWithTag("Deck").GetComponent<Transform>();
         defaultParent = cardManag.gameObject.transform.parent;
-        NoramPos();
+        ResetCard();
     }
     public Transform GetParent
     {
@@ -33,8 +35,12 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
         canvasGroup.alpha = 0.8f;
         canvasGroup.blocksRaycasts = false;
+
         defaultParent = transform.parent;
         transform.SetParent(defaultParent.parent);
+
+        rectTransform.localPosition = mapTrans.localPosition;
+        rectTransform.localRotation = Quaternion.identity;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -59,30 +65,25 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         if (defaultParent.CompareTag("Board"))
         {
-
             var parentRectTransform = defaultParent.GetComponent<RectTransform>();
             if (parentRectTransform != null)
             {
-                var parentSize = parentRectTransform.rect.size;
-                var cardSize = rectTransform.rect.size;
-
-                var centeredPosition = new Vector2(
-                    (parentSize.x - cardSize.x) / 2,
-                    (cardSize.y - parentSize.y) / 2
-                );
-                rectTransform.anchoredPosition = centeredPosition;
+                rectTransform.anchoredPosition = Vector3.zero;
+                rectTransform.localScale = Vector3.one;
             }
-
-            NoramPos();
             isPlaced = true;
             var curCarInHand = cardManag.GetCardInHand;
             cardManag.GetCardInHand = curCarInHand + 1;
         }
+        ResetCard();
     }
-    private void NoramPos()
+    private void ResetCard()
     {
-        rectTransform.pivot = new Vector2(0, 1);
-        transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
-        transform.localRotation = Quaternion.identity;
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        rectTransform.anchoredPosition = Vector2.zero;
+        rectTransform.localPosition = new Vector3(rectTransform.localPosition.x, rectTransform.localPosition.y, 0);
+        rectTransform.localRotation = Quaternion.identity;
     }
 }

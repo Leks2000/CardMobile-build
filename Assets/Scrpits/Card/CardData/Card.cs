@@ -9,25 +9,28 @@ public class Card : MonoBehaviour
     [SerializeField] private CardData cardData;
     public CardData CardData { get; private set; }
 
-    private DropCard dropCard;
     private TMP_Text cardHp;
     private TMP_Text cardDmg;
-    private TMP_Text speedAttack;
+    private TMP_Text cardCost;
     private Image typeAttack;
     private void Awake()
     {
-        cardHp = transform.Find("HP").GetComponent<TMP_Text>();
-        cardDmg = transform.Find("Damage").GetComponent<TMP_Text>();
-        speedAttack = transform.Find("speedAttack").GetComponent<TMP_Text>();
-        typeAttack = transform.Find("TypeAttack").GetComponent<Image>();
-        CardData = cardData.Clone();
+        cardHp = transform.Find("HP/HpText").GetComponent<TMP_Text>();
+        cardDmg = transform.Find("TypeAttack/DmgText").GetComponent<TMP_Text>();
+        cardCost = transform.Find("Cost/CostText").GetComponent<TMP_Text>();
+        //typeAttack = transform.Find("TypeAttack").GetComponent<Image>();
+
+        if (cardData != null)
+        {
+            CardData = cardData.Clone();
+        }
     }
     public void UpdateCardDisplay()
     {
         cardHp.text = CardData.HP.ToString();
         cardDmg.text = CardData.Damage.ToString();
-        speedAttack.text = CardData.SpeedAttack.ToString();
-        Debug.Log($"HP: {CardData.HP}, Damage: {CardData.Damage}, Range: {CardData.distanceToAttack}, SpeedAttack: {CardData.SpeedAttack}");
+        cardCost.text = CardData.Cost.ToString();
+        Debug.Log($"HP: {CardData.HP}, Damage: {CardData.Damage}, Range: {CardData.distanceToAttack}, Cost: {CardData.Cost}");
     }
 
     public void TakeDamage(int damage)
@@ -36,10 +39,10 @@ public class Card : MonoBehaviour
         UpdateCardDisplay();
         if (CardData.HP <= 0)
         {
-            dropCard = GetComponentInParent<DropCard>();
-            Assets.Utility.DebugUtility.HandleErrorIfNullGetComponent<DropCard, Card>(dropCard, this, gameObject);
+            var dropCard = GetComponentInParent<DropCard>();
             if (dropCard != null)
             {
+                Assets.Utility.DebugUtility.HandleErrorIfNullGetComponent<DropCard, Card>(dropCard, this, gameObject);
                 dropCard.canDrop = true;
             }
             Destroy(gameObject);

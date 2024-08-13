@@ -23,7 +23,7 @@ public class EndTurnCamera : MonoBehaviour
         initialPosition = mainCam.transform.position;
         initialRotation = mainCam.transform.rotation;
 
-        targetPosition = new Vector3(0, 0, -10);
+        targetPosition = new Vector3(0, 0, -5);
         targetRotation = Quaternion.Euler(86, 0, 0);
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         cardManager = FindObjectOfType<CardManager>().GetComponent<CardManager>();

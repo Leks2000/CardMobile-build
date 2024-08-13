@@ -16,4 +16,3 @@ MonoBehaviour:
   Damage: 1
   SpeedAttack: 1
   distanceToAttack: 100
-  spawnChance: 0

@@ -14,7 +14,7 @@ public class CardMoveAttack : MonoBehaviour
             Debug.Log("Впереди ничего нет.");
             return;
         }
-        if (!hit.collider.CompareTag("Card"))
+        if (!hit.collider.CompareTag("enemyCard"))
         {
             Debug.Log("Объект перед картой не является врагом: " + hit.collider.tag);
             return;

@@ -11,7 +11,7 @@ public class CardDeck : MonoBehaviour
     private void Start()
     {
         deck = transform.GetChild(0).GetComponent<TextMeshProUGUI>();
-        deck.text = totalCard.ToString();
+        deck.text = $"x{totalCard}";
         cardManager = FindObjectOfType<CardManager>();
         GetComponent<Button_UI>().ClickFunc = () => cardManager.DrawCard();
     }
@@ -22,6 +22,6 @@ public class CardDeck : MonoBehaviour
     public void RemoveCard(int count)
     {
         totalCard = Mathf.Max(totalCard - count);
-        deck.text = totalCard.ToString();
+        deck.text = $"x{totalCard}";
     }
 }

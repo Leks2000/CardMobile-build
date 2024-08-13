@@ -22,6 +22,7 @@ public class LineAttack : MonoBehaviour
     {
         mesh.enabled = true;
         coll.enabled = true;
+        rectTransform.localPosition = new Vector3(0, 0, 5);
         for (var index = 0; index < lines.Length; index++)
         {
             transform.SetParent(lines[index].transform);
