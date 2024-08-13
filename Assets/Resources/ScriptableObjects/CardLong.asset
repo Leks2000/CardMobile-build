@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HP: 3
   Damage: 1
-  SpeedAttack: 1
+  Cost: 2
   distanceToAttack: 100
