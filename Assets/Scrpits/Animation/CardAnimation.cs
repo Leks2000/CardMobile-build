@@ -1,7 +1,6 @@
 using System.Collections;
-using UnityEngine;
 using DG.Tweening;
-using UnityEngine.UI;
+using UnityEngine;
 
 public class CardAnimation : MonoBehaviour
 {

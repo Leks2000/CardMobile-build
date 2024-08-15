@@ -1,7 +1,7 @@
 ﻿using DG.Tweening;
 using UnityEngine;
 
-public class moveForward : MonoBehaviour
+public class MoveForward : MonoBehaviour
 {
     public float raycastDistance = 32; // Расстояние луча
     public Color rayColor = Color.red;  // Цвет луча

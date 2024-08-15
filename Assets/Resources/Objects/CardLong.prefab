@@ -832,7 +832,7 @@ GameObject:
   - component: {fileID: 6725458454588072238}
   - component: {fileID: 1734591006195325633}
   - component: {fileID: -6120307984431435275}
-  - component: {fileID: 2788599787242860724}
+  - component: {fileID: 2022631976737883107}
   m_Layer: 5
   m_Name: CardLong
   m_TagString: Card
@@ -968,7 +968,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationDuration: 0.5
---- !u!114 &2788599787242860724
+--- !u!114 &2022631976737883107
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

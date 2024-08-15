@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class EndTurnCamera : MonoBehaviour
@@ -10,7 +11,7 @@ public class EndTurnCamera : MonoBehaviour
     [SerializeField] private float duration = 0.5f;
     [SerializeField] private float delay = 1f;
     [SerializeField] private float rotationDuration = 0.5f;
-    public List<moveForward> moveForwards;
+    public List<MoveForward> moveForwards;
 
     private Vector3 initialPosition;
     private Quaternion initialRotation;
@@ -69,9 +70,14 @@ public class EndTurnCamera : MonoBehaviour
         }
 
         mainCam.transform.rotation = intermediateRotation;
-        for (var i = 0; i < moveForwards.Count; i++)
+        foreach (var moveForward in moveForwards.ToList())
         {
-            moveForwards[i].GetPath();
+            if (moveForward.GetComponentInChildren<Card>() == null)
+            {
+                moveForwards.Remove(moveForward);
+                continue;
+            }
+            moveForward.GetPath();
         }
         yield return new WaitForSeconds(delay + 1f);
 

@@ -13,34 +13,26 @@ public class CardMoveAttack : MonoBehaviour
             Debug.Log("Впереди ничего нет.");
             return;
         }
-        if (!hit.collider.CompareTag("Enemy"))
+        if (LineAttack.Tags.Contains(hit.collider.tag))
         {
             Debug.Log("Объект перед картой является врагом: " + hit.collider.tag);
+            var enemyCard = hit.collider.GetComponentInParent<Card>();
+            Attack(enemyCard);
             return;
         }
         Debug.Log("Враг БОСС " + hit.collider.tag);
-        var enemyCard = hit.collider.GetComponentInParent<Card>();
-        Attack(enemyCard);
+        var enemyBoss = hit.collider.GetComponentInParent<Card>();
+        Attack(enemyBoss);
     }
     private void Attack(Card enemyData)
     {
-        Debug.Log("DD");
-        Sequence shakeSequence = DOTween.Sequence();
-
-        // Тряска по позиции
-        shakeSequence.Append(transform.DOShakePosition(1f, 1f, 10, 90f)
-            .SetEase(Ease.Linear));
-
-        // Тряска по вращению
-        shakeSequence.Join(transform.DOShakeRotation(1f, 10f, 10, 90f)
-            .SetEase(Ease.Linear));
-
-        // Тряска по масштабу
-        shakeSequence.Join(transform.DOShakeScale(1f, 0.1f, 10, 90f)
-            .SetEase(Ease.Linear));
-
-        // Запуск последовательности
-        shakeSequence.Play();
+        /// Анимировать атаку
+        /*
+        var transEnemy = enemyData.GetComponent<RectTransform>().localPosition;
+        var transDef = transform.GetComponent<RectTransform>().localPosition;
+        transform.DOMove(transEnemy, 2f).SetEase(Ease.OutQuad);
+        transform.DOMove(transDef, 2f).SetEase(Ease.OutQuad);
+        */
         enemyData.TakeDamage(card.CardData.Damage);
     }
 }

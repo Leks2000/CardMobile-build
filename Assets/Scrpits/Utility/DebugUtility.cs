@@ -20,7 +20,7 @@ namespace Assets.Utility
         ///   DebugUtility.HandleErrorIfNullGetComponent<Health, EnemyController>(m_Health, this, gameObject);
         /// </example>
         public static void HandleErrorIfNullGetComponent<TO, TS>(
-            Component component,
+            this Component component,
             Component source,
             GameObject onObject)
         {
@@ -65,7 +65,7 @@ namespace Assets.Utility
         ///    var detectionModules = GetComponentsInChildren<DetectionModule>();
         ///    DebugUtility.HandleErrorIfNoComponentFound<DetectionModule, EnemyController>(detectionModules.Length, this,gameObject);
         /// </example>
-        public static void HandleErrorIfNoComponentFound<TO, TS>(int count, Component source, GameObject onObject)
+        public static void HandleErrorIfNoComponentFound<TO, TS>(this Component source, int count, GameObject onObject)
         {
             if (count == 0)
             {

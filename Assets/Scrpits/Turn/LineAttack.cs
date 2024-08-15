@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using Assets.Utility;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ public class LineAttack : MonoBehaviour
     private EndTurnCamera turnCamera;
     private MeshRenderer mesh;
     private Collider coll;
+    public static List<string> Tags = new List<string>() { "Card", "Enemy" };
 
     private void Awake()
     {
@@ -26,10 +28,7 @@ public class LineAttack : MonoBehaviour
         for (var index = 0; index < lines.Length; index++)
         {
             transform.SetParent(lines[index].transform);
-            rectTransform.anchoredPosition = new Vector2(
-                0,
-                0
-            );
+            rectTransform.anchoredPosition = Vector2.zero;
             yield return new WaitForSeconds(1);
         }
         mesh.enabled = false;
@@ -38,19 +37,21 @@ public class LineAttack : MonoBehaviour
     }
     public void OnTriggerEnter(Collider hit)
     {
-        if (hit.CompareTag("Card") || hit.CompareTag("Enemy"))
+        if (Tags.Contains(hit.tag))
         {
             var cardAttack = hit.gameObject.GetComponentInParent<CardMoveAttack>();
-            DebugUtility.HandleErrorIfNullGetComponent<CardMoveAttack, LineAttack>(cardAttack, this, gameObject);
+
+            cardAttack.HandleErrorIfNullGetComponent<CardMoveAttack, LineAttack>(this, gameObject);
             if (cardAttack != null)
             {
                 cardAttack.PerformAttack();
             }
-            var get = cardAttack.GetComponentInParent<moveForward>();
-            if (get != null)
+            var moveForward = cardAttack.GetComponentInParent<MoveForward>();
+            moveForward.HandleErrorIfNullGetComponent<MoveForward, LineAttack>(this, gameObject);
+            if (moveForward != null)
             {
-                turnCamera.moveForwards.Add(get);
-                Debug.Log($"{get}");
+                turnCamera.moveForwards.Add(moveForward);
+                Debug.Log($"{moveForward}");
             }
         }
     }
