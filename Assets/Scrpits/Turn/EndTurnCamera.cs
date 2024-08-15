@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EndTurnCamera : MonoBehaviour
@@ -9,6 +10,7 @@ public class EndTurnCamera : MonoBehaviour
     [SerializeField] private float duration = 0.5f;
     [SerializeField] private float delay = 1f;
     [SerializeField] private float rotationDuration = 0.5f;
+    public List<moveForward> moveForwards;
 
     private Vector3 initialPosition;
     private Quaternion initialRotation;
@@ -34,7 +36,6 @@ public class EndTurnCamera : MonoBehaviour
 
     private IEnumerator MoveCamera()
     {
-        cardManager.TurnRound();
         var timeElapsed = 0f;
         var startPosition = mainCam.transform.position;
         var startRotation = mainCam.transform.rotation;
@@ -68,8 +69,11 @@ public class EndTurnCamera : MonoBehaviour
         }
 
         mainCam.transform.rotation = intermediateRotation;
-
-        yield return new WaitForSeconds(delay);
+        for (var i = 0; i < moveForwards.Count; i++)
+        {
+            moveForwards[i].GetPath();
+        }
+        yield return new WaitForSeconds(delay + 1f);
 
         StartCoroutine(ReturnToInitialPosition());
     }
@@ -90,5 +94,6 @@ public class EndTurnCamera : MonoBehaviour
 
         mainCam.transform.position = initialPosition;
         mainCam.transform.rotation = initialRotation;
+        cardManager.TurnRound();
     }
 }

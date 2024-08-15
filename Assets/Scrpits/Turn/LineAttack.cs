@@ -38,13 +38,19 @@ public class LineAttack : MonoBehaviour
     }
     public void OnTriggerEnter(Collider hit)
     {
-        if (hit.CompareTag("Card"))
+        if (hit.CompareTag("Card") || hit.CompareTag("Enemy"))
         {
             var cardAttack = hit.gameObject.GetComponentInParent<CardMoveAttack>();
             DebugUtility.HandleErrorIfNullGetComponent<CardMoveAttack, LineAttack>(cardAttack, this, gameObject);
             if (cardAttack != null)
             {
                 cardAttack.PerformAttack();
+            }
+            var get = cardAttack.GetComponentInParent<moveForward>();
+            if (get != null)
+            {
+                turnCamera.moveForwards.Add(get);
+                Debug.Log($"{get}");
             }
         }
     }

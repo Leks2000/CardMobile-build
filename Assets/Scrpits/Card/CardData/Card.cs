@@ -1,4 +1,5 @@
-﻿using Assets.Utility;
+﻿using System.Collections;
+using Assets.Utility;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -12,13 +13,12 @@ public class Card : MonoBehaviour
     private TMP_Text cardHp;
     private TMP_Text cardDmg;
     private TMP_Text cardCost;
-    private Image typeAttack;
+
     private void Awake()
     {
         cardHp = transform.Find("HP/HpText").GetComponent<TMP_Text>();
         cardDmg = transform.Find("TypeAttack/DmgText").GetComponent<TMP_Text>();
         cardCost = transform.Find("Cost/CostText").GetComponent<TMP_Text>();
-        //typeAttack = transform.Find("TypeAttack").GetComponent<Image>();
 
         if (cardData != null)
         {
@@ -30,7 +30,7 @@ public class Card : MonoBehaviour
         cardHp.text = CardData.HP.ToString();
         cardDmg.text = CardData.Damage.ToString();
         cardCost.text = CardData.Cost.ToString();
-        Debug.Log($"HP: {CardData.HP}, Damage: {CardData.Damage}, Range: {CardData.distanceToAttack}, Cost: {CardData.Cost}");
+        Debug.Log($"HP: {CardData.HP}, Damage: {CardData.Damage}, Cost: {CardData.Cost}");
     }
 
     public void TakeDamage(int damage)
