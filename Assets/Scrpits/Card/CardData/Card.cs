@@ -40,7 +40,7 @@ public class Card : MonoBehaviour
         if (CardData.HP <= 0)
         {
             var dropCard = GetComponentInParent<DropCard>();
-            dropCard.HandleErrorIfNullGetComponent<DropCard, Card>(this, gameObject);
+            //dropCard.HandleErrorIfNullGetComponent<DropCard, Card>(this, gameObject);
             if (dropCard != null)
             {
                 dropCard.canDrop = true;

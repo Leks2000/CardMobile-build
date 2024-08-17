@@ -721,7 +721,7 @@ GameObject:
   - component: {fileID: 2072312393368663672}
   m_Layer: 5
   m_Name: Sphere
-  m_TagString: Card
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -832,10 +832,10 @@ GameObject:
   - component: {fileID: 1734591006195325633}
   - component: {fileID: -6120307984431435275}
   - component: {fileID: 2022631976737883107}
-  - component: {fileID: 2139454945296490360}
+  - component: {fileID: 7198733430326331963}
   m_Layer: 5
-  m_Name: CardLong
-  m_TagString: Card
+  m_Name: EnemyCard
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
@@ -967,7 +967,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbf6a2b03572b4a4bac72f87b84ec903, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2139454945296490360
+--- !u!114 &7198733430326331963
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -976,7 +976,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7481033376217071563}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fbcaa7e08ca4064784b8aa27aa3298e, type: 3}
+  m_Script: {fileID: 11500000, guid: 5a45466ae1b232943bef9b18eee5961e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   card: {fileID: 6725458454588072238}

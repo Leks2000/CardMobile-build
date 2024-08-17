@@ -9,6 +9,7 @@ TagManager:
   - Board
   - Enemy
   - PlayerCard
+  - EnemyBoss
   layers:
   - Default
   - TransparentFX

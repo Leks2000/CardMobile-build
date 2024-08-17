@@ -39,15 +39,15 @@ public class LineAttack : MonoBehaviour
     {
         if (Tags.Contains(hit.tag))
         {
-            var cardAttack = hit.gameObject.GetComponentInParent<CardMoveAttack>();
+            var cardForwardAttack = hit.gameObject.GetComponentInParent<CardForwardAttack>();
 
-            cardAttack.HandleErrorIfNullGetComponent<CardMoveAttack, LineAttack>(this, gameObject);
-            if (cardAttack != null)
+            cardForwardAttack.HandleErrorIfNullGetComponent<CardForwardAttack, LineAttack>(this, gameObject);
+            if (cardForwardAttack != null)
             {
-                cardAttack.PerformAttack();
+                cardForwardAttack.PerformAttack();
             }
-            var moveForward = cardAttack.GetComponentInParent<MoveForward>();
-            moveForward.HandleErrorIfNullGetComponent<MoveForward, LineAttack>(this, gameObject);
+            var moveForward = cardForwardAttack.GetComponentInParent<MoveForward>();
+            //moveForward.HandleErrorIfNullGetComponent<MoveForward, LineAttack>(this, gameObject);
             if (moveForward != null)
             {
                 turnCamera.moveForwards.Add(moveForward);

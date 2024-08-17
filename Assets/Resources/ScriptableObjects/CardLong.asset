@@ -15,4 +15,3 @@ MonoBehaviour:
   HP: 3
   Damage: 1
   Cost: 2
-  distanceToAttack: 100
