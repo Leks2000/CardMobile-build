@@ -19,7 +19,7 @@ public class EndTurnCamera : MonoBehaviour
     private Quaternion targetRotation;
     private Quaternion intermediateRotation;
 
-    LineAttack attackLine;
+    LineAttackMoveActivation attackLine;
 
     private void Start()
     {
@@ -31,7 +31,7 @@ public class EndTurnCamera : MonoBehaviour
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         cardManager = FindObjectOfType<CardManager>().GetComponent<CardManager>();
         GetComponent<Button_UI>().ClickFunc = () => StartCoroutine(MoveCamera());
-        attackLine = FindObjectOfType<LineAttack>().GetComponent<LineAttack>();
+        attackLine = FindObjectOfType<LineAttackMoveActivation>().GetComponent<LineAttackMoveActivation>();
     }
 
 
@@ -68,18 +68,9 @@ public class EndTurnCamera : MonoBehaviour
             timeElapsed += Time.deltaTime;
             yield return null;
         }
-
         mainCam.transform.rotation = intermediateRotation;
-        foreach (var moveForward in moveForwards.ToList())
-        {
-            if (moveForward.GetComponentInChildren<Card>() == null)
-            {
-                moveForwards.Remove(moveForward);
-                continue;
-            }
-            moveForward.GetPath();
-        }
-        yield return new WaitForSeconds(delay + 1f);
+
+        yield return StartCoroutine(attackLine.moveCards(attackLine.moveBaclkLines, 0.25f));
 
         StartCoroutine(ReturnToInitialPosition());
     }

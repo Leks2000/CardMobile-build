@@ -1,51 +1,59 @@
 ﻿using UnityEngine;
 using DG.Tweening;
 using System;
+using System.Collections;
 
 public abstract class CardForwardAttack : MonoBehaviour
 {
     [SerializeField] protected Card card;
     [SerializeField] protected Camera mainCamera;
     public float moveDistance = 1f;
+
+    public delegate void AttackCompleteHandler();
+    public event AttackCompleteHandler OnAttackComplete;
+
     private void Awake()
     {
         mainCamera = Camera.main;
     }
-    public void PerformAttack()
+    public IEnumerator PerformAttack()
     {
         var direction = transform.up;
         var raycastDistance = 32;
         if (!Physics.Raycast(transform.position, direction, out var hit, raycastDistance))
         {
             Debug.Log("Впереди ничего нет.");
-            return;
         }
         if (IsEnemy(hit.collider))
         {
             Debug.Log("Объект перед картой является врагом: " + hit.collider.tag);
             var enemyCard = hit.collider.GetComponentInParent<Card>();
-            Attack(enemyCard);
-            return;
+            yield return StartCoroutine(AttackAnimation(enemyCard));
         }
         if (IsBoss(hit.collider))
         {
             Debug.Log("Враг БОСС " + hit.collider.tag);
-            OnBossHit();
+            StartCoroutine(OnBossHit());
+        }
+        else
+        {
+            OnAttackComplete?.Invoke();
         }
     }
     protected abstract bool IsBoss(Collider collider);
     protected abstract bool IsEnemy(Collider collider);
-    protected virtual void OnBossHit()
+    protected virtual IEnumerator OnBossHit()
     {
-        Attack(null);
+        yield return StartCoroutine(AttackAnimation(null));
     }
     protected void ShakeCamera()
     {
         mainCamera.transform.DOShakePosition(0.5f, strength: new Vector3(3, 3, 0), vibrato: 10, randomness: 90, snapping: false, fadeOut: true);
     }
 
-    protected void Attack(Card enemyData)
+    protected IEnumerator AttackAnimation(Card enemyData)
     {
+        yield return new WaitForSeconds(0.5f);
         var transDef = transform.GetComponent<RectTransform>().position;
         Vector3 forwardPosition = transDef + transform.up * moveDistance;
 
@@ -58,10 +66,11 @@ public abstract class CardForwardAttack : MonoBehaviour
             if (enemyData != null)
             {
                 enemyData.TakeDamage(card.CardData.Damage);
-            }
-            else
-            {
-                Debug.Log("Наносим урон боссу.");
+                if (enemyData.CardData.Damage > card.CardData.HP)
+                {
+                    bossAttackSequence.Kill();
+                    OnAttackComplete?.Invoke();
+                }
             }
         });
         if (card.CardData.HP > 0)
@@ -69,5 +78,8 @@ public abstract class CardForwardAttack : MonoBehaviour
             bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));
         }
         bossAttackSequence.Play();
+
+        yield return new WaitForSeconds(0.5f);
+        OnAttackComplete?.Invoke();
     }
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class MoveForward : MonoBehaviour
 {
+    public bool isMovingBackLine = false;
     public float raycastDistance = 32;
     public Color rayColor = Color.red;
     public static List<string> Tags = new List<string>() { "Enemy", "Card" };

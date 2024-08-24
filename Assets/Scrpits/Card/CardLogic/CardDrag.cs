@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -11,6 +12,8 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     private CardManager cardManag;
     private CanvasGroup canvasGroup;
     private Canvas canvas;
+    public static List<string> Tags = new List<string>() { "Board", "Player" };
+
 
     private void Awake()
     {
@@ -63,17 +66,11 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvasGroup.blocksRaycasts = true;
         transform.SetParent(defaultParent);
 
-        if (defaultParent.CompareTag("Board"))
+        if (Tags.Contains(defaultParent.tag))
         {
-            var parentRectTransform = defaultParent.GetComponent<RectTransform>();
-            if (parentRectTransform != null)
-            {
-                rectTransform.anchoredPosition = Vector3.zero;
-                rectTransform.localScale = Vector3.one;
-            }
-            isPlaced = true;
             var curCarInHand = cardManag.GetCardInHand;
             cardManag.GetCardInHand = curCarInHand + 1;
+            isPlaced = true;
         }
         ResetCard();
     }

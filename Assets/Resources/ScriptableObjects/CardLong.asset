@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
   m_Name: CardLong
   m_EditorClassIdentifier: 
-  HP: 3
+  HP: 1
   Damage: 1
   Cost: 2

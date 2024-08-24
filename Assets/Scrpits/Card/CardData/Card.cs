@@ -36,16 +36,15 @@ public class Card : MonoBehaviour
     public void TakeDamage(int damage)
     {
         CardData.ApplyDamage(damage);
-        UpdateCardDisplay();
         if (CardData.HP <= 0)
         {
             var dropCard = GetComponentInParent<DropCard>();
-            //dropCard.HandleErrorIfNullGetComponent<DropCard, Card>(this, gameObject);
             if (dropCard != null)
             {
                 dropCard.canDrop = true;
             }
             Destroy(gameObject);
         }
+        UpdateCardDisplay();
     }
 }
