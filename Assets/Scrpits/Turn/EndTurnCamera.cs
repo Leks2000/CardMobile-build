@@ -11,7 +11,6 @@ public class EndTurnCamera : MonoBehaviour
     [SerializeField] private float duration = 0.5f;
     [SerializeField] private float delay = 1f;
     [SerializeField] private float rotationDuration = 0.5f;
-    public List<MoveForward> moveForwards;
 
     private Vector3 initialPosition;
     private Quaternion initialRotation;
@@ -20,6 +19,7 @@ public class EndTurnCamera : MonoBehaviour
     private Quaternion intermediateRotation;
 
     LineAttackMoveActivation attackLine;
+    private bool hasClicked;
 
     private void Start()
     {
@@ -30,10 +30,17 @@ public class EndTurnCamera : MonoBehaviour
         targetRotation = Quaternion.Euler(86, 0, 0);
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         cardManager = FindObjectOfType<CardManager>().GetComponent<CardManager>();
-        GetComponent<Button_UI>().ClickFunc = () => StartCoroutine(MoveCamera());
+        GetComponent<Button_UI>().ClickFunc = () => OnClickFunc();
         attackLine = FindObjectOfType<LineAttackMoveActivation>().GetComponent<LineAttackMoveActivation>();
     }
-
+    private void OnClickFunc()
+    {
+        if (!hasClicked)
+        {
+            hasClicked = true;
+            StartCoroutine(MoveCamera());
+        }
+    }
 
     private IEnumerator MoveCamera()
     {
@@ -71,8 +78,8 @@ public class EndTurnCamera : MonoBehaviour
         mainCam.transform.rotation = intermediateRotation;
 
         yield return StartCoroutine(attackLine.moveCards(attackLine.moveBaclkLines, 0.25f));
-
         StartCoroutine(ReturnToInitialPosition());
+        attackLine.moveBaclkLines.Clear();
     }
 
     private IEnumerator ReturnToInitialPosition()
@@ -92,5 +99,8 @@ public class EndTurnCamera : MonoBehaviour
         mainCam.transform.position = initialPosition;
         mainCam.transform.rotation = initialRotation;
         cardManager.TurnRound();
+
+        yield return new WaitForSeconds(0.5f);
+        hasClicked = false;
     }
 }

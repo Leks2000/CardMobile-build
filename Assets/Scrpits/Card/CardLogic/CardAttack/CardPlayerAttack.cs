@@ -1,4 +1,5 @@
-﻿using DG.Tweening;
+﻿using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 
 public class CardPlayerAttack : CardForwardAttack
@@ -10,5 +11,9 @@ public class CardPlayerAttack : CardForwardAttack
     protected override bool IsEnemy(Collider collider)
     {
         return collider.CompareTag("Enemy");
+    }
+    protected override IEnumerator OnBossHit(Card enemyData, Boss boss, bool shake)
+    {
+        yield return base.OnBossHit(null, FindObjectOfType<Boss>(), false);
     }
 }

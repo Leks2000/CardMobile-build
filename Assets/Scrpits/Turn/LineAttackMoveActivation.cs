@@ -34,22 +34,46 @@ public class LineAttackMoveActivation : MonoBehaviour
         coll.enabled = true;
         rectTransform.localPosition = new Vector3(0, 0, 5);
         rectTransform.DOScale(new Vector3(125f, 900f, 1), 0.25f);
-        transform.SetParent(lines[0].transform);
-        rectTransform.anchoredPosition = Vector2.zero;
 
-        for (var index = 0; index < lines.Length; index++)
+        GameObject initialLine = lines.FirstOrDefault(line =>
+                  line.GetComponentsInChildren<Transform>().Any(child => Tags.Contains(child.tag)));
+
+        if (initialLine != null)
         {
-            transform.SetParent(lines[index].transform);
+            transform.SetParent(initialLine.transform);
+            rectTransform.anchoredPosition = Vector2.zero;
             yield return rectTransform.DOAnchorPos(Vector2.zero, 1f)
                 .SetEase(Ease.OutElastic, 0.6f, 1f)
                 .WaitForCompletion();
             yield return new WaitUntil(() => attackCompleted);
+
+            foreach (var line in lines)
+            {
+                if (line == initialLine)
+                {
+                    continue;
+                }
+
+                var hasObjects = line.GetComponentsInChildren<Transform>()
+                    .Any(child => Tags.Contains(child.tag));
+
+                if (hasObjects)
+                {
+                    transform.SetParent(line.transform);
+                    yield return rectTransform.DOAnchorPos(Vector2.zero, 1f)
+                        .SetEase(Ease.OutElastic, 0.6f, 1f)
+                        .WaitForCompletion();
+                    yield return new WaitUntil(() => attackCompleted);
+                }
+            }
         }
+
         mesh.enabled = false;
         coll.enabled = false;
         rectTransform.localScale = new Vector3(25f, 900f, 1);
 
         yield return StartCoroutine(moveCards(moveForwardLines, 1f));
+        moveForwardLines.Clear();
         StartCoroutine(turnCamera.ChangeRotation());
     }
 
@@ -63,18 +87,18 @@ public class LineAttackMoveActivation : MonoBehaviour
                 moveCards.Remove(moveForward);
                 continue;
             }
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.1f);
             moveForward.GetPath();
         }
         yield return new WaitForSeconds(escapeTime);
     }
     public static void Shuffle<T>(IList<T> list)
     {
-        int n = list.Count;
+        var n = list.Count;
         while (n > 1)
         {
             n--;
-            int k = Random.Range(0, n + 1);
+            var k = Random.Range(0, n + 1);
             T value = list[k];
             list[k] = list[n];
             list[n] = value;
@@ -94,7 +118,6 @@ public class LineAttackMoveActivation : MonoBehaviour
                 StartCoroutine(cardForwardAttack.PerformAttack());
             }
             var moveForward = cardForwardAttack.GetComponentInParent<MoveForward>();
-            //moveForward.HandleErrorIfNullGetComponent<MoveForward, LineAttack>(this, gameObject);
             if (moveForward != null && moveForward.isMovingBackLine == false)
             {
                 moveForwardLines.Add(moveForward);

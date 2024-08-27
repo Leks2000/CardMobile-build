@@ -13,9 +13,8 @@ public class CardEnemyAttack : CardForwardAttack
         return collider.CompareTag("Card");
     }
 
-    protected override IEnumerator OnBossHit()
+    protected override IEnumerator OnBossHit(Card enemyData, Boss boss, bool shake)
     {
-        yield return base.OnBossHit();
-        ShakeCamera();
+        yield return base.OnBossHit(null, null, true);
     }
 }

@@ -27,6 +27,7 @@ public class CardManager : MonoBehaviour
 
                 var cardAnimation = newCard.GetComponent<CardAnimation>();
                 var index = transform.childCount;
+                /// јнимаци€ выт€гивани€ карт из колоды
                 /// ѕиздец полный просто нету сука сил
                 //if (cardAnimation != null)
                 //{

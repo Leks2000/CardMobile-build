@@ -7,7 +7,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 {
     private Transform mapTrans;
     private Transform defaultParent;
-    private bool isPlaced = false;
+    public bool isPlaced = false;
     private RectTransform rectTransform;
     private CardManager cardManag;
     private CanvasGroup canvasGroup;

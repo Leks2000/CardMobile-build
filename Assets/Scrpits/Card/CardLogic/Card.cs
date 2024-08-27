@@ -1,9 +1,6 @@
-﻿using System.Collections;
-using Assets.Utility;
+﻿using DG.Tweening;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Card : MonoBehaviour
 {
@@ -30,7 +27,6 @@ public class Card : MonoBehaviour
         cardHp.text = CardData.HP.ToString();
         cardDmg.text = CardData.Damage.ToString();
         cardCost.text = CardData.Cost.ToString();
-        Debug.Log($"HP: {CardData.HP}, Damage: {CardData.Damage}, Cost: {CardData.Cost}");
     }
 
     public void TakeDamage(int damage)
@@ -43,7 +39,6 @@ public class Card : MonoBehaviour
             {
                 dropCard.canDrop = true;
             }
-            Destroy(gameObject);
         }
         UpdateCardDisplay();
     }
