@@ -24,10 +24,10 @@ public class Boss : MonoBehaviour
     public void TakeDamage(int damage)
     {
         bossData.ApplyDamage(damage);
+        UpdateCardDisplay();
         if (bossData.bossHP <= 0)
         {
             gameManager.GameOver();
         }
-        UpdateCardDisplay();
     }
 }

@@ -261,7 +261,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 152.5
+      value: 145
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalPosition.x
@@ -277,19 +277,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.000000022351735
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -1739,7 +1739,7 @@ GameObject:
   m_Component:
   - component: {fileID: 636900620}
   m_Layer: 0
-  m_Name: UI
+  m_Name: Game
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1813,23 +1813,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.000017671015
-      objectReference: {fileID: 0}
-    - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
-      propertyPath: m_LocalRotation.w
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.000000022351735
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -2371,6 +2371,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7198733430326331963, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
+      propertyPath: mainCamera
+      value: 
+      objectReference: {fileID: 963194227}
     - target: {fileID: 7481033376217071563, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_Name
       value: EnemyCard
@@ -5231,7 +5235,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &1587569435
 Canvas:
   m_ObjectHideFlags: 0
@@ -6229,6 +6233,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7198733430326331963, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
+      propertyPath: mainCamera
+      value: 
+      objectReference: {fileID: 963194227}
     - target: {fileID: 7481033376217071563, guid: 222c8620c27926944b2a0dea9a737048, type: 3}
       propertyPath: m_Name
       value: EnemyCard

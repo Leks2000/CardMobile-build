@@ -39,7 +39,6 @@ public class GameManagerOver : MonoBehaviour
 
         sequence.Append(cashOUT.transform.DOScale(new Vector3(1f, 1f, 1), 1.5f).SetEase(Ease.OutElastic));
         sequence.Play();
-        GetComponent<Button_UI>().ClickFunc = () => resPanel.SetActive(false);
     }
 
     private IEnumerator DOTextWaveMovement(TMP_Text text, float duration)
