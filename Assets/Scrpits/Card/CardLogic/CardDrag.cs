@@ -14,8 +14,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     private Canvas canvas;
     public static List<string> Tags = new List<string>() { "Board", "Player" };
 
-
-    private void Awake()
+    private void Start()
     {
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
