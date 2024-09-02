@@ -953,6 +953,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   card: {fileID: 6725458454588072238}
-  mainCamera: {fileID: 0}
-  boss: {fileID: 0}
   moveDistance: 1

@@ -4,7 +4,6 @@ using UnityEngine;
 public class CardDeck : MonoBehaviour
 {
     [SerializeField] private int totalCard;
-    private CardManager cardManager;
     private TextMeshProUGUI deck;
 
     private void Start()

@@ -1,10 +1,12 @@
 ﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Card : MonoBehaviour
 {
     [SerializeField] private CardData cardData;
+
     public CardData CardData { get; private set; }
 
     private TMP_Text cardHp;

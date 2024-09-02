@@ -6,8 +6,8 @@ using DG.Tweening.Plugins;
 public abstract class CardForwardAttack : MonoBehaviour
 {
     [SerializeField] protected Card card;
-    [SerializeField] protected Camera mainCamera;
-    [SerializeField] protected Boss boss;
+    protected Camera mainCamera;
+    protected Boss boss;
     public float moveDistance = 1f;
 
     public delegate void AttackCompleteHandler();

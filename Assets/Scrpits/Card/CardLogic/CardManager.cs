@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +13,7 @@ public class CardManager : MonoBehaviour
 
     public RectTransform playerDeck;
     public GridLayoutGroup layoutGroup;
-    public float duration = 2.5f;
+    public float duration;
     public RectTransform CDPOS;
 
     private void Awake()
@@ -63,25 +62,38 @@ public class CardManager : MonoBehaviour
     {
         layoutGroup.enabled = false;
 
-        foreach (var newCard in newCards)
-        {
-            newCard.position = CDPOS.position;
+        Sequence sequence = DOTween.Sequence();
 
-            newCard.DOMove(playerDeck.position, duration).SetEase(Ease.OutQuad);
+        for (int i = 0; i < newCards.Count; i++)
+        {
+            var newCard = newCards[i];
+            float delay = i * duration; // Задержка для каждой карты
+
+            sequence.AppendCallback(() =>
+            {
+                newCard.position = CDPOS.position;
+                newCard.localScale = Vector3.one;
+            })
+            .Append(newCard.DOMove(playerDeck.position, duration)
+                .SetEase(Ease.OutQuad)
+                .SetDelay(delay)
+                .OnUpdate(() =>
+                {
+                    // Optional: Update card visuals or effects during movement
+                }));
         }
 
-        // Перемещаем все новые карты в колоду игрока по завершении анимации
-        DOTween.Sequence().AppendInterval(duration).OnComplete(() =>
-        {
-            layoutGroup.enabled = true;
-            foreach (var newCard in newCards)
+        sequence.AppendInterval(duration)
+            .OnComplete(() =>
             {
-                newCard.SetParent(playerDeck, false);
-                newCard.localPosition = new Vector3(0, 0, 0);
-            }
-            LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroup.GetComponent<RectTransform>());
-            Canvas.ForceUpdateCanvases();
-        });
+                foreach (var newCard in newCards)
+                {
+                    newCard.SetParent(playerDeck, false);
+                    newCard.localPosition = Vector3.zero;
+                }
+                LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroup.GetComponent<RectTransform>());
+                Canvas.ForceUpdateCanvases();
+                layoutGroup.enabled = true;
+            });
     }
-
 }

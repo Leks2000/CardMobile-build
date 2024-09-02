@@ -5,13 +5,16 @@ using UnityEngine.EventSystems;
 
 public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    private CardManager cardManag;
+
+    public bool isPlaced = false;
+
     private Transform mapTrans;
     private Transform defaultParent;
-    public bool isPlaced = false;
     private RectTransform rectTransform;
-    private CardManager cardManag;
     private CanvasGroup canvasGroup;
     private Canvas canvas;
+
     public static List<string> Tags = new List<string>() { "Board", "Player" };
 
     private void Start()
