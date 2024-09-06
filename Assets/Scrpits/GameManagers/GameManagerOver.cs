@@ -51,7 +51,7 @@ public class GameManagerOver : MonoBehaviour
             text.ForceMeshUpdate();
             textInfo = text.textInfo;
 
-            for (int i = 0; i < textInfo.characterCount; i++)
+            for (var i = 0; i < textInfo.characterCount; i++)
             {
                 if (!textInfo.characterInfo[i].isVisible)
                 {
@@ -60,14 +60,14 @@ public class GameManagerOver : MonoBehaviour
 
                 vertices = textInfo.meshInfo[textInfo.characterInfo[i].materialReferenceIndex].vertices;
 
-                for (int j = 0; j < 4; j++)
+                for (var j = 0; j < 4; j++)
                 {
-                    Vector3 offset = new Vector3(0, Mathf.Sin(time * 5f + i * 0.75f) * 5f, 0);
+                    var offset = new Vector3(0, Mathf.Sin(time * 5f + i * 0.75f) * 5f, 0);
                     vertices[textInfo.characterInfo[i].vertexIndex + j] += offset;
                 }
             }
 
-            for (int i = 0; i < textInfo.meshInfo.Length; i++)
+            for (var i = 0; i < textInfo.meshInfo.Length; i++)
             {
                 textInfo.meshInfo[i].mesh.vertices = textInfo.meshInfo[i].vertices;
                 text.UpdateGeometry(textInfo.meshInfo[i].mesh, i);

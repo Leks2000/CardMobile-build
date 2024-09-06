@@ -29,6 +29,8 @@ public class CardManager : MonoBehaviour
 
     public void TurnRound()
     {
+        List<RectTransform> newCards = new List<RectTransform>();
+
         for (currentCardsPerRound = 0; currentCardsPerRound < 2; currentCardsPerRound++)
         {
             if (cardDeck.GetTotalCards() > 0 && currentCardsPerRound < 2 && currentCardsInHand > 0)
@@ -45,7 +47,6 @@ public class CardManager : MonoBehaviour
                     cardComponent.UpdateCardDisplay();
                 }
 
-                var newCards = NewMethod();
                 newCards.Add(getcard);
 
                 MoveCardsToPlayerDeck(newCards);
@@ -54,46 +55,67 @@ public class CardManager : MonoBehaviour
                 cardDeck.RemoveCard(1);
             }
         }
+
+        Sequence sequence = DOTween.Sequence();
+        sequence.AppendInterval(0.1f)
+                .OnComplete(() =>
+                {
+                    MoveCardsToPlayerDeck(newCards);
+                });
     }
-
-    private static List<RectTransform> NewMethod() => new();
-
     public void MoveCardsToPlayerDeck(List<RectTransform> newCards)
     {
         layoutGroup.enabled = false;
 
+        var existingCardCount = playerDeck.childCount;
+
+        var cellSize = layoutGroup.cellSize;
+        var spacing = layoutGroup.spacing;
+
         Sequence sequence = DOTween.Sequence();
 
-        for (int i = 0; i < newCards.Count; i++)
+        for (var i = 0; i < newCards.Count; i++)
         {
             var newCard = newCards[i];
-            float delay = i * duration; // Задержка для каждой карты
+            var delay = i * duration;
 
-            sequence.AppendCallback(() =>
-            {
-                newCard.position = CDPOS.position;
-                newCard.localScale = Vector3.one;
-            })
-            .Append(newCard.DOMove(playerDeck.position, duration)
+            var targetLocalPosition = new Vector2(
+                (existingCardCount + i) * (cellSize.x + spacing.x),
+                0
+            );
+
+            var targetWorldPosition = GetCardWorldPosition(existingCardCount + i, cellSize, spacing);
+            newCard.localPosition = new Vector3(targetLocalPosition.x, targetLocalPosition.y, newCard.localPosition.z);
+
+            sequence.Append(newCard.DOMove(targetWorldPosition, duration)
                 .SetEase(Ease.OutQuad)
                 .SetDelay(delay)
-                .OnUpdate(() =>
+                .OnComplete(() =>
                 {
-                    // Optional: Update card visuals or effects during movement
+                    newCard.SetParent(playerDeck, false);
+                    newCard.localPosition = targetLocalPosition;
+
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(playerDeck);
+                    Canvas.ForceUpdateCanvases();
                 }));
         }
 
-        sequence.AppendInterval(duration)
-            .OnComplete(() =>
-            {
-                foreach (var newCard in newCards)
-                {
-                    newCard.SetParent(playerDeck, false);
-                    newCard.localPosition = Vector3.zero;
-                }
-                LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroup.GetComponent<RectTransform>());
-                Canvas.ForceUpdateCanvases();
-                layoutGroup.enabled = true;
-            });
+        sequence.AppendCallback(() =>
+        {
+            layoutGroup.enabled = true;
+        });
     }
+
+    private Vector3 GetCardWorldPosition(int index, Vector2 cellSize, Vector2 spacing)
+    {
+        var localPosition = new Vector2(
+            index * (cellSize.x + spacing.x),
+            0
+        );
+
+        var worldPosition = playerDeck.TransformPoint(localPosition);
+
+        return worldPosition;
+    }
+
 }

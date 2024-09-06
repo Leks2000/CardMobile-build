@@ -16,7 +16,7 @@ public class Card : MonoBehaviour
     private void Awake()
     {
         cardHp = transform.Find("HP/HpText").GetComponent<TMP_Text>();
-        cardDmg = transform.Find("TypeAttack/DmgText").GetComponent<TMP_Text>();
+        cardDmg = transform.Find("Attack/DmgText").GetComponent<TMP_Text>();
         cardCost = transform.Find("Cost/CostText").GetComponent<TMP_Text>();
 
         if (cardData != null)

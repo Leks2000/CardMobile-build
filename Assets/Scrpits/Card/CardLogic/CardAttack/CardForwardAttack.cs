@@ -60,7 +60,7 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         var transDef = transform.GetComponent<RectTransform>().position;
-        Vector3 forwardPosition = transDef + transform.up * moveDistance;
+        var forwardPosition = transDef + transform.up * moveDistance;
 
         Sequence bossAttackSequence = DOTween.Sequence();
 
