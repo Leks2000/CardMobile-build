@@ -1,24 +1,31 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private CardManager cardManag;
 
     public bool isPlaced = false;
+    public static bool IsDraggingAnyCard = false;
 
+    private Vector3 originalPosition;
     private Transform mapTrans;
     private Transform defaultParent;
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
     private Canvas canvas;
 
+    public float liftHeight;
+    public float liftDuration;
+
     public static List<string> Tags = new List<string>() { "Board", "Player" };
 
     private void Start()
     {
+        originalPosition = transform.localPosition;
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
@@ -27,6 +34,23 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         defaultParent = cardManag.gameObject.transform.parent;
         ResetCard();
     }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (!isPlaced && !IsDraggingAnyCard && transform.parent.name == "PlayerDeck")
+        {
+            transform.DOLocalMoveY(originalPosition.y + liftHeight, liftDuration).SetEase(Ease.OutQuad);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (!isPlaced && !IsDraggingAnyCard && transform.parent.name == "PlayerDeck")
+        {
+            transform.DOLocalMoveY(originalPosition.y, liftDuration).SetEase(Ease.InQuad);
+        }
+    }
+
     public Transform GetParent
     {
         set { defaultParent = value; }
@@ -38,6 +62,8 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
             return;
         }
+        IsDraggingAnyCard = true;
+
         canvasGroup.alpha = 0.8f;
         canvasGroup.blocksRaycasts = false;
 
@@ -67,6 +93,8 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
         transform.SetParent(defaultParent);
+
+        IsDraggingAnyCard = false;
 
         if (Tags.Contains(defaultParent.tag))
         {
