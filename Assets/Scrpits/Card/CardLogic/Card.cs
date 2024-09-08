@@ -1,7 +1,6 @@
 ﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class Card : MonoBehaviour
 {
@@ -9,19 +8,19 @@ public class Card : MonoBehaviour
 
     public CardData CardData { get; private set; }
 
-    private TMP_Text cardHp;
-    private TMP_Text cardDmg;
-    private TMP_Text cardCost;
+    public TMP_Text damageText;
+    public TMP_Text cardHp;
+    public TMP_Text cardDmg;
+    public TMP_Text cardCost;
+    public float duration;
+    public float moveDistance;
 
     private void Awake()
     {
-        cardHp = transform.Find("HP/HpText").GetComponent<TMP_Text>();
-        cardDmg = transform.Find("Attack/DmgText").GetComponent<TMP_Text>();
-        cardCost = transform.Find("Cost/CostText").GetComponent<TMP_Text>();
-
         if (cardData != null)
         {
             CardData = cardData.Clone();
+            UpdateCardDisplay();
         }
     }
     public void UpdateCardDisplay()
@@ -33,15 +32,44 @@ public class Card : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        CardData.ApplyDamage(damage);
-        if (CardData.HP <= 0)
+        damageText.text = "-" + damage.ToString();
+        AnimateDamageText(() =>
         {
-            var dropCard = GetComponentInParent<DropCard>();
-            if (dropCard != null)
+            CardData.ApplyDamage(damage);
+
+            UpdateCardDisplay();
+
+            if (CardData.HP <= 0)
             {
-                dropCard.canDrop = true;
+                Destroy(gameObject);
+                var dropCard = GetComponentInParent<DropCard>();
+                if (dropCard != null)
+                {
+                    dropCard.canDrop = true;
+                }
             }
-        }
-        UpdateCardDisplay();
+        });
+    }
+
+    private void AnimateDamageText(TweenCallback onCompleteCallback)
+    {
+        damageText.enabled = true;
+
+        Vector3 initialPosition = damageText.transform.localPosition;
+
+        Sequence damageSequence = DOTween.Sequence();
+
+        damageSequence.Append(damageText.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack));
+        damageSequence.Join(damageText.transform.DOMoveY(transform.position.y + moveDistance, duration).SetEase(Ease.OutQuad));
+        damageSequence.Join(damageText.DOFade(0, duration).SetDelay(0.5f));
+
+        damageSequence.OnComplete(() =>
+        {
+            damageText.enabled = false;
+            damageText.alpha = 1;
+            damageText.transform.localScale = Vector3.one;
+            damageText.transform.localPosition = initialPosition;
+            onCompleteCallback?.Invoke();
+        });
     }
 }

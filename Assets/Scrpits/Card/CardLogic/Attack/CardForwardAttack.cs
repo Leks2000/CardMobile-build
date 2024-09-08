@@ -87,7 +87,6 @@ public abstract class CardForwardAttack : MonoBehaviour
         if (card.CardData.HP < 1)
         {
             OnAttackComplete?.Invoke();
-            Destroy(gameObject);
         }
         else
         {
