@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private CardManager cardManag;
 
@@ -20,6 +21,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public float liftHeight;
     public float liftDuration;
+    public float moveDuration;
 
     public static List<string> Tags = new List<string>() { "Board", "Player" };
 
@@ -39,7 +41,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     {
         if (!isPlaced && !IsDraggingAnyCard && transform.parent.name == "PlayerDeck")
         {
-            transform.DOLocalMoveY(originalPosition.y + liftHeight, liftDuration).SetEase(Ease.OutQuad);
+            rectTransform.DOLocalMoveY(originalPosition.y + liftHeight, liftDuration).SetEase(Ease.OutQuad);
         }
     }
 
@@ -47,7 +49,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     {
         if (!isPlaced && !IsDraggingAnyCard && transform.parent.name == "PlayerDeck")
         {
-            transform.DOLocalMoveY(originalPosition.y, liftDuration).SetEase(Ease.InQuad);
+            rectTransform.DOLocalMoveY(originalPosition.y, liftDuration).SetEase(Ease.InQuad);
         }
     }
 
@@ -58,10 +60,13 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        DOTween.Clear();
+
         if (isPlaced)
         {
             return;
         }
+
         IsDraggingAnyCard = true;
 
         canvasGroup.alpha = 0.8f;
@@ -70,8 +75,9 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         defaultParent = transform.parent;
         transform.SetParent(defaultParent.parent);
 
+        rectTransform.DOLocalRotate(Vector3.zero, 0.2f).SetEase(Ease.InOutCubic);
+
         rectTransform.localPosition = mapTrans.localPosition;
-        rectTransform.localRotation = Quaternion.identity;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -95,14 +101,23 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         transform.SetParent(defaultParent);
 
         IsDraggingAnyCard = false;
-
         if (Tags.Contains(defaultParent.tag))
         {
-            var curCarInHand = cardManag.GetCardInHand;
-            cardManag.GetCardInHand = curCarInHand + 1;
-            isPlaced = true;
+            var targetRect = defaultParent.GetComponent<RectTransform>();
+            rectTransform.DOLocalMove(targetRect.rect.center, moveDuration)
+                .SetEase(Ease.InOutCubic)
+                .OnComplete(() =>
+                {
+                    var curCarInHand = cardManag.GetCardInHand;
+                    cardManag.GetCardInHand = curCarInHand + 1;
+                    isPlaced = true;
+                    ResetCard();
+                });
         }
-        ResetCard();
+        else
+        {
+            ResetCard();
+        }
     }
     private void ResetCard()
     {

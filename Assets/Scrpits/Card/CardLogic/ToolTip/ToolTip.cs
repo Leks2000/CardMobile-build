@@ -44,7 +44,7 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Vector3 tooltipPosition = transform.position + new Vector3(0, 50, 0);  // Смещение над объектом
+        Vector3 tooltipPosition = transform.position + new Vector3(-50, 0, 0);
         ShowTooltip(tooltipContent, tooltipPosition);
     }
     public void OnPointerExit(PointerEventData eventData)

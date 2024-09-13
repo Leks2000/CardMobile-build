@@ -1668,6 +1668,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1610651289}
     m_Modifications:
+    - target: {fileID: 2022631976737883107, guid: 2a9bd7e898f778c4797c9860f9a22ed2, type: 3}
+      propertyPath: moveDuration
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 2a9bd7e898f778c4797c9860f9a22ed2, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1756,7 +1760,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: CardLong
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 0}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -5200,6 +5205,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1610651289}
     m_Modifications:
+    - target: {fileID: 2022631976737883107, guid: 2a9bd7e898f778c4797c9860f9a22ed2, type: 3}
+      propertyPath: moveDuration
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 4689574601384771497, guid: 2a9bd7e898f778c4797c9860f9a22ed2, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5737,7 +5746,7 @@ MonoBehaviour:
   currentCardsInHand: 3
   playerDeck: {fileID: 1610651289}
   layoutGroup: {fileID: 1610651291}
-  duration: 0.3
+  duration: 0.1
   CDPOS: {fileID: 1699273586}
 --- !u!1 &1615616838
 GameObject:

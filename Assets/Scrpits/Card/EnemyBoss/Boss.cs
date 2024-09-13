@@ -33,12 +33,10 @@ public class Boss : MonoBehaviour
     public void TakeDamage(int damage)
     {
         takeDamage.text = "-" + damage.ToString();
+        bossData.ApplyDamage(damage);
+        UpdateCardDisplay();
         AnimateDamageText(() =>
         {
-            bossData.ApplyDamage(damage);
-
-            UpdateCardDisplay();
-
             if (bossData.bossHP <= 0)
             {
                 gameManager.GameOver();
@@ -54,7 +52,7 @@ public class Boss : MonoBehaviour
         Sequence damageSequence = DOTween.Sequence();
 
         damageSequence.Append(takeDamage.transform.DOLocalMoveY(takeDamage.transform.localPosition.y - moveDistance, duration).SetEase(Ease.OutQuad));
-        damageSequence.Join(takeDamage.DOFade(0, duration).SetDelay(0.5f));
+        damageSequence.Join(takeDamage.DOFade(0, duration).SetDelay(0.25f));
 
         damageSequence.OnComplete(() =>
         {
@@ -62,6 +60,7 @@ public class Boss : MonoBehaviour
             takeDamage.alpha = 1;
             takeDamage.transform.localScale = Vector3.one;
             takeDamage.transform.localPosition = initialPosition;
+
             onCompleteCallback?.Invoke();
         });
     }

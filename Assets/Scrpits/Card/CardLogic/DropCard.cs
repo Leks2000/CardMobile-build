@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class DropCard : MonoBehaviour, IDropHandler
@@ -11,6 +12,10 @@ public class DropCard : MonoBehaviour, IDropHandler
         {
             card.GetParent = transform;
             canDrop = false;
+
+            RectTransform targetRect = transform as RectTransform;
+            card.transform.DOLocalMove(targetRect.rect.center, card.moveDuration)
+                .SetEase(Ease.InOutCubic);
         }
     }
 }

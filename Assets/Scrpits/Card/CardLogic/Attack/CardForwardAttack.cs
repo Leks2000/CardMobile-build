@@ -58,7 +58,7 @@ public abstract class CardForwardAttack : MonoBehaviour
     }
     protected IEnumerator AttackAnimation(Card enemyData, Boss boss, bool shake)
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.25f);
         var transDef = transform.GetComponent<RectTransform>().position;
         var forwardPosition = transDef + transform.up * moveDistance;
 
@@ -83,7 +83,7 @@ public abstract class CardForwardAttack : MonoBehaviour
         });
         bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));
         bossAttackSequence.Play();
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.25f);
         if (card.CardData.HP < 1)
         {
             OnAttackComplete?.Invoke();
