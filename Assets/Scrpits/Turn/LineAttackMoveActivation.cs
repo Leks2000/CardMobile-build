@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Utility;
 using DG.Tweening;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
+/// <summary>
+/// Класс для проверки спорикосается ли <see cref="LineAttackMoveActivation"/> с другими обьектами
+/// </summary>
 public class LineAttackMoveActivation : MonoBehaviour
 {
     public GameObject[] lines;
@@ -28,6 +29,11 @@ public class LineAttackMoveActivation : MonoBehaviour
         mesh = GetComponent<MeshRenderer>();
         coll = GetComponent<Collider>();
     }
+
+    /// <summary>
+    /// Смена линии по линиям от <see cref="lines"/>
+    /// </summary>
+    /// <returns></returns>
     public IEnumerator changeLine()
     {
         mesh.enabled = true;
@@ -77,6 +83,12 @@ public class LineAttackMoveActivation : MonoBehaviour
         StartCoroutine(turnCamera.ChangeRotation());
     }
 
+    /// <summary>
+    /// Передвижение всех карт в рандомном порядке
+    /// </summary>
+    /// <param name="moveCards">Рандомная карта</param>
+    /// <param name="escapeTime">Время выхода из <see cref="moveCards"/></param>
+    /// <returns></returns>
     public IEnumerator moveCards(List<MoveForward> moveCards, float escapeTime)
     {
         Shuffle(moveCards);
@@ -92,6 +104,17 @@ public class LineAttackMoveActivation : MonoBehaviour
         }
         yield return new WaitForSeconds(escapeTime);
     }
+
+    /// <summary>
+    /// Перемешивает элементы в списке случайным образом.
+    /// </summary>
+    /// <typeparam name="T">Тип элементов в списке.</typeparam>
+    /// <param name="list">Список, который нужно перемешать.</param>
+    /// <remarks>
+    /// Алгоритм перемешивания основан на алгоритме Фишера-Йетса.
+    /// Каждый элемент списка меняется местами с произвольным элементом,
+    /// расположенным перед ним или на его месте.
+    /// </remarks>
     public static void Shuffle<T>(IList<T> list)
     {
         var n = list.Count;

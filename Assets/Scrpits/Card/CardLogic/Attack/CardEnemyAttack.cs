@@ -2,6 +2,9 @@
 using DG.Tweening;
 using UnityEngine;
 
+/// <summary>
+/// Реализация атаки вражеских карт
+/// </summary>
 public class CardEnemyAttack : CardForwardAttack
 {
     protected override bool IsBoss(Collider collider)

@@ -7118,6 +7118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a0fe48837c6f52488cbab5dfd851c1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cardManager: {fileID: 1610651292}
   mainCam: {fileID: 963194227}
   duration: 0.5
   delay: 1

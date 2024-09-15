@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using DG.Tweening;
 using System.Collections;
-using DG.Tweening.Plugins;
 
+/// <summary>
+/// Базовый класс Атаки
+/// </summary>
 public abstract class CardForwardAttack : MonoBehaviour
 {
     [SerializeField] protected Card card;
@@ -18,6 +20,13 @@ public abstract class CardForwardAttack : MonoBehaviour
         mainCamera = Camera.main;
         boss = FindObjectOfType<Boss>();
     }
+
+    /// <summary>
+    /// Выполняет атаку, проверяя, что находится перед картой.
+    /// В зависимости от цели (враг или босс), выполняет соответствующее действие.
+    /// Если впереди ничего нет, завершается без выполнения атаки.
+    /// </summary>
+    /// <returns>Возвращает IEnumerator для управления анимацией и логикой атаки.</returns>
     public IEnumerator PerformAttack()
     {
         var direction = transform.up;
@@ -42,8 +51,29 @@ public abstract class CardForwardAttack : MonoBehaviour
             OnAttackComplete?.Invoke();
         }
     }
+    /// <summary>
+    /// Выполняет только когда враг - босс
+    /// </summary>
     protected abstract bool IsBoss(Collider collider);
+
+    /// <summary>
+    /// Выполняет только когда враг - обычная карта
+    /// </summary>
+    /// <param name="collider"></param>
     protected abstract bool IsEnemy(Collider collider);
+
+    /// <summary>
+    /// Наносит урон боссу с возможностью тряски камеры.
+    /// </summary>
+    /// <param name="enemyData">Будет - null, если цель — босс.</param>
+    /// <param name="boss">Будет - null, если цель — карта.</param>
+    /// <param name="shake">Флаг, указывающий, должна ли камера трястись при ударе.</param>
+    /// <returns>Возвращает IEnumerator для выполнения анимации атаки.</returns>
+    /// <remarks>
+    /// Если параметр <paramref name="shake"/> равен true, камера будет трястись, что добавляет визуальный эффект удара.
+    /// Используйте этот метод только когда игрок получает урон.
+    /// </remarks>
+
     protected virtual IEnumerator OnBossHit(Card enemyData, Boss boss, bool shake)
     {
         yield return StartCoroutine(AttackAnimation(enemyData, boss, shake));

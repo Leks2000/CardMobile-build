@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Класс - ScriptableObject карт
+/// </summary>
 [CreateAssetMenu(fileName = "NewCardData", menuName = "Game/CardData")]
 public class CardData : ScriptableObject
 {

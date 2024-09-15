@@ -2,12 +2,19 @@
 using DG.Tweening;
 using UnityEngine;
 
+/// <summary>
+/// Передвижение карт вперёд
+/// </summary>
 public class MoveForward : MonoBehaviour
 {
     public bool isMovingBackLine = false;
     public float raycastDistance = 32;
     public Color rayColor = Color.red;
     public static List<string> Tags = new List<string>() { "Enemy", "Card" };
+
+    /// <summary>
+    /// Проверка что находиться впереди
+    /// </summary>
     public void GetPath()
     {
         var direction = transform.up;
@@ -28,6 +35,10 @@ public class MoveForward : MonoBehaviour
         }
         Debug.Log("Объект перед картой не является следующим местом: " + hit.collider.tag);
     }
+
+    /// <summary>
+    /// Узнать размещён ли обьект у <see cref="DropCard"/> если нету то переместить вперёд
+    /// </summary>
     private void GetCard(Transform transform, RectTransform card)
     {
         card.transform.SetParent(transform);

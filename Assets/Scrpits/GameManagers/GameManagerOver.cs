@@ -4,6 +4,9 @@ using UnityEngine;
 using System.Linq;
 using System.Collections;
 
+/// <summary>
+/// Мэнэджер для концовки игры
+/// </summary>
 public class GameManagerOver : MonoBehaviour
 {
     [SerializeField] private GameObject resPanel;
@@ -13,6 +16,9 @@ public class GameManagerOver : MonoBehaviour
     [SerializeField] private TMP_Text totalCash;
     [SerializeField] private TMP_Text cashOUT;
 
+    /// <summary>
+    /// Временная система наград
+    /// </summary>
     private void GetResult()
     {
         resultSalary.text = "Salary" + new string(' ', 35) + "26$";
@@ -41,6 +47,10 @@ public class GameManagerOver : MonoBehaviour
         sequence.Play();
     }
 
+    /// <summary>
+    /// Анимация текста - получение урона
+    /// </summary>
+    /// <param name="text">Кол-во урона</param>
     private IEnumerator DOTextWaveMovement(TMP_Text text, float duration)
     {
         TMP_TextInfo textInfo = text.textInfo;

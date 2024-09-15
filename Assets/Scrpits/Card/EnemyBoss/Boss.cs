@@ -3,6 +3,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Класс, представляющий босса в игре. Управляет отображением данных карточки и взаимодействиями.
+/// </summary>
+/// <remarks>Обновление визуала <see cref="UpdateCardDisplay"/>, получение урона <see cref="TakeDamage"/></remarks>
 public class Boss : MonoBehaviour
 {
     [SerializeField] BossData bossData;

@@ -2,10 +2,16 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Класс, представляющий карточку в игре. Управляет отображением данных карточки и взаимодействиями.
+/// </summary>
 public class Card : MonoBehaviour
 {
+    /// <summary>
+    /// Данные карточки, содержащие информацию о характеристиках (атака, здоровье, стоимость и т.д.).
+    /// <see cref="CardData"/> для получения более подробной информации о структуре данных карточки.
+    /// </summary>
     [SerializeField] private CardData cardData;
-
     public CardData CardData { get; private set; }
 
     public TMP_Text damageText;

@@ -5,6 +5,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// Перемещение карт
+/// </summary>
 public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private CardManager cardManag;
@@ -119,6 +122,9 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             ResetCard();
         }
     }
+    /// <summary>
+    /// Обнуление позиции карт по центру
+    /// </summary>
     private void ResetCard()
     {
         rectTransform.pivot = new Vector2(0.5f, 0.5f);

@@ -2,9 +2,16 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// Место куда можно скидывать карты игрока
+/// </summary>
 public class DropCard : MonoBehaviour, IDropHandler
 {
     public bool canDrop = true;
+
+    /// <summary>
+    /// Метод проверяющий возможность скинуть карту
+    /// </summary>
     public void OnDrop(PointerEventData eventData)
     {
         var card = eventData.pointerDrag.GetComponent<CardDrag>();

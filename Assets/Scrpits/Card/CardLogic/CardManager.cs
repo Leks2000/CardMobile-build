@@ -3,6 +3,9 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Колода карт игрока в руке
+/// </summary>
 public class CardManager : MonoBehaviour
 {
     [SerializeField] private CardDeck cardDeck;
@@ -27,6 +30,9 @@ public class CardManager : MonoBehaviour
         set { currentCardsInHand = value; }
     }
 
+    /// <summary>
+    /// Завршение раунда игры добавление карт в колоду игрока и вызов метода <see cref="MoveCardsToPlayerDeck(List{RectTransform})"/>
+    /// </summary>
     public void TurnRound()
     {
         List<RectTransform> newCards = new List<RectTransform>();
@@ -63,6 +69,11 @@ public class CardManager : MonoBehaviour
                     MoveCardsToPlayerDeck(newCards);
                 });
     }
+
+    /// <summary>
+    /// Перемещение карт из колоды <see cref="CardDeck"/> в колоду игрока <see cref="CardManager"/>
+    /// </summary>
+    /// <param name="newCards">Новая карта из списка карт</param>
     public void MoveCardsToPlayerDeck(List<RectTransform> newCards)
     {
         layoutGroup.enabled = false;

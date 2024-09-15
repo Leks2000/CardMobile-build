@@ -1,11 +1,13 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Передвижение камеры с различными этапами
+/// </summary>
+/// <remarks> 3 этапа передвжиения в конце раунда </remarks>
 public class EndTurnCamera : MonoBehaviour
 {
-    CardManager cardManager;
+    [SerializeField] CardManager cardManager;
 
     [SerializeField] private Camera mainCam;
     [SerializeField] private float duration = 0.5f;
@@ -29,7 +31,6 @@ public class EndTurnCamera : MonoBehaviour
         targetPosition = new Vector3(0, 0, -5);
         targetRotation = Quaternion.Euler(86, 0, 0);
         intermediateRotation = Quaternion.Euler(75, 0, 0);
-        cardManager = FindObjectOfType<CardManager>().GetComponent<CardManager>();
         GetComponent<Button_UI>().ClickFunc = () => OnClickFunc();
         attackLine = FindObjectOfType<LineAttackMoveActivation>().GetComponent<LineAttackMoveActivation>();
     }
@@ -41,7 +42,9 @@ public class EndTurnCamera : MonoBehaviour
             StartCoroutine(MoveCamera());
         }
     }
-
+    /// <summary>
+    /// Движение к игровому полю
+    /// </summary>
     private IEnumerator MoveCamera()
     {
         var timeElapsed = 0f;
@@ -64,6 +67,9 @@ public class EndTurnCamera : MonoBehaviour
         StartCoroutine(attackLine.changeLine());
     }
 
+    /// <summary>
+    /// Движение к вражескому полю где он выкладывает карты
+    /// </summary>
     public IEnumerator ChangeRotation()
     {
         var timeElapsed = 0f;
@@ -81,7 +87,10 @@ public class EndTurnCamera : MonoBehaviour
         StartCoroutine(ReturnToInitialPosition());
         attackLine.moveBaclkLines.Clear();
     }
-
+    /// <summary>
+    /// Возвращение в дефолтную позицию
+    /// </summary>
+    /// <remarks> + Активация возможности кликнуть на конец раунда</remarks>
     private IEnumerator ReturnToInitialPosition()
     {
         var timeElapsed = 0f;

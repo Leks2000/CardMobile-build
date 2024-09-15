@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Класс - ScriptableObject Босс
+/// </summary>
 [CreateAssetMenu(fileName = "NewBossData", menuName = "Game/BossData")]
 public class BossData : ScriptableObject
 {

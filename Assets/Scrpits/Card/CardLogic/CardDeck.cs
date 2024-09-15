@@ -1,6 +1,9 @@
 ﻿using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Колода игрока
+/// </summary>
 public class CardDeck : MonoBehaviour
 {
     [SerializeField] private int totalCard;
