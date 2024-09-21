@@ -10,9 +10,10 @@ public class EndTurnCamera : MonoBehaviour
     [SerializeField] CardManager cardManager;
 
     [SerializeField] private Camera mainCam;
-    [SerializeField] private float duration = 0.5f;
-    [SerializeField] private float delay = 1f;
-    [SerializeField] private float rotationDuration = 0.5f;
+    [SerializeField] private float duration;
+    [SerializeField] private float returnDuration;
+    [SerializeField] private float delay;
+    [SerializeField] private float rotationDuration;
 
     private Vector3 initialPosition;
     private Quaternion initialRotation;
@@ -21,7 +22,9 @@ public class EndTurnCamera : MonoBehaviour
     private Quaternion intermediateRotation;
 
     LineAttackMoveActivation attackLine;
+    LineBackMove lineBackMove;
     private bool hasClicked;
+    private Coroutine currentCoroutine;
 
     private void Start()
     {
@@ -33,15 +36,44 @@ public class EndTurnCamera : MonoBehaviour
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         GetComponent<Button_UI>().ClickFunc = () => OnClickFunc();
         attackLine = FindObjectOfType<LineAttackMoveActivation>().GetComponent<LineAttackMoveActivation>();
+        lineBackMove = FindObjectOfType<LineBackMove>().GetComponent<LineBackMove>();
     }
     private void OnClickFunc()
     {
         if (!hasClicked)
         {
             hasClicked = true;
-            StartCoroutine(MoveCamera());
+            if (currentCoroutine != null)
+            {
+                StopCoroutine(currentCoroutine);
+            }
+            currentCoroutine = StartCoroutine(MoveCamera());
         }
     }
+
+    private void Update()
+    {
+        if (!hasClicked)
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if (currentCoroutine != null)
+                {
+                    StopCoroutine(currentCoroutine);
+                }
+                currentCoroutine = StartCoroutine(MoveCamera());
+            }
+            else if (Input.GetKeyUp(KeyCode.Space))
+            {
+                if (currentCoroutine != null)
+                {
+                    StopCoroutine(currentCoroutine);
+                }
+                currentCoroutine = StartCoroutine(ReturnToInitialPosition());
+            }
+        }
+    }
+
     /// <summary>
     /// Движение к игровому полю
     /// </summary>
@@ -63,8 +95,10 @@ public class EndTurnCamera : MonoBehaviour
         mainCam.transform.rotation = targetRotation;
 
         yield return new WaitForSeconds(delay + 0.1f);
-
-        StartCoroutine(attackLine.changeLine());
+        if (hasClicked)
+        {
+            StartCoroutine(attackLine.changeLine());
+        }
     }
 
     /// <summary>
@@ -83,9 +117,8 @@ public class EndTurnCamera : MonoBehaviour
         }
         mainCam.transform.rotation = intermediateRotation;
 
-        yield return StartCoroutine(attackLine.moveCards(attackLine.moveBaclkLines, 0.25f));
+        yield return StartCoroutine(lineBackMove.moveBackCards());
         StartCoroutine(ReturnToInitialPosition());
-        attackLine.moveBaclkLines.Clear();
     }
     /// <summary>
     /// Возвращение в дефолтную позицию
@@ -97,19 +130,23 @@ public class EndTurnCamera : MonoBehaviour
         var startPosition = mainCam.transform.position;
         var startRotation = mainCam.transform.rotation;
 
-        while (timeElapsed < duration)
+        while (timeElapsed < returnDuration)
         {
-            mainCam.transform.position = Vector3.Lerp(startPosition, initialPosition, timeElapsed / duration);
-            mainCam.transform.rotation = Quaternion.Lerp(startRotation, initialRotation, timeElapsed / duration);
             timeElapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(timeElapsed / returnDuration);
+            mainCam.transform.position = Vector3.Lerp(startPosition, initialPosition, t);
+            mainCam.transform.rotation = Quaternion.Lerp(startRotation, initialRotation, t);
             yield return null;
         }
 
         mainCam.transform.position = initialPosition;
         mainCam.transform.rotation = initialRotation;
-        cardManager.TurnRound();
 
-        yield return new WaitForSeconds(0.5f);
-        hasClicked = false;
+        if (hasClicked)
+        {
+            cardManager.TurnRound();
+            hasClicked = false;
+            yield return new WaitForSeconds(0.5f);
+        }
     }
 }

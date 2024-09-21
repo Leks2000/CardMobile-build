@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
@@ -30,7 +31,7 @@ public class MoveForward : MonoBehaviour
         }
         if (!Tags.Contains(hit.collider.tag))
         {
-            GetCard(hit.transform, card);
+            StartCoroutine(GetCard(hit.transform, card));
             return;
         }
         Debug.Log("Объект перед картой не является следующим местом: " + hit.collider.tag);
@@ -39,13 +40,17 @@ public class MoveForward : MonoBehaviour
     /// <summary>
     /// Узнать размещён ли обьект у <see cref="DropCard"/> если нету то переместить вперёд
     /// </summary>
-    private void GetCard(Transform transform, RectTransform card)
+    private IEnumerator GetCard(Transform targetTransform, RectTransform card)
     {
-        card.transform.SetParent(transform);
-        card.DOMove(transform.GetComponent<RectTransform>().position, 1f).SetEase(Ease.OutQuad);
+        card.transform.SetParent(targetTransform);
+        card.DOMove(targetTransform.GetComponent<RectTransform>().position, 1f)
+                   .SetEase(Ease.OutQuad)
+                   .WaitForCompletion();
+
         if (GetComponent<DropCard>())
         {
             GetComponent<DropCard>().canDrop = true;
         }
+        yield return null;
     }
 }
