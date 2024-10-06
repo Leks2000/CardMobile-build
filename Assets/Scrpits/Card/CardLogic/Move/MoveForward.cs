@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// Передвижение карт вперёд
@@ -9,8 +10,6 @@ using UnityEngine;
 public class MoveForward : MonoBehaviour
 {
     public bool isMovingBackLine = false;
-    public float raycastDistance = 32;
-    public Color rayColor = Color.red;
     public static List<string> Tags = new List<string>() { "Enemy", "Card" };
 
     /// <summary>
@@ -18,13 +17,9 @@ public class MoveForward : MonoBehaviour
     /// </summary>
     public void GetPath()
     {
-        var direction = transform.up;
-
-        Debug.DrawRay(transform.position, direction * raycastDistance, rayColor);
-
         var card = GetComponentInChildren<Card>().GetComponent<RectTransform>();
 
-        if (!Physics.Raycast(transform.position, direction, out var hit, raycastDistance))
+        if (!Physics.Raycast(transform.position, transform.up, out var hit, 32))
         {
             Debug.Log("Впереди ничего нет.");
             return;
@@ -38,7 +33,7 @@ public class MoveForward : MonoBehaviour
     }
 
     /// <summary>
-    /// Узнать размещён ли обьект у <see cref="DropCard"/> если нету то переместить вперёд
+    /// Узнать размещён ли обьект впереди у <see cref="DropCard"/> если нету то анимация перемещения
     /// </summary>
     private IEnumerator GetCard(Transform targetTransform, RectTransform card)
     {

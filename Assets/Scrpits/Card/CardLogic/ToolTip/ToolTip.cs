@@ -6,15 +6,20 @@ using UnityEngine.EventSystems;
 public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject tooltipPanel;
-    public TextMeshProUGUI tooltipText;
 
+    public TextMeshProUGUI tooltipText;
     private RectTransform tooltipRectTransform;
+    private Canvas mainCanvas;
 
     public string tooltipContent = "Описание этого объекта";
 
     private void Awake()
     {
         tooltipRectTransform = tooltipPanel.GetComponent<RectTransform>();
+        mainCanvas = FindObjectOfType<Canvas>();
+
+        // Установите фиксированный размер для тултипа
+        tooltipRectTransform.sizeDelta = new Vector2(100, 50); // Пример фиксированного размера
     }
 
     private void Start()
@@ -22,14 +27,19 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         tooltipPanel.SetActive(false);
     }
 
-    public void ShowTooltip(string content, Vector3 position)
+    public void ShowTooltip(string content, Transform newParent)
     {
         tooltipText.text = content;
         tooltipPanel.SetActive(true);
 
         UpdateTooltipSize();
 
-        tooltipPanel.transform.position = position;
+        // Позиционируем тултип рядом с объектом
+        Vector3 tooltipPosition = newParent.position; // Получаем позицию объекта
+        tooltipPosition.y += newParent.GetComponent<RectTransform>().rect.height / 2 + tooltipRectTransform.rect.height / 2 + 10; // Отступ
+        tooltipPosition.x += 0; // Если нужно, можно добавить отступ по оси X
+
+        tooltipPanel.transform.position = tooltipPosition;
     }
 
     public void HideTooltip()
@@ -39,14 +49,16 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     private void UpdateTooltipSize()
     {
-        tooltipRectTransform.sizeDelta = new Vector2(tooltipText.preferredWidth + 20, tooltipText.preferredHeight + 20);
+        // Здесь можно дополнительно настраивать размер в зависимости от содержимого
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Vector3 tooltipPosition = transform.position + new Vector3(-50, 0, 0);
-        ShowTooltip(tooltipContent, tooltipPosition);
+        Card card = GetComponentInChildren<Card>();
+        tooltipContent = card.GetTooltipContent();
+        ShowTooltip(tooltipContent, transform);
     }
+
     public void OnPointerExit(PointerEventData eventData)
     {
         HideTooltip();

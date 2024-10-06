@@ -15,11 +15,12 @@ public class Card : MonoBehaviour
     public CardData CardData { get; private set; }
 
     public TMP_Text damageText;
-    public TMP_Text cardHp;
     public TMP_Text cardDmg;
+    public TMP_Text cardHp;
     public TMP_Text cardCost;
     public float duration;
     public float moveDistance;
+    public string cardInfo;
 
     private void Awake()
     {
@@ -77,5 +78,10 @@ public class Card : MonoBehaviour
             damageText.transform.localPosition = initialPosition;
             onCompleteCallback?.Invoke();
         });
+    }
+
+    public string GetTooltipContent()
+    {
+        return cardInfo;
     }
 }

@@ -19,6 +19,7 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         mainCamera = Camera.main;
         boss = FindObjectOfType<Boss>();
+
     }
 
     /// <summary>
@@ -29,26 +30,24 @@ public abstract class CardForwardAttack : MonoBehaviour
     /// <returns>Возвращает IEnumerator для управления анимацией и логикой атаки.</returns>
     public IEnumerator PerformAttack()
     {
-        var direction = transform.up;
-        var raycastDistance = 32;
-        if (!Physics.Raycast(transform.position, direction, out var hit, raycastDistance))
+        var raycastDistance = 34;
+        if (Physics.Raycast(transform.position, transform.up, out var hit, raycastDistance))
         {
-            Debug.Log("Впереди ничего нет.");
-        }
-        if (IsEnemy(hit.collider))
-        {
-            Debug.Log("Объект перед картой является врагом: " + hit.collider.tag);
-            var enemyCard = hit.collider.GetComponentInParent<Card>();
-            yield return StartCoroutine(AttackAnimation(enemyCard, null, false));
-        }
-        if (IsBoss(hit.collider))
-        {
-            Debug.Log("Враг БОСС " + hit.collider.tag);
-            StartCoroutine(OnBossHit(null, boss, false));
-        }
-        else
-        {
-            OnAttackComplete?.Invoke();
+            if (IsEnemy(hit.collider))
+            {
+                Debug.Log("Объект перед картой является врагом: " + hit.collider.tag);
+                var enemyCard = hit.collider.GetComponentInParent<Card>();
+                yield return StartCoroutine(AttackAnimation(enemyCard, null, false));
+            }
+            if (IsBoss(hit.collider))
+            {
+                Debug.Log("Враг БОСС " + hit.collider.tag);
+                yield return StartCoroutine(OnBossHit(null, boss, false));
+            }
+            else
+            {
+                OnAttackComplete?.Invoke();
+            }
         }
     }
     /// <summary>
