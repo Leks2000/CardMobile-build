@@ -20,7 +20,6 @@ public class Card : MonoBehaviour
     public TMP_Text cardCost;
     public float duration;
     public float moveDistance;
-    public string cardInfo;
 
     private void Awake()
     {
@@ -30,6 +29,7 @@ public class Card : MonoBehaviour
             UpdateCardDisplay();
         }
     }
+
     public void UpdateCardDisplay()
     {
         cardHp.text = CardData.HP.ToString();
@@ -78,10 +78,5 @@ public class Card : MonoBehaviour
             damageText.transform.localPosition = initialPosition;
             onCompleteCallback?.Invoke();
         });
-    }
-
-    public string GetTooltipContent()
-    {
-        return cardInfo;
     }
 }

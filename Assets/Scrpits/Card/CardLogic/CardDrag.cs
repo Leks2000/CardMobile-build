@@ -63,6 +63,8 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        FindObjectOfType<Tooltip>().StartDragging();
+
         DOTween.Clear();
 
         if (isPlaced)
@@ -95,6 +97,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        FindObjectOfType<Tooltip>().StopDragging();
         if (isPlaced)
         {
             return;

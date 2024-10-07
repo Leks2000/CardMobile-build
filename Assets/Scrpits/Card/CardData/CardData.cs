@@ -9,6 +9,7 @@ public class CardData : ScriptableObject
     public int HP;
     public int Damage;
     public float Cost;
+    public string cardInfo;
     public void ApplyDamage(int damage)
     {
         HP -= damage;
