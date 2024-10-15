@@ -7,7 +7,7 @@ using UnityEngine;
 /// <remarks> 3 этапа передвжиения в конце раунда </remarks>
 public class EndTurnCamera : MonoBehaviour
 {
-    [SerializeField] CardManager cardManager;
+    [SerializeField] GameControlManager cardManager;
 
     [SerializeField] private Camera mainCam;
     [SerializeField] private float duration;

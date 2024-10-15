@@ -12,6 +12,7 @@ public class Card : MonoBehaviour
     /// <see cref="CardData"/> для получения более подробной информации о структуре данных карточки.
     /// </summary>
     [SerializeField] private CardData cardData;
+    [SerializeField] public CardCostStatus status;
     public CardData CardData { get; private set; }
 
     public TMP_Text damageText;
@@ -27,6 +28,11 @@ public class Card : MonoBehaviour
         {
             CardData = cardData.Clone();
             UpdateCardDisplay();
+            if (gameObject.tag == "Card")
+            {
+                status = FindAnyObjectByType<CardCostStatus>().GetComponent<CardCostStatus>();
+                status.getStatus(CardData.Cost);
+            }
         }
     }
 

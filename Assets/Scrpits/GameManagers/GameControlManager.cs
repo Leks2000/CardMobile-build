@@ -1,16 +1,18 @@
 using System.Collections.Generic;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
 /// Колода карт игрока в руке
 /// </summary>
-public class CardManager : MonoBehaviour
+public class GameControlManager : MonoBehaviour
 {
     [SerializeField] private CardDeck cardDeck;
     [SerializeField] private List<GameObject> deck;
     [SerializeField] private int currentCardsInHand = 5;
+    [SerializeField] private CardCostStatus status;
 
     private int currentCardsPerRound;
 
@@ -59,6 +61,8 @@ public class CardManager : MonoBehaviour
 
                 currentCardsInHand--;
                 cardDeck.RemoveCard(1);
+                status.totalMana = 3;
+                status.updateText();
             }
         }
 
@@ -71,7 +75,7 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Перемещение карт из колоды <see cref="CardDeck"/> в колоду игрока <see cref="CardManager"/>
+    /// Перемещение карт из колоды <see cref="CardDeck"/> в колоду игрока <see cref="GameControlManager"/>
     /// </summary>
     /// <param name="newCards">Новая карта из списка карт</param>
     public void MoveCardsToPlayerDeck(List<RectTransform> newCards)
@@ -128,5 +132,4 @@ public class CardManager : MonoBehaviour
 
         return worldPosition;
     }
-
 }

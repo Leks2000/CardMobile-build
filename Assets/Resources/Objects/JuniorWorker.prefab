@@ -1095,6 +1095,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbf6a2b03572b4a4bac72f87b84ec903, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cardData: {fileID: 6725458454588072238}
   isPlaced: 0
   liftHeight: 20
   liftDuration: 0.2
