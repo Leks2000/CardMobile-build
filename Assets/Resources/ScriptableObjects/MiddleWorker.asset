@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
-  m_Name: CardLowHP
+  m_Name: MiddleWorker
   m_EditorClassIdentifier: 
-  HP: 1
-  Damage: 1
-  Cost: 1
+  HP: 3
+  Damage: 2
+  Cost: 2
+  cardInfo: Not Again  Please god no

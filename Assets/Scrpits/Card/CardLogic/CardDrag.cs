@@ -10,7 +10,9 @@ using UnityEngine.EventSystems;
 /// </summary>
 public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    private CardManager cardManag;
+    [SerializeField] private Card cardData;
+    [SerializeField] private CardCostStatus status;
+    private GameControlManager cardManag;
 
     public bool isPlaced = false;
     public static bool IsDraggingAnyCard = false;
@@ -30,13 +32,14 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     private void Start()
     {
-        originalPosition = transform.localPosition;
-        rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
-        cardManag = FindObjectOfType<CardManager>().GetComponent<CardManager>();
+        rectTransform = GetComponent<RectTransform>();
         mapTrans = GameObject.FindGameObjectWithTag("Deck").GetComponent<Transform>();
+        cardManag = FindObjectOfType<GameControlManager>().GetComponent<GameControlManager>();
         defaultParent = cardManag.gameObject.transform.parent;
+        originalPosition = transform.localPosition;
+        status = cardData.status;
         ResetCard();
     }
 
@@ -63,6 +66,8 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        FindObjectOfType<Tooltip>().StartDragging();
+
         DOTween.Clear();
 
         if (isPlaced)
@@ -95,15 +100,18 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        FindObjectOfType<Tooltip>().StopDragging();
         if (isPlaced)
         {
             return;
         }
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
+
         transform.SetParent(defaultParent);
 
         IsDraggingAnyCard = false;
+
         if (Tags.Contains(defaultParent.tag))
         {
             var targetRect = defaultParent.GetComponent<RectTransform>();
@@ -114,6 +122,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
                     var curCarInHand = cardManag.GetCardInHand;
                     cardManag.GetCardInHand = curCarInHand + 1;
                     isPlaced = true;
+                    status.returnManaText(cardData.CardData.Cost);
                     ResetCard();
                 });
         }

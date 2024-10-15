@@ -1,54 +1,108 @@
-﻿using UnityEngine;
+﻿using System.ComponentModel;
 using TMPro;
-using UnityEngine.UI;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject tooltipPanel;
-    public TextMeshProUGUI tooltipText;
+    public TextMeshProUGUI tooltipTextAbility;
+    public TextMeshProUGUI tooltipTextInfo;
+    public TextMeshProUGUI tooltipTextStatus;
+    private bool isDragging = false;
 
     private RectTransform tooltipRectTransform;
-
-    public string tooltipContent = "Описание этого объекта";
+    private Canvas mainCanvas;
 
     private void Awake()
     {
         tooltipRectTransform = tooltipPanel.GetComponent<RectTransform>();
-    }
+        mainCanvas = FindObjectOfType<Canvas>();
 
-    private void Start()
-    {
         tooltipPanel.SetActive(false);
     }
 
-    public void ShowTooltip(string content, Vector3 position)
+    public void ShowTooltip(CardData cardData, Transform targetTransform)
     {
-        tooltipText.text = content;
-        tooltipPanel.SetActive(true);
+        tooltipTextAbility.text = cardData.cardInfo;
+        tooltipTextInfo.text = cardData.name;
+        tooltipTextStatus.text = $"Dmg {cardData.Damage} / Hp {cardData.Cost}";
 
         UpdateTooltipSize();
 
-        tooltipPanel.transform.position = position;
+        tooltipPanel.SetActive(true);
+
+        tooltipPanel.transform.SetParent(targetTransform, false);
+
+        Vector3 tooltipPosition = transform.position.normalized;
+        tooltipPosition.x -= targetTransform.GetComponent<RectTransform>().rect.width;
+
+        tooltipPanel.transform.localPosition = tooltipPosition;
     }
+
 
     public void HideTooltip()
     {
         tooltipPanel.SetActive(false);
-    }
-
-    private void UpdateTooltipSize()
-    {
-        tooltipRectTransform.sizeDelta = new Vector2(tooltipText.preferredWidth + 20, tooltipText.preferredHeight + 20);
+        tooltipPanel.transform.SetParent(mainCanvas.transform, false);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Vector3 tooltipPosition = transform.position + new Vector3(-50, 0, 0);
-        ShowTooltip(tooltipContent, tooltipPosition);
+        if (isDragging)
+        {
+            return;
+        }
+
+        var card = eventData.pointerEnter.transform;
+        if (card.CompareTag("Card") || card.CompareTag("Enemy"))
+        {
+            UpdateCardSize(eventData);
+            CardData cardData = card.GetComponentInChildren<Card>().CardData;
+            ShowTooltip(cardData, eventData.pointerEnter.transform);
+        }
     }
+
     public void OnPointerExit(PointerEventData eventData)
     {
         HideTooltip();
+    }
+
+    public void UpdateCardSize(PointerEventData eventData)
+    {
+        Debug.Log(eventData.pointerEnter.transform.parent.parent.name);
+        if (eventData.pointerEnter.transform.parent.parent.name.Contains("Line"))
+        {
+        }
+        else
+        {
+            tooltipPanel.transform.rotation = eventData.pointerEnter.transform.rotation;
+        }
+    }
+
+    private void SetCardSize(Vector2 size)
+    {
+        tooltipRectTransform.sizeDelta = size;
+    }
+    private void UpdateTooltipSize()
+    {
+        tooltipTextAbility.margin = new Vector4(0, 30, 0, 10);
+        tooltipTextInfo.margin = new Vector4(0, 30, 0, 30);
+        tooltipTextStatus.margin = new Vector4(0, 10, 0, 0);
+
+        float totalHeight = tooltipTextAbility.preferredHeight + tooltipTextInfo.preferredHeight + tooltipTextStatus.preferredHeight + 30; // отступы между текстами
+        tooltipRectTransform.sizeDelta = new Vector2(tooltipTextAbility.preferredWidth + 20, totalHeight);
+    }
+
+
+    public void StartDragging()
+    {
+        isDragging = true;
+        HideTooltip();
+    }
+
+    public void StopDragging()
+    {
+        isDragging = false;
     }
 }

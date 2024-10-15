@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 928253d66400b424783a01e98eb3a5e0
+guid: 17dc360320304f04b9722968d02fbf20
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -134,128 +134,18 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: Designer (4)_0
-      rect:
-        serializedVersion: 2
-        x: 597
-        y: 723
-        width: 196
-        height: 290
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 9b7a49505a5b81144ad59735d05a3eec
-      internalID: 549592729
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Designer (4)_1
-      rect:
-        serializedVersion: 2
-        x: 430
-        y: 295
-        width: 160
-        height: 429
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 5a1fbea0da398bc43bdd06107c1d0681
-      internalID: -1524089628
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Designer (4)_2
-      rect:
-        serializedVersion: 2
-        x: 811
-        y: 37
-        width: 185
-        height: 259
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 9338a5dfa97c9bd42baaacc566283717
-      internalID: -1980112341
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Designer (4)_3
-      rect:
-        serializedVersion: 2
-        x: 811
-        y: 296
-        width: 187
-        height: 215
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: df5a60a68bd43734cac74603a22c254e
-      internalID: 133268199
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Designer (4)_4
-      rect:
-        serializedVersion: 2
-        x: 592
-        y: 293
-        width: 196
-        height: 249
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 7bccffe21914d7e48a1a4045b4b5945d
-      internalID: -91981127
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
     physicsShape: []
     bones: []
-    spriteID: beb0774a448b04f4f8ea49169853575f
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable:
-      Designer (4)_0: 549592729
-      Designer (4)_1: -1524089628
-      Designer (4)_2: -1980112341
-      Designer (4)_3: 133268199
-      Designer (4)_4: -91981127
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
