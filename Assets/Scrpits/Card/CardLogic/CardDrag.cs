@@ -122,7 +122,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
                     var curCarInHand = cardManag.GetCardInHand;
                     cardManag.GetCardInHand = curCarInHand + 1;
                     isPlaced = true;
-                    status.returnManaText(cardData.CardData.Cost);
+                    status.deleteCard(gameObject);
                     ResetCard();
                 });
         }

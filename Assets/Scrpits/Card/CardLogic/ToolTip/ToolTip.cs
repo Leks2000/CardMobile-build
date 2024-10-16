@@ -1,11 +1,13 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public GameObject tooltipPanel;
+    [SerializeField] private GameObject tooltipPanel;
     public TextMeshProUGUI tooltipTextAbility;
     public TextMeshProUGUI tooltipTextInfo;
     public TextMeshProUGUI tooltipTextStatus;
@@ -58,7 +60,7 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         if (card.CompareTag("Card") || card.CompareTag("Enemy"))
         {
             UpdateCardSize(eventData);
-            CardData cardData = card.GetComponentInChildren<Card>().CardData;
+            CardData cardData = card.GetComponentInChildren<Card>().CardInfo;
             ShowTooltip(cardData, eventData.pointerEnter.transform);
         }
     }

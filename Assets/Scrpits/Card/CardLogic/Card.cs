@@ -9,11 +9,11 @@ public class Card : MonoBehaviour
 {
     /// <summary>
     /// Данные карточки, содержащие информацию о характеристиках (атака, здоровье, стоимость и т.д.).
-    /// <see cref="CardData"/> для получения более подробной информации о структуре данных карточки.
+    /// <see cref="CardInfo"/> для получения более подробной информации о структуре данных карточки.
     /// </summary>
     [SerializeField] private CardData cardData;
     [SerializeField] public CardCostStatus status;
-    public CardData CardData { get; private set; }
+    public CardData CardInfo { get; private set; }
 
     public TMP_Text damageText;
     public TMP_Text cardDmg;
@@ -26,21 +26,21 @@ public class Card : MonoBehaviour
     {
         if (cardData != null)
         {
-            CardData = cardData.Clone();
+            CardInfo = cardData.Clone();
             UpdateCardDisplay();
             if (gameObject.tag == "Card")
             {
                 status = FindAnyObjectByType<CardCostStatus>().GetComponent<CardCostStatus>();
-                status.getStatus(CardData.Cost);
+                status.addCard(gameObject);
             }
         }
     }
 
     public void UpdateCardDisplay()
     {
-        cardHp.text = CardData.HP.ToString();
-        cardDmg.text = CardData.Damage.ToString();
-        cardCost.text = CardData.Cost.ToString();
+        cardHp.text = CardInfo.HP.ToString();
+        cardDmg.text = CardInfo.Damage.ToString();
+        cardCost.text = CardInfo.Cost.ToString();
     }
 
     public void TakeDamage(int damage)
@@ -48,11 +48,11 @@ public class Card : MonoBehaviour
         damageText.text = "-" + damage.ToString();
         AnimateDamageText(() =>
         {
-            CardData.ApplyDamage(damage);
+            CardInfo.ApplyDamage(damage);
 
             UpdateCardDisplay();
 
-            if (CardData.HP <= 0)
+            if (CardInfo.HP <= 0)
             {
                 Destroy(gameObject);
                 var dropCard = GetComponentInParent<DropCard>();

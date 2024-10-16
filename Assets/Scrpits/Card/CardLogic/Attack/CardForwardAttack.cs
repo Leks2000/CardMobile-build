@@ -35,13 +35,11 @@ public abstract class CardForwardAttack : MonoBehaviour
         {
             if (IsEnemy(hit.collider))
             {
-                Debug.Log("Объект перед картой является врагом: " + hit.collider.tag);
                 var enemyCard = hit.collider.GetComponentInParent<Card>();
                 yield return StartCoroutine(AttackAnimation(enemyCard, null, false));
             }
             if (IsBoss(hit.collider))
             {
-                Debug.Log("Враг БОСС " + hit.collider.tag);
                 yield return StartCoroutine(OnBossHit(null, boss, false));
             }
             else
@@ -103,17 +101,17 @@ public abstract class CardForwardAttack : MonoBehaviour
             }
             if (enemyData != null)
             {
-                enemyData.TakeDamage(card.CardData.Damage);
+                enemyData.TakeDamage(card.CardInfo.Damage);
             }
             if (boss != null)
             {
-                boss.TakeDamage(card.CardData.Damage);
+                boss.TakeDamage(card.CardInfo.Damage);
             }
         });
         bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));
         bossAttackSequence.Play();
         yield return new WaitForSeconds(0.25f);
-        if (card.CardData.HP < 1)
+        if (card.CardInfo.HP < 1)
         {
             OnAttackComplete?.Invoke();
         }
