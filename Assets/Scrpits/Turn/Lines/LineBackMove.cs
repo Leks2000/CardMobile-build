@@ -17,7 +17,7 @@ public class LineBackMove : MonoBehaviour
     }
     public IEnumerator moveBackCards()
     {
-        yield return StartCoroutine(moveActivation.moveCards(moveBackLines, 0.25f));
+        yield return StartCoroutine(moveActivation.moveCards(moveBackLines, 0.1f));
         yield return new WaitForSeconds(delayCam);
     }
     public void OnTriggerEnter(Collider hit)

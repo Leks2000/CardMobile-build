@@ -17,6 +17,6 @@ public class CardPlayerAttack : CardForwardAttack
     }
     protected override IEnumerator OnBossHit(Card enemyData, Boss boss, bool shake)
     {
-        yield return base.OnBossHit(null, FindObjectOfType<Boss>(), false);
+        yield return base.OnBossHit(null, FindAnyObjectByType<Boss>(), false);
     }
 }

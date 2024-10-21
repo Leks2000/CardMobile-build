@@ -25,7 +25,7 @@ public class LineAttackMoveActivation : MonoBehaviour
 
     private void Awake()
     {
-        turnCamera = FindObjectOfType<EndTurnCamera>().GetComponent<EndTurnCamera>();
+        turnCamera = FindAnyObjectByType<EndTurnCamera>().GetComponent<EndTurnCamera>();
         moveActivation = new MoveActivation();
         rectTransform = GetComponent<RectTransform>();
         mesh = GetComponent<MeshRenderer>();
@@ -41,7 +41,7 @@ public class LineAttackMoveActivation : MonoBehaviour
         mesh.enabled = true;
         coll.enabled = true;
         rectTransform.localPosition = new Vector3(0, 0, 5);
-        rectTransform.DOScale(new Vector3(125f, 900f, 1), 0.25f);
+        rectTransform.DOScale(new Vector3(125f, 900f, 1), 0.1f);
 
         GameObject initialLine = lines.FirstOrDefault(line =>
                   line.GetComponentsInChildren<Transform>().Any(child => Tags.Contains(child.tag)));
@@ -51,7 +51,7 @@ public class LineAttackMoveActivation : MonoBehaviour
             transform.SetParent(initialLine.transform);
             rectTransform.anchoredPosition = Vector2.zero;
             yield return rectTransform.DOAnchorPos(Vector2.zero, 1f)
-                .SetEase(Ease.OutElastic, 0.6f, 1f)
+                .SetEase(Ease.OutElastic, 0.3f, 1f)
                 .WaitForCompletion();
             yield return new WaitUntil(() => attackCompleted);
 
@@ -80,7 +80,7 @@ public class LineAttackMoveActivation : MonoBehaviour
         coll.enabled = false;
         rectTransform.localScale = new Vector3(25f, 900f, 1);
 
-        yield return StartCoroutine(moveActivation.moveCards(moveForwardLines, 0.25f));
+        yield return StartCoroutine(moveActivation.moveCards(moveForwardLines, 0.1f));
         yield return new WaitForSeconds(delayCam);
         yield return StartCoroutine(turnCamera.ChangeRotation());
     }

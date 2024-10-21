@@ -33,12 +33,13 @@ public class MoveForward : MonoBehaviour
     }
 
     /// <summary>
-    /// Узнать размещён ли обьект впереди у <see cref="DropCard"/> если нету то анимация перемещения
+    /// Анимация перемещения карт вперёд
+    /// Узнать размещён ли обьект впереди у <see cref="DropCard"/> 
     /// </summary>
     private IEnumerator GetCard(Transform targetTransform, RectTransform card)
     {
         card.transform.SetParent(targetTransform);
-        card.DOMove(targetTransform.GetComponent<RectTransform>().position, 1f)
+        card.DOMove(targetTransform.GetComponent<RectTransform>().position, 0.25f)
                    .SetEase(Ease.OutQuad)
                    .WaitForCompletion();
 

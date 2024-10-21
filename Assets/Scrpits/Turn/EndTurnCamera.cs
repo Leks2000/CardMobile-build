@@ -7,8 +7,7 @@ using UnityEngine;
 /// <remarks> 3 этапа передвжиения в конце раунда </remarks>
 public class EndTurnCamera : MonoBehaviour
 {
-    [SerializeField] GameControlManager cardManager;
-
+    [SerializeField] private GameControlManager cardManager;
     [SerializeField] private Camera mainCam;
     [SerializeField] private float duration;
     [SerializeField] private float returnDuration;
@@ -21,10 +20,10 @@ public class EndTurnCamera : MonoBehaviour
     private Quaternion targetRotation;
     private Quaternion intermediateRotation;
 
-    LineAttackMoveActivation attackLine;
-    LineBackMove lineBackMove;
-    private bool hasClicked;
+    private LineAttackMoveActivation attackLine;
+    private LineBackMove lineBackMove;
     private Coroutine currentCoroutine;
+    private bool hasClicked;
 
     private void Start()
     {
@@ -35,8 +34,8 @@ public class EndTurnCamera : MonoBehaviour
         targetRotation = Quaternion.Euler(86, 0, 0);
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         GetComponent<Button_UI>().ClickFunc = () => OnClickFunc();
-        attackLine = FindObjectOfType<LineAttackMoveActivation>().GetComponent<LineAttackMoveActivation>();
-        lineBackMove = FindObjectOfType<LineBackMove>().GetComponent<LineBackMove>();
+        attackLine = FindAnyObjectByType<LineAttackMoveActivation>().GetComponent<LineAttackMoveActivation>();
+        lineBackMove = FindAnyObjectByType<LineBackMove>().GetComponent<LineBackMove>();
     }
     private void OnClickFunc()
     {
@@ -80,8 +79,7 @@ public class EndTurnCamera : MonoBehaviour
     private IEnumerator MoveCamera()
     {
         var timeElapsed = 0f;
-        var startPosition = mainCam.transform.position;
-        var startRotation = mainCam.transform.rotation;
+        mainCam.transform.GetPositionAndRotation(out var startPosition, out var startRotation);
 
         while (timeElapsed < duration)
         {
@@ -91,8 +89,7 @@ public class EndTurnCamera : MonoBehaviour
             yield return null;
         }
 
-        mainCam.transform.position = targetPosition;
-        mainCam.transform.rotation = targetRotation;
+        mainCam.transform.SetPositionAndRotation(targetPosition, targetRotation);
 
         yield return new WaitForSeconds(delay + 0.1f);
         if (hasClicked)
@@ -127,8 +124,7 @@ public class EndTurnCamera : MonoBehaviour
     private IEnumerator ReturnToInitialPosition()
     {
         var timeElapsed = 0f;
-        var startPosition = mainCam.transform.position;
-        var startRotation = mainCam.transform.rotation;
+        mainCam.transform.GetPositionAndRotation(out var startPosition, out var startRotation);
 
         while (timeElapsed < returnDuration)
         {
@@ -139,14 +135,13 @@ public class EndTurnCamera : MonoBehaviour
             yield return null;
         }
 
-        mainCam.transform.position = initialPosition;
-        mainCam.transform.rotation = initialRotation;
+        mainCam.transform.SetPositionAndRotation(initialPosition, initialRotation);
 
         if (hasClicked)
         {
             cardManager.TurnRound();
             hasClicked = false;
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.25f);
         }
     }
 }

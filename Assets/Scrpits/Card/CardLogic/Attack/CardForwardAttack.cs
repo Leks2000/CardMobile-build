@@ -18,7 +18,7 @@ public abstract class CardForwardAttack : MonoBehaviour
     private void Awake()
     {
         mainCamera = Camera.main;
-        boss = FindObjectOfType<Boss>();
+        boss = FindAnyObjectByType<Boss>();
 
     }
 
@@ -75,9 +75,9 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         yield return StartCoroutine(AttackAnimation(enemyData, boss, shake));
     }
-    protected void ShakeCamera()
+    protected void ShakeCamera(Vector3 newVector)
     {
-        mainCamera.transform.DOShakePosition(0.5f, strength: new Vector3(3, 3, 0), vibrato: 10, randomness: 90, snapping: false, fadeOut: true);
+        mainCamera.transform.DOShakePosition(0.5f, strength: newVector, vibrato: 10, randomness: 90, snapping: false, fadeOut: true);
     }
     private void OnDestroy()
     {
@@ -91,24 +91,25 @@ public abstract class CardForwardAttack : MonoBehaviour
 
         Sequence bossAttackSequence = DOTween.Sequence();
 
-        bossAttackSequence.Append(transform.DOMove(forwardPosition, 0.2f).SetEase(Ease.OutQuad));
+        bossAttackSequence.Append(transform.DOMove(forwardPosition, 0.1f).SetEase(Ease.OutQuad));
 
         bossAttackSequence.AppendCallback(() =>
         {
             if (shake == true)
             {
-                ShakeCamera();
+                ShakeCamera(new Vector3(0.5f, 0, 0.5f));
             }
             if (enemyData != null)
             {
                 enemyData.TakeDamage(card.CardInfo.Damage);
+                ShakeCamera(new Vector3(0, 0.1f, 0.1f));
             }
             if (boss != null)
             {
                 boss.TakeDamage(card.CardInfo.Damage);
             }
         });
-        bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));
+        bossAttackSequence.Append(transform.DOMove(transDef, 0.1f).SetEase(Ease.OutQuad));
         bossAttackSequence.Play();
         yield return new WaitForSeconds(0.25f);
         if (card.CardInfo.HP < 1)

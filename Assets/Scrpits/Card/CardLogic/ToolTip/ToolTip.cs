@@ -19,8 +19,7 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     private void Awake()
     {
         tooltipRectTransform = tooltipPanel.GetComponent<RectTransform>();
-        mainCanvas = FindObjectOfType<Canvas>();
-
+        mainCanvas = FindAnyObjectByType<Canvas>();
         tooltipPanel.SetActive(false);
     }
 

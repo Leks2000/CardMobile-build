@@ -36,7 +36,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         canvasGroup = GetComponent<CanvasGroup>();
         rectTransform = GetComponent<RectTransform>();
         mapTrans = GameObject.FindGameObjectWithTag("Deck").GetComponent<Transform>();
-        cardManag = FindObjectOfType<GameControlManager>().GetComponent<GameControlManager>();
+        cardManag = FindAnyObjectByType<GameControlManager>().GetComponent<GameControlManager>();
         defaultParent = cardManag.gameObject.transform.parent;
         originalPosition = transform.localPosition;
         status = cardData.status;
@@ -66,7 +66,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        FindObjectOfType<Tooltip>().StartDragging();
+        FindAnyObjectByType<Tooltip>().StartDragging();
 
         DOTween.Clear();
 
@@ -100,7 +100,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        FindObjectOfType<Tooltip>().StopDragging();
+        FindAnyObjectByType<Tooltip>().StopDragging();
         if (isPlaced)
         {
             return;
