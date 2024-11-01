@@ -10,7 +10,7 @@ public abstract class CardForwardAttack : MonoBehaviour
     [SerializeField] protected Card card;
     protected Camera mainCamera;
     protected Boss boss;
-    public float moveDistance = 1f;
+    public float moveDistance = 2f;
 
     public delegate void AttackCompleteHandler();
     public event AttackCompleteHandler OnAttackComplete;
@@ -91,7 +91,7 @@ public abstract class CardForwardAttack : MonoBehaviour
 
         Sequence bossAttackSequence = DOTween.Sequence();
 
-        bossAttackSequence.Append(transform.DOMove(forwardPosition, 0.1f).SetEase(Ease.OutQuad));
+        bossAttackSequence.Append(transform.DOMove(forwardPosition, 0.15f).SetEase(Ease.OutQuad));
 
         bossAttackSequence.AppendCallback(() =>
         {
@@ -102,14 +102,14 @@ public abstract class CardForwardAttack : MonoBehaviour
             if (enemyData != null)
             {
                 enemyData.TakeDamage(card.CardInfo.Damage);
-                ShakeCamera(new Vector3(0, 0.1f, 0.1f));
+                ShakeCamera(new Vector3(0, 0.2f, 0.2f));
             }
             if (boss != null)
             {
                 boss.TakeDamage(card.CardInfo.Damage);
             }
         });
-        bossAttackSequence.Append(transform.DOMove(transDef, 0.1f).SetEase(Ease.OutQuad));
+        bossAttackSequence.Append(transform.DOMove(transDef, 0.15f).SetEase(Ease.OutQuad));
         bossAttackSequence.Play();
         yield return new WaitForSeconds(0.25f);
         if (card.CardInfo.HP < 1)

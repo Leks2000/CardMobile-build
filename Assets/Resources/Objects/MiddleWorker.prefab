@@ -1260,4 +1260,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   card: {fileID: 6725458454588072238}
-  moveDistance: 1
+  moveDistance: 1.5
