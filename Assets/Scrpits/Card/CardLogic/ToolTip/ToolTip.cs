@@ -13,6 +13,7 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     private RectTransform tooltipRectTransform;
     private Canvas mainCanvas;
+    private RectTransform playerUITransform;
 
     private void Awake()
     {
@@ -20,6 +21,9 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         mainCanvas = FindObjectOfType<Canvas>();
 
         tooltipPanel.SetActive(false);
+
+        // НайдитеRectTransform UI игрока
+        playerUITransform = GameObject.FindWithTag("PlayerUI").GetComponent<RectTransform>();
     }
 
     public void ShowTooltip(CardData cardData, Transform targetTransform)
@@ -32,15 +36,12 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
         tooltipPanel.SetActive(true);
 
-        tooltipPanel.transform.SetParent(targetTransform, false);
+        Vector2 localPosition = playerUITransform.InverseTransformPoint(targetTransform.position);
+        localPosition.x -= targetTransform.GetComponent<RectTransform>().rect.width / 2;
+        localPosition.y += targetTransform.GetComponent<RectTransform>().rect.height / 2;
 
-        Vector3 tooltipPosition = transform.position.normalized;
-        tooltipPosition.x -= targetTransform.GetComponent<RectTransform>().rect.width;
-
-        tooltipPanel.transform.localPosition = tooltipPosition;
+        tooltipRectTransform.localPosition = localPosition;
     }
-
-
     public void HideTooltip()
     {
         tooltipPanel.SetActive(false);
@@ -84,6 +85,7 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         tooltipRectTransform.sizeDelta = size;
     }
+
     private void UpdateTooltipSize()
     {
         tooltipTextAbility.margin = new Vector4(0, 30, 0, 10);
@@ -92,8 +94,15 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
         float totalHeight = tooltipTextAbility.preferredHeight + tooltipTextInfo.preferredHeight + tooltipTextStatus.preferredHeight + 30; // отступы между текстами
         tooltipRectTransform.sizeDelta = new Vector2(tooltipTextAbility.preferredWidth + 20, totalHeight);
-    }
 
+        TMP_Text[] texts = { tooltipTextAbility, tooltipTextInfo, tooltipTextStatus };
+        foreach (TMP_Text text in texts)
+        {
+            text.fontSizeMin = 12;
+            text.fontSizeMax = 24;
+            text.autoSizeTextContainer = true;
+        }
+    }
 
     public void StartDragging()
     {
