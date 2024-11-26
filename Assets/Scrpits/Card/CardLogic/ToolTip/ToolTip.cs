@@ -1,31 +1,30 @@
-﻿using System.ComponentModel;
-using TMPro;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using TMPro;
 
-public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class Tooltip : MonoBehaviour
 {
-    public GameObject tooltipPanel;
-    public TextMeshProUGUI tooltipTextAbility;
-    public TextMeshProUGUI tooltipTextInfo;
-    public TextMeshProUGUI tooltipTextStatus;
-    private bool isDragging = false;
+    [SerializeField] private GameObject tooltipPanel;
+    [SerializeField] private TextMeshProUGUI tooltipTextAbility;
+    [SerializeField] private TextMeshProUGUI tooltipTextInfo;
+    [SerializeField] private TextMeshProUGUI tooltipTextStatus;
 
     private RectTransform tooltipRectTransform;
     private Canvas mainCanvas;
-    private RectTransform playerUITransform;
+    private RectTransform canvasRectTransform;
 
     private void Awake()
     {
         tooltipRectTransform = tooltipPanel.GetComponent<RectTransform>();
         mainCanvas = FindObjectOfType<Canvas>();
+        canvasRectTransform = mainCanvas.GetComponent<RectTransform>();
 
         tooltipPanel.SetActive(false);
-
-        // НайдитеRectTransform UI игрока
-        playerUITransform = GameObject.FindWithTag("PlayerUI").GetComponent<RectTransform>();
     }
 
+    /// <summary>
+    /// Показывает тултип с информацией о карте.
+    /// </summary>
     public void ShowTooltip(CardData cardData, Transform targetTransform)
     {
         tooltipTextAbility.text = cardData.cardInfo;
@@ -33,85 +32,69 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         tooltipTextStatus.text = $"Dmg {cardData.Damage} / Hp {cardData.Cost}";
 
         UpdateTooltipSize();
+        PositionTooltip(targetTransform);
 
         tooltipPanel.SetActive(true);
-
-        Vector2 localPosition = playerUITransform.InverseTransformPoint(targetTransform.position);
-        localPosition.x -= targetTransform.GetComponent<RectTransform>().rect.width / 2;
-        localPosition.y += targetTransform.GetComponent<RectTransform>().rect.height / 2;
-
-        tooltipRectTransform.localPosition = localPosition;
     }
+
+    /// <summary>
+    /// Скрывает тултип.
+    /// </summary>
     public void HideTooltip()
     {
         tooltipPanel.SetActive(false);
-        tooltipPanel.transform.SetParent(mainCanvas.transform, false);
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (isDragging)
-        {
-            return;
-        }
-
-        var card = eventData.pointerEnter.transform;
-        if (card.CompareTag("Card") || card.CompareTag("Enemy"))
-        {
-            UpdateCardSize(eventData);
-            CardData cardData = card.GetComponentInChildren<Card>().CardData;
-            ShowTooltip(cardData, eventData.pointerEnter.transform);
-        }
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        HideTooltip();
-    }
-
-    public void UpdateCardSize(PointerEventData eventData)
-    {
-        Debug.Log(eventData.pointerEnter.transform.parent.parent.name);
-        if (eventData.pointerEnter.transform.parent.parent.name.Contains("Line"))
-        {
-        }
-        else
-        {
-            tooltipPanel.transform.rotation = eventData.pointerEnter.transform.rotation;
-        }
-    }
-
-    private void SetCardSize(Vector2 size)
-    {
-        tooltipRectTransform.sizeDelta = size;
-    }
-
+    /// <summary>
+    /// Обновляет размер тултипа в зависимости от содержания.
+    /// </summary>
     private void UpdateTooltipSize()
     {
-        tooltipTextAbility.margin = new Vector4(0, 30, 0, 10);
-        tooltipTextInfo.margin = new Vector4(0, 30, 0, 30);
+        tooltipTextAbility.margin = new Vector4(0, 20, 0, 10);
+        tooltipTextInfo.margin = new Vector4(0, 20, 0, 20);
         tooltipTextStatus.margin = new Vector4(0, 10, 0, 0);
 
-        float totalHeight = tooltipTextAbility.preferredHeight + tooltipTextInfo.preferredHeight + tooltipTextStatus.preferredHeight + 30; // отступы между текстами
-        tooltipRectTransform.sizeDelta = new Vector2(tooltipTextAbility.preferredWidth + 20, totalHeight);
+        float totalHeight = tooltipTextAbility.preferredHeight + tooltipTextInfo.preferredHeight + tooltipTextStatus.preferredHeight + 40;
+        float maxWidth = Mathf.Max(tooltipTextAbility.preferredWidth, tooltipTextInfo.preferredWidth, tooltipTextStatus.preferredWidth) + 20;
 
-        TMP_Text[] texts = { tooltipTextAbility, tooltipTextInfo, tooltipTextStatus };
-        foreach (TMP_Text text in texts)
+        tooltipRectTransform.sizeDelta = new Vector2(maxWidth, totalHeight);
+    }
+
+    /// <summary>
+    /// Позиционирует тултип рядом с картой, корректируя позицию, если тултип выходит за пределы экрана.
+    /// </summary>
+    private void PositionTooltip(Transform targetTransform)
+    {
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(Camera.main, targetTransform.position);
+        Vector2 localPoint;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRectTransform, screenPoint, mainCanvas.worldCamera, out localPoint);
+
+        tooltipRectTransform.localPosition = localPoint;
+
+        Vector3[] corners = new Vector3[4];
+        tooltipRectTransform.GetWorldCorners(corners);
+
+        Vector2 tooltipPosition = tooltipRectTransform.localPosition;
+
+        if (corners[2].x > canvasRectTransform.rect.width / 2)
         {
-            text.fontSizeMin = 12;
-            text.fontSizeMax = 24;
-            text.autoSizeTextContainer = true;
+            tooltipPosition.x -= corners[2].x - canvasRectTransform.rect.width / 2;
         }
-    }
+        if (corners[0].x < -canvasRectTransform.rect.width / 2)
+        {
+            tooltipPosition.x -= corners[0].x + canvasRectTransform.rect.width / 2;
+        }
+        if (corners[2].y > canvasRectTransform.rect.height / 2)
+        {
+            tooltipPosition.y -= corners[2].y - canvasRectTransform.rect.height / 2;
+        }
+        if (corners[0].y < -canvasRectTransform.rect.height / 2)
+        {
+            tooltipPosition.y -= corners[0].y + canvasRectTransform.rect.height / 2;
+        }
 
-    public void StartDragging()
-    {
-        isDragging = true;
-        HideTooltip();
-    }
-
-    public void StopDragging()
-    {
-        isDragging = false;
+        tooltipRectTransform.localPosition = tooltipPosition;
     }
 }

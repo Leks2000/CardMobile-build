@@ -4,6 +4,9 @@
 /// Класс - ScriptableObject карт
 /// </summary>
 [CreateAssetMenu(fileName = "NewCardData", menuName = "Game/CardData")]
+/// <summary>
+/// Инфа о карточках
+/// </summary>
 public class CardData : ScriptableObject
 {
     public int HP;

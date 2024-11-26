@@ -22,6 +22,7 @@ public class Card : MonoBehaviour
     public float duration;
     public float moveDistance;
 
+
     private void Awake()
     {
         if (cardData != null)

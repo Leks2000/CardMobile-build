@@ -90,7 +90,6 @@ public class GameControlManager : MonoBehaviour
             var newCard = newCards[i];
             var delay = i * duration;
 
-            // Появление карты
             newCard.DOScale(Vector3.zero, 0.1f).SetEase(Ease.OutQuad).SetDelay(delay);
             newCard.DOScale(Vector3.one, 0.1f).SetEase(Ease.InQuad).SetDelay(delay + 0.1f);
 
@@ -102,7 +101,6 @@ public class GameControlManager : MonoBehaviour
             var targetWorldPosition = GetCardWorldPosition(existingCardCount + i, cellSize, spacing);
             newCard.localPosition = new Vector3(targetLocalPosition.x, targetLocalPosition.y, newCard.localPosition.z);
 
-            // Перемещение карты в колоду игрока
             sequence.Append(newCard.DOMove(targetWorldPosition, duration)
                 .SetEase(Ease.OutQuad)
                 .SetDelay(delay + 0.2f)

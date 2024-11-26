@@ -35,13 +35,11 @@ public abstract class CardForwardAttack : MonoBehaviour
         {
             if (IsEnemy(hit.collider))
             {
-                Debug.Log("Объект перед картой является врагом: " + hit.collider.tag);
                 var enemyCard = hit.collider.GetComponentInParent<Card>();
                 yield return StartCoroutine(AttackAnimation(enemyCard, null, false));
             }
             if (IsBoss(hit.collider))
             {
-                Debug.Log("Враг БОСС " + hit.collider.tag);
                 yield return StartCoroutine(OnBossHit(null, boss, false));
             }
             else
