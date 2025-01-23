@@ -21,6 +21,7 @@ public class Card : MonoBehaviour
     public TMP_Text cardCost;
     public float duration;
     public float moveDistance;
+    private int damageCard;
 
 
     private void Awake()
@@ -32,7 +33,7 @@ public class Card : MonoBehaviour
             if (gameObject.tag == "Card")
             {
                 status = FindAnyObjectByType<CardCostStatus>().GetComponent<CardCostStatus>();
-                status.getStatus(CardData.Cost);
+                status.getStatus(gameObject);
             }
         }
     }
@@ -46,13 +47,10 @@ public class Card : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        damageCard = damage;
         damageText.text = "-" + damage.ToString();
         AnimateDamageText(() =>
         {
-            CardData.ApplyDamage(damage);
-
-            UpdateCardDisplay();
-
             if (CardData.HP <= 0)
             {
                 Destroy(gameObject);
@@ -64,7 +62,10 @@ public class Card : MonoBehaviour
             }
         });
     }
-
+    /// <summary>
+    /// Анимация получения урона
+    /// </summary>
+    /// <param name="onCompleteCallback">Вызов по завершении анимации</param>
     private void AnimateDamageText(TweenCallback onCompleteCallback)
     {
         damageText.enabled = true;
@@ -73,9 +74,21 @@ public class Card : MonoBehaviour
 
         Sequence damageSequence = DOTween.Sequence();
 
-        damageSequence.Append(damageText.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack));
+        damageSequence.Append(damageText.transform.DOScale(Vector3.one, 2.25f).SetEase(Ease.OutBack));
+        damageSequence.JoinCallback(() =>
+        {
+            CardData.ApplyDamage(damageCard);
+            UpdateCardDisplay();
+            if (CardData.HP <= 0)
+            {
+                damageSequence.JoinCallback(() =>
+                {
+                    gameObject.SetActive(false);
+                });
+            }
+        });
         damageSequence.Join(damageText.transform.DOMoveY(transform.position.y + moveDistance, duration).SetEase(Ease.OutQuad));
-        damageSequence.Join(damageText.DOFade(0, duration).SetDelay(0.5f));
+        damageSequence.Join(damageText.DOFade(0, duration).SetDelay(0.75f));
 
         damageSequence.OnComplete(() =>
         {

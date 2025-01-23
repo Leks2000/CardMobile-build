@@ -98,7 +98,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -277,7 +277,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -491,7 +491,7 @@ MonoBehaviour:
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 64
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -627,7 +627,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -938,6 +938,7 @@ GameObject:
   - component: {fileID: 6725458454588072238}
   - component: {fileID: 1734591006195325633}
   - component: {fileID: 2796145187098274651}
+  - component: {fileID: -8326707826088105146}
   m_Layer: 5
   m_Name: RatCard
   m_TagString: Enemy
@@ -1030,11 +1031,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardData: {fileID: 11400000, guid: ecf49b55c6ecfb24fa74ae8029f97745, type: 2}
+  status: {fileID: 0}
   damageText: {fileID: 7511618601938027338}
   cardDmg: {fileID: 3244701317733901824}
   cardHp: {fileID: 506614715136006921}
   cardCost: {fileID: 7622105693089289663}
-  duration: 0.2
+  duration: 0.5
   moveDistance: 10
 --- !u!114 &1734591006195325633
 MonoBehaviour:
@@ -1065,6 +1067,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   card: {fileID: 6725458454588072238}
   moveDistance: 1
+--- !u!114 &-8326707826088105146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7481033376217071563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77a55073a24daf246a523cdf4b9c82f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardData: {fileID: 6725458454588072238}
 --- !u!1 &7558613652392112923
 GameObject:
   m_ObjectHideFlags: 0

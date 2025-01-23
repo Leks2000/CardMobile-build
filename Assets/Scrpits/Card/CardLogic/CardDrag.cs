@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using DG.Tweening;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -66,15 +64,12 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        FindObjectOfType<Tooltip>().ShowTooltip(cardData.CardData, transform);
-
         DOTween.Clear();
 
         if (isPlaced)
         {
             return;
         }
-
         IsDraggingAnyCard = true;
 
         canvasGroup.alpha = 0.8f;
@@ -100,8 +95,6 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        FindObjectOfType<Tooltip>().HideTooltip();
-
         if (isPlaced)
         {
             return;
@@ -112,7 +105,6 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         transform.SetParent(defaultParent);
 
         IsDraggingAnyCard = false;
-
         if (Tags.Contains(defaultParent.tag))
         {
             var targetRect = defaultParent.GetComponent<RectTransform>();
@@ -120,11 +112,11 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
                 .SetEase(Ease.InOutCubic)
                 .OnComplete(() =>
                 {
+                    ResetCard();
                     var curCarInHand = cardManag.GetCardInHand;
                     cardManag.GetCardInHand = curCarInHand + 1;
                     isPlaced = true;
-                    status.returnManaText(cardData.CardData.Cost);
-                    ResetCard();
+                    status.returnManaText(gameObject);
                 });
         }
         else

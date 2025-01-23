@@ -174,7 +174,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -310,7 +310,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -520,7 +520,7 @@ MonoBehaviour:
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 64
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -940,7 +940,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1101,6 +1101,7 @@ GameObject:
   - component: {fileID: 1734591006195325633}
   - component: {fileID: 2022631976737883107}
   - component: {fileID: 2139454945296490360}
+  - component: {fileID: -4190390334069090976}
   m_Layer: 5
   m_Name: MiddleWorker
   m_TagString: Card
@@ -1196,11 +1197,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardData: {fileID: 11400000, guid: a97acc3dab48a7e44b65109354ac4f65, type: 2}
+  status: {fileID: 0}
   damageText: {fileID: 8777437283323957478}
   cardDmg: {fileID: 3829050186280354655}
   cardHp: {fileID: 6381132479111704536}
   cardCost: {fileID: 138219804354496371}
-  duration: 0.2
+  duration: 0.5
   moveDistance: 10
 --- !u!114 &1734591006195325633
 MonoBehaviour:
@@ -1230,6 +1232,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardData: {fileID: 6725458454588072238}
+  status: {fileID: 0}
   isPlaced: 0
   liftHeight: 20
   liftDuration: 0.2
@@ -1248,3 +1251,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   card: {fileID: 6725458454588072238}
   moveDistance: 1
+--- !u!114 &-4190390334069090976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7481033376217071563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77a55073a24daf246a523cdf4b9c82f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardData: {fileID: 6725458454588072238}

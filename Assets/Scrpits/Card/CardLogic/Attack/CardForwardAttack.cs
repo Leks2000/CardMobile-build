@@ -83,6 +83,13 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         DOTween.Kill(transform);
     }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="enemyData">вражеская карта</param>
+    /// <param name="boss">Босс</param>
+    /// <param name="shake">Наличие Тряски</param>
+    /// <returns></returns>
     protected IEnumerator AttackAnimation(Card enemyData, Boss boss, bool shake)
     {
         yield return new WaitForSeconds(0.25f);

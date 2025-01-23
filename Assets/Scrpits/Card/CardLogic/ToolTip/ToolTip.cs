@@ -54,8 +54,8 @@ public class Tooltip : MonoBehaviour
         tooltipTextInfo.margin = new Vector4(0, 20, 0, 20);
         tooltipTextStatus.margin = new Vector4(0, 10, 0, 0);
 
-        float totalHeight = tooltipTextAbility.preferredHeight + tooltipTextInfo.preferredHeight + tooltipTextStatus.preferredHeight + 40;
-        float maxWidth = Mathf.Max(tooltipTextAbility.preferredWidth, tooltipTextInfo.preferredWidth, tooltipTextStatus.preferredWidth) + 20;
+        var totalHeight = tooltipTextAbility.preferredHeight + tooltipTextInfo.preferredHeight + tooltipTextStatus.preferredHeight + 40;
+        var maxWidth = Mathf.Max(tooltipTextAbility.preferredWidth, tooltipTextInfo.preferredWidth, tooltipTextStatus.preferredWidth) + 20;
 
         tooltipRectTransform.sizeDelta = new Vector2(maxWidth, totalHeight);
     }
@@ -66,14 +66,13 @@ public class Tooltip : MonoBehaviour
     private void PositionTooltip(Transform targetTransform)
     {
         Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(Camera.main, targetTransform.position);
-        Vector2 localPoint;
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRectTransform, screenPoint, mainCanvas.worldCamera, out localPoint);
+            canvasRectTransform, screenPoint, mainCanvas.worldCamera, out var localPoint);
 
         tooltipRectTransform.localPosition = localPoint;
 
-        Vector3[] corners = new Vector3[4];
+        var corners = new Vector3[4];
         tooltipRectTransform.GetWorldCorners(corners);
 
         Vector2 tooltipPosition = tooltipRectTransform.localPosition;
