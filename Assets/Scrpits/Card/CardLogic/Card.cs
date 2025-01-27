@@ -1,6 +1,8 @@
 ﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+
 
 /// <summary>
 /// Класс, представляющий карточку в игре. Управляет отображением данных карточки и взаимодействиями.
@@ -19,7 +21,6 @@ public class Card : MonoBehaviour
     public TMP_Text cardDmg;
     public TMP_Text cardHp;
     public TMP_Text cardCost;
-    public float duration;
     public float moveDistance;
     private int damageCard;
 
@@ -30,7 +31,7 @@ public class Card : MonoBehaviour
         {
             CardData = cardData.Clone();
             UpdateCardDisplay();
-            if (gameObject.tag == "Card")
+            if (gameObject.CompareTag("Card"))
             {
                 status = FindAnyObjectByType<CardCostStatus>().GetComponent<CardCostStatus>();
                 status.getStatus(gameObject);
@@ -53,12 +54,12 @@ public class Card : MonoBehaviour
         {
             if (CardData.HP <= 0)
             {
-                Destroy(gameObject);
                 var dropCard = GetComponentInParent<DropCard>();
                 if (dropCard != null)
                 {
                     dropCard.canDrop = true;
                 }
+                Destroy(gameObject);
             }
         });
     }
@@ -79,16 +80,28 @@ public class Card : MonoBehaviour
         {
             CardData.ApplyDamage(damageCard);
             UpdateCardDisplay();
+        });
+
+        damageSequence.Join(damageText.transform.DOMoveY(transform.position.y + moveDistance, 1f).SetEase(Ease.OutQuad));
+        damageSequence.Join(damageText.DOFade(0, 0.5f).SetDelay(0.75f));
+
+        damageSequence.JoinCallback(() =>
+        {
             if (CardData.HP <= 0)
             {
-                damageSequence.JoinCallback(() =>
+                foreach (var item in gameObject.GetComponentsInChildren<Component>())
                 {
-                    gameObject.SetActive(false);
-                });
+                    if ((item is Image || item is TextMeshProUGUI) && (item.gameObject.name != "TakeDamage"))
+                    {
+                        var uiElement = item as Behaviour;
+                        if (uiElement != null)
+                        {
+                            uiElement.enabled = false;
+                        }
+                    }
+                }
             }
         });
-        damageSequence.Join(damageText.transform.DOMoveY(transform.position.y + moveDistance, duration).SetEase(Ease.OutQuad));
-        damageSequence.Join(damageText.DOFade(0, duration).SetDelay(0.75f));
 
         damageSequence.OnComplete(() =>
         {

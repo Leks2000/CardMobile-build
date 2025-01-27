@@ -115,16 +115,9 @@ public abstract class CardForwardAttack : MonoBehaviour
                 boss.TakeDamage(card.CardData.Damage);
             }
         });
+        OnAttackComplete?.Invoke();
         bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));
         bossAttackSequence.Play();
         yield return new WaitForSeconds(0.25f);
-        if (card.CardData.HP < 1)
-        {
-            OnAttackComplete?.Invoke();
-        }
-        else
-        {
-            OnAttackComplete?.Invoke();
-        }
     }
 }
