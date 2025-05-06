@@ -43,7 +43,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!isPlaced && !IsDraggingAnyCard && transform.parent.name == "PlayerDeck")
+        if (!isPlaced && !IsDraggingAnyCard && transform.parent.tag == "PlayerDeck")
         {
             rectTransform.DOLocalMoveY(originalPosition.y + liftHeight, liftDuration).SetEase(Ease.OutQuad);
         }
@@ -51,7 +51,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!isPlaced && !IsDraggingAnyCard && transform.parent.name == "PlayerDeck")
+        if (!isPlaced && !IsDraggingAnyCard && transform.parent.tag == "PlayerDeck")
         {
             rectTransform.DOLocalMoveY(originalPosition.y, liftDuration).SetEase(Ease.InQuad);
         }

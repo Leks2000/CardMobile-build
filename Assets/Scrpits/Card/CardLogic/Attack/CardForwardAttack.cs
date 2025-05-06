@@ -19,7 +19,6 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         mainCamera = Camera.main;
         boss = FindObjectOfType<Boss>();
-
     }
 
     /// <summary>
@@ -62,8 +61,8 @@ public abstract class CardForwardAttack : MonoBehaviour
     /// <summary>
     /// Наносит урон боссу с возможностью тряски камеры.
     /// </summary>
-    /// <param name="enemyData">Будет - null, если цель — босс.</param>
-    /// <param name="boss">Будет - null, если цель — карта.</param>
+    /// <param name="enemyData">Будет - null, если цель — не карта.</param>
+    /// <param name="boss">Будет - null, если цель — не босс.</param>
     /// <param name="shake">Флаг, указывающий, должна ли камера трястись при ударе.</param>
     /// <returns>Возвращает IEnumerator для выполнения анимации атаки.</returns>
     /// <remarks>
@@ -105,6 +104,8 @@ public abstract class CardForwardAttack : MonoBehaviour
             if (shake == true)
             {
                 ShakeCamera();
+                Player.Instance.TakeDamage(card.CardData.Damage);
+
             }
             if (enemyData != null)
             {

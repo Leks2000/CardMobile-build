@@ -11,6 +11,7 @@ TagManager:
   - PlayerCard
   - EnemyBoss
   - PlayerUI
+  - PlayerDeck
   layers:
   - Default
   - TransparentFX

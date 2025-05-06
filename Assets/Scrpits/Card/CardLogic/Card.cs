@@ -1,4 +1,5 @@
-﻿using DG.Tweening;
+﻿using Assets.Scrpits.Card.Animation;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,7 @@ public class Card : MonoBehaviour
     /// </summary>
     [SerializeField] private CardData cardData;
     [SerializeField] public CardCostStatus status;
+    [SerializeField] private DamageTextAnimator damageAnimator;
     public CardData CardData { get; private set; }
 
     public TMP_Text damageText;
@@ -50,7 +52,13 @@ public class Card : MonoBehaviour
     {
         damageCard = damage;
         damageText.text = "-" + damage.ToString();
-        AnimateDamageText(() =>
+        damageAnimator.Animate(damageText, damage,
+        () =>
+        {
+            CardData.ApplyDamage(damage);
+            UpdateCardDisplay();
+        },
+        () =>
         {
             if (CardData.HP <= 0)
             {
@@ -61,55 +69,6 @@ public class Card : MonoBehaviour
                 }
                 Destroy(gameObject);
             }
-        });
-    }
-    /// <summary>
-    /// Анимация получения урона
-    /// </summary>
-    /// <param name="onCompleteCallback">Вызов по завершении анимации</param>
-    private void AnimateDamageText(TweenCallback onCompleteCallback)
-    {
-        damageText.enabled = true;
-
-        Vector3 initialPosition = damageText.transform.localPosition;
-
-        Sequence damageSequence = DOTween.Sequence();
-
-        damageSequence.Append(damageText.transform.DOScale(Vector3.one, 2.25f).SetEase(Ease.OutBack));
-        damageSequence.JoinCallback(() =>
-        {
-            CardData.ApplyDamage(damageCard);
-            UpdateCardDisplay();
-        });
-
-        damageSequence.Join(damageText.transform.DOMoveY(transform.position.y + moveDistance, 1f).SetEase(Ease.OutQuad));
-        damageSequence.Join(damageText.DOFade(0, 0.5f).SetDelay(0.75f));
-
-        damageSequence.JoinCallback(() =>
-        {
-            if (CardData.HP <= 0)
-            {
-                foreach (var item in gameObject.GetComponentsInChildren<Component>())
-                {
-                    if ((item is Image || item is TextMeshProUGUI) && (item.gameObject.name != "TakeDamage"))
-                    {
-                        var uiElement = item as Behaviour;
-                        if (uiElement != null)
-                        {
-                            uiElement.enabled = false;
-                        }
-                    }
-                }
-            }
-        });
-
-        damageSequence.OnComplete(() =>
-        {
-            damageText.enabled = false;
-            damageText.alpha = 1;
-            damageText.transform.localScale = Vector3.one;
-            damageText.transform.localPosition = initialPosition;
-            onCompleteCallback?.Invoke();
         });
     }
 }
