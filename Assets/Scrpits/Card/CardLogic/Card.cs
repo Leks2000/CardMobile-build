@@ -1,6 +1,9 @@
-﻿using DG.Tweening;
+﻿using Assets.Scrpits.Card.Animation;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+
 
 /// <summary>
 /// Класс, представляющий карточку в игре. Управляет отображением данных карточки и взаимодействиями.
@@ -13,14 +16,15 @@ public class Card : MonoBehaviour
     /// </summary>
     [SerializeField] private CardData cardData;
     [SerializeField] public CardCostStatus status;
+    [SerializeField] private DamageTextAnimator damageAnimator;
     public CardData CardData { get; private set; }
 
     public TMP_Text damageText;
     public TMP_Text cardDmg;
     public TMP_Text cardHp;
     public TMP_Text cardCost;
-    public float duration;
     public float moveDistance;
+    private int damageCard;
 
 
     private void Awake()
@@ -29,10 +33,10 @@ public class Card : MonoBehaviour
         {
             CardData = cardData.Clone();
             UpdateCardDisplay();
-            if (gameObject.tag == "Card")
+            if (gameObject.CompareTag("Card"))
             {
                 status = FindAnyObjectByType<CardCostStatus>().GetComponent<CardCostStatus>();
-                status.getStatus(CardData.Cost);
+                status.getStatus(gameObject);
             }
         }
     }
@@ -46,44 +50,25 @@ public class Card : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        damageCard = damage;
         damageText.text = "-" + damage.ToString();
-        AnimateDamageText(() =>
+        damageAnimator.Animate(damageText, damage,
+        () =>
         {
             CardData.ApplyDamage(damage);
-
             UpdateCardDisplay();
-
+        },
+        () =>
+        {
             if (CardData.HP <= 0)
             {
-                Destroy(gameObject);
                 var dropCard = GetComponentInParent<DropCard>();
                 if (dropCard != null)
                 {
                     dropCard.canDrop = true;
                 }
+                Destroy(gameObject);
             }
-        });
-    }
-
-    private void AnimateDamageText(TweenCallback onCompleteCallback)
-    {
-        damageText.enabled = true;
-
-        Vector3 initialPosition = damageText.transform.localPosition;
-
-        Sequence damageSequence = DOTween.Sequence();
-
-        damageSequence.Append(damageText.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack));
-        damageSequence.Join(damageText.transform.DOMoveY(transform.position.y + moveDistance, duration).SetEase(Ease.OutQuad));
-        damageSequence.Join(damageText.DOFade(0, duration).SetDelay(0.5f));
-
-        damageSequence.OnComplete(() =>
-        {
-            damageText.enabled = false;
-            damageText.alpha = 1;
-            damageText.transform.localScale = Vector3.one;
-            damageText.transform.localPosition = initialPosition;
-            onCompleteCallback?.Invoke();
         });
     }
 }

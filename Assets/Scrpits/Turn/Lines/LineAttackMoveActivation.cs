@@ -75,9 +75,12 @@ public class LineAttackMoveActivation : MonoBehaviour
                 }
             }
         }
+        rectTransform.DOLocalMoveZ(rectTransform.localPosition.z + 100, 0.1f).SetEase(Ease.Linear);
+        yield return new WaitForSeconds(0.1f);
 
         mesh.enabled = false;
         coll.enabled = false;
+
         rectTransform.localScale = new Vector3(25f, 900f, 1);
 
         yield return StartCoroutine(moveActivation.moveCards(moveForwardLines, 0.25f));
@@ -98,7 +101,13 @@ public class LineAttackMoveActivation : MonoBehaviour
                 cardForwardAttack.OnAttackComplete += () => attackCompleted = true;
                 StartCoroutine(cardForwardAttack.PerformAttack());
             }
-            var moveForward = cardForwardAttack.GetComponentInParent<MoveForward>();
+        }
+    }
+    public void OnTriggerExit(Collider hit)
+    {
+        if (Tags.Contains(hit.tag))
+        {
+            var moveForward = hit.gameObject.GetComponentInParent<CardForwardAttack>().GetComponentInParent<MoveForward>();
             if (moveForward != null && moveForward.isMovingBackLine == false)
             {
                 moveForwardLines.Add(moveForward);

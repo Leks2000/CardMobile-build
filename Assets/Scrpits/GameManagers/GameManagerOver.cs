@@ -3,6 +3,7 @@ using DG.Tweening;
 using UnityEngine;
 using System.Linq;
 using System.Collections;
+using UnityEngine.UI;
 
 /// <summary>
 /// Мэнэджер для концовки игры
@@ -15,14 +16,47 @@ public class GameManagerOver : MonoBehaviour
     [SerializeField] private TMP_Text resultBonus;
     [SerializeField] private TMP_Text totalCash;
     [SerializeField] private TMP_Text cashOUT;
+    [SerializeField] private Button buttonNextScene;
+
+    private bool isWin = false;
+    private bool canContinue = false;
+
+    public void OnTapToContinue()
+    {
+        if (canContinue)
+        {
+            StartCoroutine(HandleTapToContinue());
+            canContinue = false;
+        }
+    }
 
     /// <summary>
     /// Временная система наград
     /// </summary>
-    private void GetResult()
+    private void GetResult(bool result)
     {
-        resultSalary.text = "Salary" + new string(' ', 35) + "26$";
-        resultBonus.text = "No Damage Bonus" + new string(' ', 12) + "14$";
+        if (result)
+        {
+            int salary = 26;
+            int bonus = 14;
+            int total = salary + bonus;
+
+            resultSalary.text = "Salary" + new string(' ', 35) + $"{salary}$";
+            resultBonus.text = "No Damage Bonus" + new string(' ', 12) + $"{bonus}$";
+            totalCash.text = "Total" + new string(' ', 38) + $"{total}$";
+            cashOUT.text = "CASH OUT";
+
+            int currentCoins = PlayerPrefs.GetInt("Coins", 0);
+            PlayerPrefs.SetInt("Coins", currentCoins + total);
+        }
+        else
+        {
+            resultSalary.text = "";
+            resultBonus.text = "";
+            totalCash.text = "";
+            cashOUT.text = "TAP TO CONTINUE";
+        }
+
         Sequence sequence = DOTween.Sequence();
 
         resultGame.transform.localPosition = new Vector2(resultGame.transform.localPosition.x, Screen.height + 200f);
@@ -45,6 +79,13 @@ public class GameManagerOver : MonoBehaviour
 
         sequence.Append(cashOUT.transform.DOScale(new Vector3(1f, 1f, 1), 1.5f).SetEase(Ease.OutElastic));
         sequence.Play();
+
+        buttonNextScene.interactable = false;
+        sequence.OnComplete(() =>
+        {
+            canContinue = true;
+            buttonNextScene.interactable = true;
+        });
     }
 
     /// <summary>
@@ -86,9 +127,30 @@ public class GameManagerOver : MonoBehaviour
             yield return null;
         }
     }
-    public void GameOver()
+
+    private IEnumerator HandleTapToContinue()
     {
+        Sequence exitSeq = DOTween.Sequence();
+        exitSeq.Append(resPanel.transform.DOScale(0f, 0.5f).SetEase(Ease.InBack));
+        yield return exitSeq.WaitForCompletion();
+
+        if (isWin)
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        }
+    }
+
+
+    public void GameOver(bool result)
+    {
+        isWin = result;
+
         resPanel.gameObject.SetActive(true);
-        GetResult();
+        resultGame.text = result ? "VICTORY!" : "DEFEAT...";
+        GetResult(result);
     }
 }

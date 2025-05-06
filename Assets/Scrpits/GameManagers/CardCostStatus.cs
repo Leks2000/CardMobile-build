@@ -2,21 +2,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CardCostStatus : MonoBehaviour
 {
     public int totalMana = 3;
-    List<int> cost = new List<int>();
+    protected List<GameObject> card = new();
     public TextMeshProUGUI manaValue;
 
-    public void getStatus(int value)
+    public void getStatus(GameObject value)
     {
-        cost.Add(value);
+        card.Add(value);
+        setStatusPreparedness();
     }
-    public void returnManaText(int value)
+    public void returnManaText(GameObject value)
     {
-        totalMana -= value;
+        totalMana -= value.GetComponent<Card>().CardData.Cost;
+        card.Remove(value);
         updateText();
         setStatusPreparedness();
     }
@@ -26,11 +30,20 @@ public class CardCostStatus : MonoBehaviour
     }
     private void setStatusPreparedness()
     {
-        cost.ForEach(costItem =>
+        card.ForEach(cardIndex =>
         {
-            if (costItem > totalMana)
+            var cardTrans = cardIndex.GetComponent<CanvasGroup>();
+            var carDrag = cardIndex.GetComponent<CardDrag>();
+
+            if (cardIndex.GetComponent<Card>().CardData.Cost > totalMana)
             {
-                Debug.Log(costItem);
+                carDrag.enabled = false;
+                cardTrans.alpha = 0.75f;
+            }
+            else
+            {
+                carDrag.enabled = true;
+                cardTrans.alpha = 1f;
             }
         });
     }

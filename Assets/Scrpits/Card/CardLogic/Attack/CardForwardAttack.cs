@@ -19,7 +19,6 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         mainCamera = Camera.main;
         boss = FindObjectOfType<Boss>();
-
     }
 
     /// <summary>
@@ -62,8 +61,8 @@ public abstract class CardForwardAttack : MonoBehaviour
     /// <summary>
     /// Наносит урон боссу с возможностью тряски камеры.
     /// </summary>
-    /// <param name="enemyData">Будет - null, если цель — босс.</param>
-    /// <param name="boss">Будет - null, если цель — карта.</param>
+    /// <param name="enemyData">Будет - null, если цель — не карта.</param>
+    /// <param name="boss">Будет - null, если цель — не босс.</param>
     /// <param name="shake">Флаг, указывающий, должна ли камера трястись при ударе.</param>
     /// <returns>Возвращает IEnumerator для выполнения анимации атаки.</returns>
     /// <remarks>
@@ -83,6 +82,13 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         DOTween.Kill(transform);
     }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="enemyData">вражеская карта</param>
+    /// <param name="boss">Босс</param>
+    /// <param name="shake">Наличие Тряски</param>
+    /// <returns></returns>
     protected IEnumerator AttackAnimation(Card enemyData, Boss boss, bool shake)
     {
         yield return new WaitForSeconds(0.25f);
@@ -98,6 +104,8 @@ public abstract class CardForwardAttack : MonoBehaviour
             if (shake == true)
             {
                 ShakeCamera();
+                Player.Instance.TakeDamage(card.CardData.Damage);
+
             }
             if (enemyData != null)
             {
@@ -108,16 +116,9 @@ public abstract class CardForwardAttack : MonoBehaviour
                 boss.TakeDamage(card.CardData.Damage);
             }
         });
+        OnAttackComplete?.Invoke();
         bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));
         bossAttackSequence.Play();
         yield return new WaitForSeconds(0.25f);
-        if (card.CardData.HP < 1)
-        {
-            OnAttackComplete?.Invoke();
-        }
-        else
-        {
-            OnAttackComplete?.Invoke();
-        }
     }
 }
