@@ -9,10 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
-  m_Name: RatCard
+  m_Script: {fileID: 11500000, guid: 39601ff703faa4d4c9c46b8f33b3b93c, type: 3}
+  m_Name: EliteEnemy
   m_EditorClassIdentifier: 
-  HP: 2
-  Damage: 1
-  Cost: 1
-  cardInfo: Cheese...
+  bossHP: 10
+  attackPower: 10000

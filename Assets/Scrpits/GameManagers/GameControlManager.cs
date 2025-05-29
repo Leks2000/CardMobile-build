@@ -22,6 +22,7 @@ public class GameControlManager : MonoBehaviour
         CDPOS = cardDeck.GetComponent<RectTransform>();
     }
 
+
     public int GetCardInHand
     {
         get { return currentCardsInHand; }
@@ -69,6 +70,8 @@ public class GameControlManager : MonoBehaviour
                     MoveCardsToPlayerDeck(newCards);
                 });
     }
+
+
 
     /// <summary>
     /// Перемещение карт из колоды <see cref="CardDeck"/> в колоду игрока <see cref="GameControlManager"/>

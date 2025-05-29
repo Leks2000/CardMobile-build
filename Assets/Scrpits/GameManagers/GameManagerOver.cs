@@ -136,11 +136,13 @@ public class GameManagerOver : MonoBehaviour
 
         if (isWin)
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("BossScene");
+            //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
         else
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("BossScene");
+            //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
     }
 

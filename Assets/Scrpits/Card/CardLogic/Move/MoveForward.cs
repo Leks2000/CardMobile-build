@@ -38,7 +38,7 @@ public class MoveForward : MonoBehaviour
     private IEnumerator GetCard(Transform targetTransform, RectTransform card)
     {
         card.transform.SetParent(targetTransform);
-        card.DOMove(targetTransform.GetComponent<RectTransform>().position, 1f)
+        card.DOMove(targetTransform.GetComponent<RectTransform>().position, 0.5f)
                    .SetEase(Ease.OutQuad)
                    .WaitForCompletion();
 

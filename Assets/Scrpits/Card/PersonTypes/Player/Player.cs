@@ -6,7 +6,6 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [SerializeField] private PlayerData playerData;
-    [SerializeField] private GameManagerOver gameManager;
     [SerializeField] private DamageTextAnimator damageAnimator;
 
     public TMP_Text takeDamageText;
@@ -35,14 +34,12 @@ public class Player : MonoBehaviour
         playerData.ApplyDamage(damage);
         UpdatePlayerDisplay();
 
-        damageAnimator.Animate(takeDamageText, damage,
-        () =>
-        {
-            if (playerData.playerHP <= 0)
-            {
-                gameManager.GameOver(false); // или gameManager.LoseGame();
-            }
-        });
+        damageAnimator.Animate(takeDamageText, damage);
+    }
+
+    public bool IsDefeated()
+    {
+        return playerData.playerHP <= 0;
     }
 
 }
