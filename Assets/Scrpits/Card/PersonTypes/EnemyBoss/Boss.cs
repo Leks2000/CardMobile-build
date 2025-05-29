@@ -11,7 +11,6 @@ using UnityEngine.UI;
 public class Boss : MonoBehaviour
 {
     [SerializeField] BossData bossData;
-    [SerializeField] GameManagerOver gameManager;
     [SerializeField] private DamageTextAnimator damageAnimator;
 
     public TMP_Text takeDamage;
@@ -38,13 +37,12 @@ public class Boss : MonoBehaviour
         takeDamage.text = "-" + damage.ToString();
         bossData.ApplyDamage(damage);
         UpdateCardDisplay();
-        damageAnimator.Animate(takeDamage, damage,
-        () =>
-        {
-            if (bossData.bossHP <= 0)
-            {
-                gameManager.GameOver(true);
-            }
-        });
+        damageAnimator.Animate(takeDamage, damage);
     }
+
+    public bool IsDefeated()
+    {
+        return bossData.bossHP <= 0;
+    }
+
 }

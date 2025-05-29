@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Utility;
 using DG.Tweening;
+using DG.Tweening.Core.Easing;
 using UnityEngine;
 
-/// <summary>
-/// Класс для проверки спорикосается ли <see cref="LineAttackMoveActivation"/> с другими обьектами
-/// </summary>
 public class LineAttackMoveActivation : MonoBehaviour
 {
     [SerializeField] private float delayCam;
+    [SerializeField] private GameObject uiControl;
     public GameObject[] lines;
 
     private RectTransform rectTransform;
@@ -22,20 +21,23 @@ public class LineAttackMoveActivation : MonoBehaviour
     public List<MoveForward> moveForwardLines;
 
     private bool attackCompleted = false;
+    private int finishedAttacks = 0;
+    private int totalAttackers = 0;
+
+    [SerializeField] private Boss boss;
+    [SerializeField] private Player player;
+    [SerializeField] private GameManagerOver gameManager;
+    private bool nextDoor = false;
 
     private void Awake()
     {
-        turnCamera = FindObjectOfType<EndTurnCamera>().GetComponent<EndTurnCamera>();
+        turnCamera = FindObjectOfType<EndTurnCamera>();
         moveActivation = new MoveActivation();
         rectTransform = GetComponent<RectTransform>();
         mesh = GetComponent<MeshRenderer>();
         coll = GetComponent<Collider>();
     }
 
-    /// <summary>
-    /// Смена линии по линиям от <see cref="lines"/>
-    /// </summary>
-    /// <returns></returns>
     public IEnumerator changeLine()
     {
         mesh.enabled = true;
@@ -43,8 +45,11 @@ public class LineAttackMoveActivation : MonoBehaviour
         rectTransform.localPosition = new Vector3(0, 0, 5);
         rectTransform.DOScale(new Vector3(125f, 900f, 1), 0.25f);
 
+        totalAttackers = 0;
+        finishedAttacks = 0;
+
         GameObject initialLine = lines.FirstOrDefault(line =>
-                  line.GetComponentsInChildren<Transform>().Any(child => Tags.Contains(child.tag)));
+            line.GetComponentsInChildren<Transform>().Any(child => Tags.Contains(child.tag)));
 
         if (initialLine != null)
         {
@@ -75,13 +80,30 @@ public class LineAttackMoveActivation : MonoBehaviour
                 }
             }
         }
+
         rectTransform.DOLocalMoveZ(rectTransform.localPosition.z + 100, 0.1f).SetEase(Ease.Linear);
         yield return new WaitForSeconds(0.1f);
 
         mesh.enabled = false;
         coll.enabled = false;
-
         rectTransform.localScale = new Vector3(25f, 900f, 1);
+
+        yield return new WaitUntil(() => finishedAttacks >= totalAttackers);
+
+        if (boss.IsDefeated())
+        {
+            yield return StartCoroutine(turnCamera.ReturnToInitialPosition());
+            uiControl.SetActive(false);
+            yield return StartCoroutine(turnCamera.nextLocation());
+            //gameManager.GameOver(true);
+            yield break;
+        }
+        else if (player.IsDefeated())
+        {
+            yield return StartCoroutine(turnCamera.ReturnToInitialPosition());
+            gameManager.GameOver(false);
+            yield break;
+        }
 
         yield return StartCoroutine(moveActivation.moveCards(moveForwardLines, 0.25f));
         yield return new WaitForSeconds(delayCam);
@@ -95,20 +117,29 @@ public class LineAttackMoveActivation : MonoBehaviour
             var cardForwardAttack = hit.gameObject.GetComponentInParent<CardForwardAttack>();
 
             cardForwardAttack.HandleErrorIfNullGetComponent<CardForwardAttack, LineAttackMoveActivation>(this, gameObject);
+
             if (cardForwardAttack != null)
             {
+                totalAttackers++;
                 attackCompleted = false;
-                cardForwardAttack.OnAttackComplete += () => attackCompleted = true;
+
+                cardForwardAttack.OnAttackComplete += () =>
+                {
+                    finishedAttacks++;
+                    attackCompleted = true;
+                };
+
                 StartCoroutine(cardForwardAttack.PerformAttack());
             }
         }
     }
+
     public void OnTriggerExit(Collider hit)
     {
         if (Tags.Contains(hit.tag))
         {
             var moveForward = hit.gameObject.GetComponentInParent<CardForwardAttack>().GetComponentInParent<MoveForward>();
-            if (moveForward != null && moveForward.isMovingBackLine == false)
+            if (moveForward != null && !moveForward.isMovingBackLine)
             {
                 moveForwardLines.Add(moveForward);
             }

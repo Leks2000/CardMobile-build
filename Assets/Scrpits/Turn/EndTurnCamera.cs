@@ -1,4 +1,5 @@
 using System.Collections;
+using Assets.Scrpits.GameManagers;
 using UnityEngine;
 
 /// <summary>
@@ -22,9 +23,13 @@ public class EndTurnCamera : MonoBehaviour
     private Quaternion intermediateRotation;
 
     LineAttackMoveActivation attackLine;
+    EnemySpawnCardLogic enemySpawnCardLogic;
+    LocationControls locContr;
     LineBackMove lineBackMove;
     private bool hasClicked;
     private Coroutine currentCoroutine;
+    private bool isDoubleSpeed = false;
+
 
     private void Start()
     {
@@ -36,6 +41,8 @@ public class EndTurnCamera : MonoBehaviour
         intermediateRotation = Quaternion.Euler(75, 0, 0);
         GetComponent<Button_UI>().ClickFunc = () => OnClickFunc();
         attackLine = FindObjectOfType<LineAttackMoveActivation>().GetComponent<LineAttackMoveActivation>();
+        locContr = FindObjectOfType<LocationControls>().GetComponent<LocationControls>();
+        enemySpawnCardLogic = FindObjectOfType<EnemySpawnCardLogic>().GetComponent<EnemySpawnCardLogic>();
         lineBackMove = FindObjectOfType<LineBackMove>().GetComponent<LineBackMove>();
     }
     private void OnClickFunc()
@@ -72,7 +79,30 @@ public class EndTurnCamera : MonoBehaviour
                 currentCoroutine = StartCoroutine(ReturnToInitialPosition());
             }
         }
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            isDoubleSpeed = !isDoubleSpeed;
+            Time.timeScale = isDoubleSpeed ? 2f : 1f;
+        }
     }
+
+    public IEnumerator nextLocation(System.Action onArrive = null)
+    {
+        Quaternion startRot = mainCam.transform.rotation;
+        Quaternion targetRot = Quaternion.Euler(0f, mainCam.transform.eulerAngles.y, mainCam.transform.eulerAngles.z);
+
+        while (Quaternion.Angle(mainCam.transform.rotation, targetRot) > 0.1f)
+        {
+            mainCam.transform.rotation = Quaternion.RotateTowards(mainCam.transform.rotation, targetRot, 100f * Time.deltaTime);
+            yield return null;
+        }
+
+        mainCam.transform.rotation = targetRot;
+
+        onArrive?.Invoke();
+        locContr.MoveCameraAndSpawnDoors();
+    }
+
 
     /// <summary>
     /// Движение к игровому полю
@@ -119,12 +149,13 @@ public class EndTurnCamera : MonoBehaviour
 
         yield return StartCoroutine(lineBackMove.moveBackCards());
         StartCoroutine(ReturnToInitialPosition());
+        enemySpawnCardLogic.SpawnEnemyCardsThisRound();
     }
     /// <summary>
     /// Возвращение в дефолтную позицию
     /// </summary>
     /// <remarks> + Активация возможности кликнуть на конец раунда</remarks>
-    private IEnumerator ReturnToInitialPosition()
+    public IEnumerator ReturnToInitialPosition()
     {
         var timeElapsed = 0f;
         var startPosition = mainCam.transform.position;

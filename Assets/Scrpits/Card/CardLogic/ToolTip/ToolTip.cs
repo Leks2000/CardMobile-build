@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
+using DG.Tweening;
+using System.Collections;
 
 public class Tooltip : MonoBehaviour
 {
@@ -12,6 +14,11 @@ public class Tooltip : MonoBehaviour
     private RectTransform tooltipRectTransform;
     private Canvas mainCanvas;
     private RectTransform canvasRectTransform;
+    private Coroutine hideCoroutine;
+    private Vector3 toolScale;
+    private Tween currentTween;
+
+
 
     private void Awake()
     {
@@ -19,79 +26,94 @@ public class Tooltip : MonoBehaviour
         mainCanvas = FindObjectOfType<Canvas>();
         canvasRectTransform = mainCanvas.GetComponent<RectTransform>();
 
+        toolScale = tooltipRectTransform.localScale;
+
         tooltipPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// Показывает тултип с информацией о карте.
-    /// </summary>
     public void ShowTooltip(CardData cardData, Transform targetTransform)
     {
+        if (hideCoroutine != null)
+        {
+            StopCoroutine(hideCoroutine);
+            hideCoroutine = null;
+        }
+
+        currentTween?.Kill();
+
         tooltipTextAbility.text = cardData.cardInfo;
         tooltipTextInfo.text = cardData.name;
         tooltipTextStatus.text = $"Dmg {cardData.Damage} / Hp {cardData.Cost}";
 
-        PositionTooltip(targetTransform, 0);
+        PositionTooltip(targetTransform);
 
         tooltipPanel.SetActive(true);
+        tooltipRectTransform.localScale = Vector3.zero;
+
+        currentTween = tooltipRectTransform.DOScale(toolScale, 0.25f).SetEase(Ease.OutBack);
     }
 
-    /// <summary>
-    /// Скрывает тултип.
-    /// </summary>
     public void HideTooltip()
     {
-        tooltipPanel.SetActive(false);
+        if (hideCoroutine != null)
+        {
+            StopCoroutine(hideCoroutine);
+        }
+
+        hideCoroutine = StartCoroutine(HideTooltipDelayed());
     }
 
-    /// <summary>
-    /// Обновляет размер тултипа в зависимости от содержания.
-    /// </summary>
+    private IEnumerator HideTooltipDelayed()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        currentTween?.Kill();
+
+        currentTween = tooltipRectTransform.DOScale(Vector3.zero, 0.15f).OnComplete(() =>
+        {
+            tooltipPanel.SetActive(false);
+        });
+    }
+
 
     /// <summary>
     /// Позиционирует тултип рядом с картой, корректируя позицию, если тултип выходит за пределы экрана.
     /// </summary>
-    private void PositionTooltip(Transform targetTransform, float angle)
+    private void PositionTooltip(Transform targetTransform)
     {
-        // Смещение тултипа относительно карты (сдвиг влево)
-        Vector2 offset = new Vector2(0, 0);  // Сдвиг влево на 50 пикселей
-
-        // Преобразуем позицию целевого объекта в экранные координаты
         Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(Camera.main, targetTransform.position);
+        Vector2 tooltipScreenPosition;
+        Vector2 pivot;
 
-        // Переводим экранные координаты в локальные координаты холста
+        Vector2 tooltipSize = tooltipRectTransform.sizeDelta * tooltipRectTransform.lossyScale;
+
+        if (screenPoint.y > Screen.height * 0.9f)
+        {
+            tooltipScreenPosition = screenPoint - new Vector2(0f, 100f);
+            pivot = new Vector2(1.5f, 1f);
+        }
+        else if (screenPoint.y < Screen.height * 0.2f)
+        {
+            tooltipScreenPosition = screenPoint - new Vector2(150f, 0f);
+            pivot = new Vector2(1f, 0.25f);
+        }
+        else if (screenPoint.y > Screen.height * 0.8f)
+        {
+            tooltipScreenPosition = screenPoint - new Vector2(150f, 0f);
+            pivot = new Vector2(1f, 0.75f);
+        }
+        else
+        {
+            tooltipScreenPosition = screenPoint - new Vector2(150f, 0f);
+            pivot = new Vector2(1f, 0.5f);
+        }
+
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRectTransform, screenPoint, mainCanvas.worldCamera, out var localPoint);
+            canvasRectTransform, tooltipScreenPosition, mainCanvas.worldCamera, out Vector2 localPoint);
 
+        tooltipRectTransform.pivot = pivot;
         tooltipRectTransform.localPosition = localPoint;
-
-        // Применяем угол наклона (вращение тултипа)
-        tooltipRectTransform.localRotation = Quaternion.Euler(angle, 0, 0);
-
-        // Корректируем позицию, если тултип выходит за границы экрана
-        var corners = new Vector3[4];
-        tooltipRectTransform.GetWorldCorners(corners);
-
-        Vector2 tooltipPosition = tooltipRectTransform.localPosition;
-
-        // Корректировка по границам экрана
-        if (corners[2].x > canvasRectTransform.rect.width / 2) // Правая граница
-        {
-            tooltipPosition.x -= corners[2].x - canvasRectTransform.rect.width / 2;
-        }
-        if (corners[0].x < -canvasRectTransform.rect.width / 2) // Левая граница
-        {
-            tooltipPosition.x -= corners[0].x + canvasRectTransform.rect.width / 2;
-        }
-        if (corners[2].y > canvasRectTransform.rect.height / 2) // Верхняя граница
-        {
-            tooltipPosition.y -= corners[2].y - canvasRectTransform.rect.height / 2;
-        }
-        if (corners[0].y < -canvasRectTransform.rect.height / 2) // Нижняя граница
-        {
-            tooltipPosition.y -= corners[0].y + canvasRectTransform.rect.height / 2;
-        }
-
-        tooltipRectTransform.localPosition = tooltipPosition;
+        tooltipRectTransform.localRotation = Quaternion.identity;
     }
+
 }
