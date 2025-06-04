@@ -11,7 +11,7 @@ public class CardDeck : MonoBehaviour
 
     private void Start()
     {
-        deck = transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        deck = transform.GetChild(1).GetComponent<TextMeshProUGUI>();
         deck.text = $"x{totalCard}";
     }
     public int GetTotalCards()

@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39601ff703faa4d4c9c46b8f33b3b93c, type: 3}
   m_Name: Boss
   m_EditorClassIdentifier: 
-  bossHP: 3
+  bossHP: 10
   attackPower: 3

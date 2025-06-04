@@ -27,7 +27,6 @@ public class LineAttackMoveActivation : MonoBehaviour
     [SerializeField] private Boss boss;
     [SerializeField] private Player player;
     [SerializeField] private GameManagerOver gameManager;
-    private bool nextDoor = false;
 
     private void Awake()
     {
@@ -94,8 +93,8 @@ public class LineAttackMoveActivation : MonoBehaviour
         {
             yield return StartCoroutine(turnCamera.ReturnToInitialPosition());
             uiControl.SetActive(false);
+            gameManager.GameOver(true);
             yield return StartCoroutine(turnCamera.nextLocation());
-            //gameManager.GameOver(true);
             yield break;
         }
         else if (player.IsDefeated())

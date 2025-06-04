@@ -9,15 +9,15 @@ EditorBuildSettings:
     path: Assets/Resources/Objects/Scene/EnemyBossScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/Resources/Objects/Scene/ItemShopScene.unity
+    path: Assets/Resources/Scenes/Scene/MainMenuScene.unity
     guid: eaee732b46b7c80439871b5b7d8708a4
   - enabled: 1
-    path: Assets/Resources/Objects/Scene/EliteEnemyScene.unity
+    path: Assets/Resources/Scenes/Scene/EliteEnemyScene.unity
     guid: 23f64e7bf09746347891a619d74650f0
   - enabled: 1
     path: Assets/Resources/Objects/Scene/EnemyScene.unity
     guid: 460b0590cb8c4394f9482923c324dc30
   - enabled: 1
-    path: Assets/Resources/Objects/Scene/CardShopScene.unity
+    path: Assets/Resources/Scenes/Scene/CardShopScene.unity
     guid: ceee25227056a4c42b6e1a1788f82e92
   m_configObjects: {}
