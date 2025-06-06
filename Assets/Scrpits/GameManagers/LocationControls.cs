@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Assets.Scenes.ObjectsData;
 using Assets.Scrpits.Location;
 using UnityEngine;
@@ -18,13 +14,6 @@ namespace Assets.Scrpits.GameManagers
 
         public DoorDisplay leftloc;
         public DoorDisplay rightloc;
-
-        private EndTurnCamera turnCamera;
-
-        private void Awake()
-        {
-            turnCamera = FindObjectOfType<EndTurnCamera>().GetComponent<EndTurnCamera>();
-        }
 
         public void NextLevelCurrent()
         {

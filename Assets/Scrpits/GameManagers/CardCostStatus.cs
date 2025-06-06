@@ -24,7 +24,7 @@ public class CardCostStatus : MonoBehaviour
     {
         manaValue.text = totalMana.ToString() + "/3";
     }
-    private void setStatusPreparedness()
+    public void setStatusPreparedness()
     {
         card.ForEach(cardIndex =>
         {

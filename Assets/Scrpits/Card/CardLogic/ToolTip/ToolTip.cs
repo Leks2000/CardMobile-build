@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using DG.Tweening;
 using System.Collections;
+using System.Linq;
 
 public class Tooltip : MonoBehaviour
 {
@@ -23,7 +24,7 @@ public class Tooltip : MonoBehaviour
     private void Awake()
     {
         tooltipRectTransform = tooltipPanel.GetComponent<RectTransform>();
-        mainCanvas = FindObjectOfType<Canvas>();
+        mainCanvas = FindObjectsOfType<Canvas>().FirstOrDefault(c => c.sortingLayerName == "Game");
         canvasRectTransform = mainCanvas.GetComponent<RectTransform>();
 
         toolScale = tooltipRectTransform.localScale;
@@ -94,17 +95,17 @@ public class Tooltip : MonoBehaviour
         }
         else if (screenPoint.y < Screen.height * 0.2f)
         {
-            tooltipScreenPosition = screenPoint - new Vector2(150f, 0f);
+            tooltipScreenPosition = screenPoint - new Vector2(50f, 0f);
             pivot = new Vector2(1f, 0.25f);
         }
         else if (screenPoint.y > Screen.height * 0.8f)
         {
-            tooltipScreenPosition = screenPoint - new Vector2(150f, 0f);
+            tooltipScreenPosition = screenPoint - new Vector2(50f, 0f);
             pivot = new Vector2(1f, 0.75f);
         }
         else
         {
-            tooltipScreenPosition = screenPoint - new Vector2(150f, 0f);
+            tooltipScreenPosition = screenPoint - new Vector2(50f, 0f);
             pivot = new Vector2(1f, 0.5f);
         }
 

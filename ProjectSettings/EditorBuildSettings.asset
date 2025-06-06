@@ -5,19 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Resources/Objects/Scene/EnemyBossScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Resources/Scenes/Scene/EnemyScene.unity
+    guid: 9dab9c3555f946849869c864810a24fe
   - enabled: 1
     path: Assets/Resources/Scenes/Scene/MainMenuScene.unity
-    guid: eaee732b46b7c80439871b5b7d8708a4
-  - enabled: 1
-    path: Assets/Resources/Scenes/Scene/EliteEnemyScene.unity
-    guid: 23f64e7bf09746347891a619d74650f0
-  - enabled: 1
-    path: Assets/Resources/Objects/Scene/EnemyScene.unity
-    guid: 460b0590cb8c4394f9482923c324dc30
-  - enabled: 1
-    path: Assets/Resources/Scenes/Scene/CardShopScene.unity
-    guid: ceee25227056a4c42b6e1a1788f82e92
+    guid: 471302c9467f90b4fbb91281eee6bcb5
   m_configObjects: {}

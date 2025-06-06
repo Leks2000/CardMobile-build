@@ -58,10 +58,11 @@ public class GameControlManager : MonoBehaviour
 
                 currentCardsInHand--;
                 cardDeck.RemoveCard(1);
-                status.totalMana = 3;
-                status.updateText();
             }
         }
+        status.totalMana = 3;
+        status.updateText();
+        status.setStatusPreparedness();
 
         Sequence sequence = DOTween.Sequence();
         sequence.AppendInterval(0.1f)

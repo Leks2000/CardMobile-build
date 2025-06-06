@@ -41,5 +41,4 @@ public class Player : MonoBehaviour
     {
         return playerData.playerHP <= 0;
     }
-
 }

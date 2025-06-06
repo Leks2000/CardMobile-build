@@ -49,3 +49,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Game
+    uniqueID: 1066422421
+    locked: 0
+  - name: Main
+    uniqueID: 700097501
+    locked: 0
+  - name: Result
+    uniqueID: 249383389
+    locked: 0
