@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CardCostStatus : MonoBehaviour
 {
@@ -26,9 +22,9 @@ public class CardCostStatus : MonoBehaviour
     }
     public void updateText()
     {
-        manaValue.text = totalMana.ToString();
+        manaValue.text = totalMana.ToString() + "/3";
     }
-    private void setStatusPreparedness()
+    public void setStatusPreparedness()
     {
         card.ForEach(cardIndex =>
         {

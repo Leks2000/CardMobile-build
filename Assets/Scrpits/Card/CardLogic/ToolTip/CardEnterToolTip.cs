@@ -5,12 +5,20 @@ public class CardEnterToolTip : MonoBehaviour, IPointerEnterHandler, IPointerExi
 {
     [SerializeField] private Card cardData;
 
+    private bool isPointerOver = false;
+
     public void OnPointerEnter(PointerEventData eventData)
     {
-        FindObjectOfType<Tooltip>().ShowTooltip(cardData.CardData, transform);
+        isPointerOver = true;
+        if (!GlobalDragTracker.IsDraggingCard)
+        {
+            FindObjectOfType<Tooltip>().ShowTooltip(cardData.CardData, transform);
+        }
     }
+
     public void OnPointerExit(PointerEventData eventData)
     {
+        isPointerOver = false;
         FindObjectOfType<Tooltip>().HideTooltip();
     }
 }

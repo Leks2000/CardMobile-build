@@ -78,6 +78,22 @@ public class EndTurnCamera : MonoBehaviour
                 }
                 currentCoroutine = StartCoroutine(ReturnToInitialPosition());
             }
+            else if (Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                if (currentCoroutine != null)
+                {
+                    StopCoroutine(currentCoroutine);
+                }
+                currentCoroutine = StartCoroutine(MoveCameraToPos(new Vector3(0, 10, -95), Quaternion.Euler(14, 0, 0)));
+            }
+            else if (Input.GetKeyUp(KeyCode.LeftShift))
+            {
+                if (currentCoroutine != null)
+                {
+                    StopCoroutine(currentCoroutine);
+                }
+                currentCoroutine = StartCoroutine(ReturnToInitialPosition());
+            }
         }
         if (Input.GetKeyDown(KeyCode.Mouse1))
         {
@@ -109,26 +125,30 @@ public class EndTurnCamera : MonoBehaviour
     /// </summary>
     private IEnumerator MoveCamera()
     {
+        yield return StartCoroutine(MoveCameraToPos(targetPosition, targetRotation));
+        yield return new WaitForSeconds(delay + 0.1f);
+        if (hasClicked)
+        {
+            StartCoroutine(attackLine.changeLine());
+        }
+    }
+
+    private IEnumerator MoveCameraToPos(Vector3 targerPos, Quaternion targetRot)
+    {
         var timeElapsed = 0f;
         var startPosition = mainCam.transform.position;
         var startRotation = mainCam.transform.rotation;
 
         while (timeElapsed < duration)
         {
-            mainCam.transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
-            mainCam.transform.rotation = Quaternion.Lerp(startRotation, targetRotation, timeElapsed / duration);
+            mainCam.transform.position = Vector3.Lerp(startPosition, targerPos, timeElapsed / duration);
+            mainCam.transform.rotation = Quaternion.Lerp(startRotation, targetRot, timeElapsed / duration);
             timeElapsed += Time.deltaTime;
             yield return null;
         }
 
-        mainCam.transform.position = targetPosition;
-        mainCam.transform.rotation = targetRotation;
-
-        yield return new WaitForSeconds(delay + 0.1f);
-        if (hasClicked)
-        {
-            StartCoroutine(attackLine.changeLine());
-        }
+        mainCam.transform.position = targerPos;
+        mainCam.transform.rotation = targetRot;
     }
 
     /// <summary>
@@ -148,7 +168,7 @@ public class EndTurnCamera : MonoBehaviour
         mainCam.transform.rotation = intermediateRotation;
 
         yield return StartCoroutine(lineBackMove.moveBackCards());
-        StartCoroutine(ReturnToInitialPosition());
+        yield return StartCoroutine(ReturnToInitialPosition());
         enemySpawnCardLogic.SpawnEnemyCardsThisRound();
     }
     /// <summary>

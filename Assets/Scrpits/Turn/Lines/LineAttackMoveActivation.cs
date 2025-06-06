@@ -9,7 +9,7 @@ using UnityEngine;
 public class LineAttackMoveActivation : MonoBehaviour
 {
     [SerializeField] private float delayCam;
-    [SerializeField] private GameObject uiControl;
+    [SerializeField] private Canvas uiControlCV;
     public GameObject[] lines;
 
     private RectTransform rectTransform;
@@ -27,7 +27,6 @@ public class LineAttackMoveActivation : MonoBehaviour
     [SerializeField] private Boss boss;
     [SerializeField] private Player player;
     [SerializeField] private GameManagerOver gameManager;
-    private bool nextDoor = false;
 
     private void Awake()
     {
@@ -93,9 +92,8 @@ public class LineAttackMoveActivation : MonoBehaviour
         if (boss.IsDefeated())
         {
             yield return StartCoroutine(turnCamera.ReturnToInitialPosition());
-            uiControl.SetActive(false);
-            yield return StartCoroutine(turnCamera.nextLocation());
-            //gameManager.GameOver(true);
+            uiControlCV.renderMode = RenderMode.WorldSpace;
+            gameManager.GameOver(true);
             yield break;
         }
         else if (player.IsDefeated())

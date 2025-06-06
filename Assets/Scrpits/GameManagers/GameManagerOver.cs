@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Linq;
 using System.Collections;
 using UnityEngine.UI;
+using System.Threading;
+using Assets.Scrpits.Location;
 
 /// <summary>
 /// Мэнэджер для концовки игры
@@ -17,6 +19,7 @@ public class GameManagerOver : MonoBehaviour
     [SerializeField] private TMP_Text totalCash;
     [SerializeField] private TMP_Text cashOUT;
     [SerializeField] private Button buttonNextScene;
+    [SerializeField] private EndTurnCamera endturncam;
 
     private bool isWin = false;
     private bool canContinue = false;
@@ -136,13 +139,11 @@ public class GameManagerOver : MonoBehaviour
 
         if (isWin)
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("BossScene");
-            //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            yield return StartCoroutine(endturncam.nextLocation());
         }
         else
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("BossScene");
-            //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("EnemyScene");
         }
     }
 
@@ -150,7 +151,6 @@ public class GameManagerOver : MonoBehaviour
     public void GameOver(bool result)
     {
         isWin = result;
-
         resPanel.gameObject.SetActive(true);
         resultGame.text = result ? "VICTORY!" : "DEFEAT...";
         GetResult(result);

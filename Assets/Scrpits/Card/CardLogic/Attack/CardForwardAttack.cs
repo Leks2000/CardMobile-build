@@ -36,6 +36,7 @@ public abstract class CardForwardAttack : MonoBehaviour
             {
                 var enemyCard = hit.collider.GetComponentInParent<Card>();
                 yield return StartCoroutine(AttackAnimation(enemyCard, null, false));
+                Debug.Log("ЭТО ОНО");
             }
             if (IsBoss(hit.collider))
             {
@@ -113,6 +114,7 @@ public abstract class CardForwardAttack : MonoBehaviour
             }
             if (boss != null)
             {
+                ShakeCamera();
                 boss.TakeDamage(card.CardData.Damage);
             }
         });

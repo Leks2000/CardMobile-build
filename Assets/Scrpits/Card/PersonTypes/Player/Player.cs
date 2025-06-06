@@ -25,7 +25,7 @@ public class Player : MonoBehaviour
 
     public void UpdatePlayerDisplay()
     {
-        playerHpText.text = "HP: " + playerData.playerHP.ToString();
+        playerHpText.text = "HP: " + (playerData.playerHP + "/" + playerData.playerHPMAX).ToString();
     }
 
     public void TakeDamage(int damage)
@@ -41,5 +41,4 @@ public class Player : MonoBehaviour
     {
         return playerData.playerHP <= 0;
     }
-
 }
