@@ -13,25 +13,46 @@ using Assets.Scrpits.Location;
 public class GameManagerOver : MonoBehaviour
 {
     [SerializeField] private GameObject resPanel;
+    [SerializeField] private GameObject bossPanel;
+    [SerializeField] private GameObject nextLevelPanel;
     [SerializeField] private TMP_Text resultGame;
     [SerializeField] private TMP_Text resultSalary;
     [SerializeField] private TMP_Text resultBonus;
     [SerializeField] private TMP_Text totalCash;
-    [SerializeField] private TMP_Text cashOUT;
-    [SerializeField] private Button buttonNextScene;
+    [SerializeField] private Button buttonRerty;
+    [SerializeField] private Button buttonContinue;
     [SerializeField] private EndTurnCamera endturncam;
+    [SerializeField] private Image panelImage;
+    [SerializeField] private Material burnMaterial;
 
-    private bool isWin = false;
-    private bool canContinue = false;
+    public bool isWin = false;
+    public bool canContinue = false;
+    private float burnProgress = 0f;
 
-    public void OnTapToContinue()
+    public void OnContinutePressed()
     {
         if (canContinue)
         {
-            StartCoroutine(HandleTapToContinue());
-            canContinue = false;
+            StartCoroutine(BurnAway(1));
         }
     }
+
+    public void OnRetryPressed()
+    {
+        if (canContinue)
+        {
+            StartCoroutine(BurnAway(2));
+        }
+    }
+
+    public void OnMainMenuPressed()
+    {
+        if (canContinue)
+        {
+            StartCoroutine(BurnAway(3));
+        }
+    }
+
 
     /// <summary>
     /// Временная система наград
@@ -47,7 +68,6 @@ public class GameManagerOver : MonoBehaviour
             resultSalary.text = "Salary" + new string(' ', 35) + $"{salary}$";
             resultBonus.text = "No Damage Bonus" + new string(' ', 12) + $"{bonus}$";
             totalCash.text = "Total" + new string(' ', 38) + $"{total}$";
-            cashOUT.text = "CASH OUT";
 
             int currentCoins = PlayerPrefs.GetInt("Coins", 0);
             PlayerPrefs.SetInt("Coins", currentCoins + total);
@@ -57,7 +77,6 @@ public class GameManagerOver : MonoBehaviour
             resultSalary.text = "";
             resultBonus.text = "";
             totalCash.text = "";
-            cashOUT.text = "TAP TO CONTINUE";
         }
 
         Sequence sequence = DOTween.Sequence();
@@ -67,7 +86,7 @@ public class GameManagerOver : MonoBehaviour
         sequence.Append(resultGame.rectTransform.DOAnchorPos(new Vector2(0, 0), 1.25f, false).SetEase(Ease.OutBounce))
                 .AppendInterval(0.2f);
 
-        StartCoroutine(DOTextWaveMovement(resultGame, 25f));
+        StartCoroutine(DOTextWaveMovement(resultGame));
 
         sequence.Append(resultSalary.transform.DOScale(new Vector3(1f, 1f, 1), 0.1f).SetEase(Ease.OutCubic))
               .AppendInterval(0.2f);
@@ -78,16 +97,11 @@ public class GameManagerOver : MonoBehaviour
         sequence.Append(totalCash.transform.DOScale(new Vector3(1f, 1f, 1), 0.1f).SetEase(Ease.OutCubic))
                .AppendInterval(0.2f);
 
-        sequence.Append(cashOUT.transform.DOScale(new Vector3(1f, 1f, 1), 1f).SetEase(Ease.OutElastic));
-
-        sequence.Append(cashOUT.transform.DOScale(new Vector3(1f, 1f, 1), 1.5f).SetEase(Ease.OutElastic));
         sequence.Play();
 
-        buttonNextScene.interactable = false;
         sequence.OnComplete(() =>
         {
             canContinue = true;
-            buttonNextScene.interactable = true;
         });
     }
 
@@ -95,12 +109,12 @@ public class GameManagerOver : MonoBehaviour
     /// Анимация текста - получение урона
     /// </summary>
     /// <param name="text">Кол-во урона</param>
-    private IEnumerator DOTextWaveMovement(TMP_Text text, float duration)
+    private IEnumerator DOTextWaveMovement(TMP_Text text)
     {
         TMP_TextInfo textInfo = text.textInfo;
         Vector3[] vertices;
 
-        for (float time = 0; time < duration; time += Time.deltaTime)
+        while (resPanel.activeSelf)
         {
             text.ForceMeshUpdate();
             textInfo = text.textInfo;
@@ -116,7 +130,7 @@ public class GameManagerOver : MonoBehaviour
 
                 for (var j = 0; j < 4; j++)
                 {
-                    var offset = new Vector3(0, Mathf.Sin(time * 5f + i * 0.75f) * 5f, 0);
+                    var offset = new Vector3(0, Mathf.Sin(Time.time * 5f + i * 0.75f) * 5f, 0);
                     vertices[textInfo.characterInfo[i].vertexIndex + j] += offset;
                 }
             }
@@ -131,28 +145,66 @@ public class GameManagerOver : MonoBehaviour
         }
     }
 
-    private IEnumerator HandleTapToContinue()
-    {
-        Sequence exitSeq = DOTween.Sequence();
-        exitSeq.Append(resPanel.transform.DOScale(0f, 0.5f).SetEase(Ease.InBack));
-        yield return exitSeq.WaitForCompletion();
-
-        if (isWin)
-        {
-            yield return StartCoroutine(endturncam.nextLocation());
-        }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("EnemyScene");
-        }
-    }
-
-
     public void GameOver(bool result)
     {
         isWin = result;
         resPanel.gameObject.SetActive(true);
         resultGame.text = result ? "VICTORY!" : "DEFEAT...";
+        buttonRerty.gameObject.SetActive(!result);
+        buttonContinue.gameObject.SetActive(result);
         GetResult(result);
+        if (result == true)
+        {
+            nextLevelPanel.gameObject.SetActive(true);
+            bossPanel.gameObject.SetActive(false);
+        }
+
+    }
+
+    private IEnumerator BurnAway(int go)
+    {
+        yield return StartCoroutine(BurnRoutine());
+        switch (go)
+        {
+            case 1:
+                StartCoroutine(endturncam.nextLocation());
+                break;
+            case 2:
+                UnityEngine.SceneManagement.SceneManager.LoadScene("EnemyScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+                break;
+            case 3:
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+                break;
+        }
+    }
+
+    private IEnumerator BurnRoutine()
+    {
+        float duration = 1.5f;
+        float elapsed = 0f;
+
+        TMP_Text[] texts = resPanel.GetComponentsInChildren<TMP_Text>(true);
+
+        while (elapsed < duration)
+        {
+            burnProgress = Mathf.Lerp(1f, 0f, elapsed / duration);
+            float alpha = burnProgress;
+
+            panelImage.material.SetFloat("_BurnProgress", burnProgress);
+
+            foreach (var txt in texts)
+            {
+                var color = txt.color;
+                color.a = alpha;
+                txt.color = color;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        panelImage.material.SetFloat("_BurnProgress", 1f);
+        resPanel.SetActive(false);
+        yield return new WaitForSecondsRealtime(0.5f);
     }
 }

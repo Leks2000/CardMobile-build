@@ -83,46 +83,48 @@ public class GameControlManager : MonoBehaviour
         layoutGroup.enabled = false;
 
         var existingCardCount = playerDeck.childCount;
-
         var cellSize = layoutGroup.cellSize;
         var spacing = layoutGroup.spacing;
 
         Sequence sequence = DOTween.Sequence();
 
-        for (var i = 0; i < newCards.Count; i++)
+        for (int i = 0; i < newCards.Count; i++)
         {
             var newCard = newCards[i];
             var delay = i * duration;
 
-            newCard.DOScale(Vector3.zero, 0.1f).SetEase(Ease.OutQuad).SetDelay(delay);
-            newCard.DOScale(Vector3.one, 0.1f).SetEase(Ease.InQuad).SetDelay(delay + 0.1f);
-
-            var targetLocalPosition = new Vector2(
+            Vector2 targetLocal = new Vector2(
                 (existingCardCount + i) * (cellSize.x + spacing.x),
                 0
             );
+            Vector3 targetWorld = playerDeck.TransformPoint(targetLocal);
 
-            var targetWorldPosition = GetCardWorldPosition(existingCardCount + i, cellSize, spacing);
-            newCard.localPosition = new Vector3(targetLocalPosition.x, targetLocalPosition.y, newCard.localPosition.z);
+            sequence.Join(
+                newCard.DOMove(targetWorld, duration)
+                    .SetEase(Ease.OutQuad)
+                    .SetDelay(delay)
+                    .OnComplete(() =>
+                    {
+                        newCard.SetParent(playerDeck, false);
+                        newCard.localPosition = targetLocal;
+                    })
+            );
 
-            sequence.Append(newCard.DOMove(targetWorldPosition, duration)
-                .SetEase(Ease.OutQuad)
-                .SetDelay(delay + 0.2f)
-                .OnComplete(() =>
-                {
-                    newCard.SetParent(playerDeck, false);
-                    newCard.localPosition = targetLocalPosition;
-
-                    LayoutRebuilder.ForceRebuildLayoutImmediate(playerDeck);
-                    Canvas.ForceUpdateCanvases();
-                }));
+            sequence.Join(
+                newCard.DOScale(Vector3.one, duration)
+                    .SetEase(Ease.OutQuad)
+                    .SetDelay(delay)
+            );
         }
 
         sequence.AppendCallback(() =>
         {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(playerDeck);
+            Canvas.ForceUpdateCanvases();
             layoutGroup.enabled = true;
         });
     }
+
 
     private Vector3 GetCardWorldPosition(int index, Vector2 cellSize, Vector2 spacing)
     {

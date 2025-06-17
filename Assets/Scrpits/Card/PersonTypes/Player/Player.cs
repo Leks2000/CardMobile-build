@@ -1,4 +1,5 @@
 ﻿using Assets.Scrpits.Card.Animation;
+using DG.Tweening.Core.Easing;
 using TMPro;
 using UnityEngine;
 
@@ -15,13 +16,10 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-
-        if (playerData != null)
-        {
-            playerData = playerData.Clone();
-        }
+        playerData = PlayerDataRuntime.Instance.CurrentData;
         UpdatePlayerDisplay();
     }
+
 
     public void UpdatePlayerDisplay()
     {

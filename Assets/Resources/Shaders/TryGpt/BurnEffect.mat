@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: BurnEffect
+  m_Shader: {fileID: 4800000, guid: d458f3b130d8a544a92388b4c9c502cb, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 1
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BurnTex:
+        m_Texture: {fileID: 2800000, guid: ecd3f9d5aa0f0284286345393f4dcb4e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: d519f8586e6441445bd53b406716fc11, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BurnProgress: 1
+    - _Cutoff: 0.12
+    - _EdgeWidth: 0.102
+    m_Colors:
+    - _BurnColor: {r: 1, g: 0.47058827, b: 0, a: 0.49019608}
+    - _Color: {r: 1, g: 0.5951509, b: 0.13679248, a: 1}
+    - _EdgeColor: {r: 1, g: 1, b: 0, a: 1}
+  m_BuildTextureStacks: []

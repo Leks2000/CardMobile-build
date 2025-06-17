@@ -9,6 +9,7 @@ using UnityEngine;
 public class EndTurnCamera : MonoBehaviour
 {
     [SerializeField] GameControlManager cardManager;
+    [SerializeField] GameManagerOver gameOverManager;
 
     [SerializeField] private Camera mainCam;
     [SerializeField] private float duration;
@@ -60,7 +61,7 @@ public class EndTurnCamera : MonoBehaviour
 
     private void Update()
     {
-        if (!hasClicked)
+        if (!hasClicked && gameOverManager.isWin != true)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -195,8 +196,8 @@ public class EndTurnCamera : MonoBehaviour
 
         if (hasClicked)
         {
-            cardManager.TurnRound();
             hasClicked = false;
+            cardManager.TurnRound();
             yield return new WaitForSeconds(0.5f);
         }
     }
