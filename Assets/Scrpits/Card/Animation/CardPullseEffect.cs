@@ -33,11 +33,13 @@ public class CardPulseEffect : MonoBehaviour
     {
         scaleTween = rectTransform.DOScale(pulseScale, pulseDuration)
             .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine);
+            .SetEase(Ease.InOutSine)
+            .SetLink(gameObject);
 
         moveTween = rectTransform.DOLocalMoveY(0 + 5f, pulseDuration)
             .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine);
+            .SetEase(Ease.InOutSine)
+            .SetLink(gameObject);
     }
 
     public void ContinuePulse()

@@ -20,7 +20,10 @@ public class CardDeck : MonoBehaviour
     }
     public void RemoveCard(int count)
     {
-        totalCard = Mathf.Max(totalCard - count);
-        deck.text = $"x{totalCard}";
+        totalCard = Mathf.Max(0, totalCard - count);
+        if (deck != null)
+        {
+            deck.text = $"x{totalCard}";
+        }
     }
 }

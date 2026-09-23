@@ -1,6 +1,7 @@
 ﻿using Assets.Scrpits.Card.Animation;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class Player : MonoBehaviour
@@ -21,6 +22,12 @@ public class Player : MonoBehaviour
             playerData = playerData.Clone();
         }
         UpdatePlayerDisplay();
+        if (damageAnimator != null && playerHpText != null)
+        {
+            // Hit feedback on the HP plate (parent Image of the HP text).
+            var plate = playerHpText.transform.parent;
+            damageAnimator.SetHitTargets(plate, plate != null ? plate.GetComponent<Image>() : null);
+        }
     }
 
     public void UpdatePlayerDisplay()
@@ -35,6 +42,7 @@ public class Player : MonoBehaviour
         UpdatePlayerDisplay();
 
         damageAnimator.Animate(takeDamageText, damage);
+        CombatFx.ScreenFlash(CombatFx.DamageRed, 0.22f, 0.35f);
     }
 
     public bool IsDefeated()

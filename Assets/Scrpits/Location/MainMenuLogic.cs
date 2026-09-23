@@ -14,6 +14,11 @@ namespace Assets.Scrpits.Location
         }
         public void LoadScene()
         {
+            Time.timeScale = 1.0f;
+            if (sceneName == Assets.Scrpits.Run.RunState.MapSceneName)
+            {
+                Assets.Scrpits.Run.RunState.StartNewRun();
+            }
             SceneManager.LoadScene(sceneName);
         }
         public void Pause()

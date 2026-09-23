@@ -67,6 +67,7 @@ public class Card : MonoBehaviour
                 {
                     dropCard.canDrop = true;
                 }
+                CombatFx.PlayDeath(gameObject); // [FX] visual-only ghost; original is still destroyed right away
                 Destroy(gameObject);
             }
         });

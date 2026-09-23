@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,132 +6,71 @@ public class GameControlManager : MonoBehaviour
 {
     [SerializeField] private CardDeck cardDeck;
     [SerializeField] private List<GameObject> deck;
+    /// <summary>РЎРІРѕР±РѕРґРЅС‹С… РјРµСЃС‚ РІ СЂСѓРєРµ РЅР° СЃС‚Р°СЂС‚Рµ (РјР°РєСЃ. СЂР°Р·РјРµСЂ СЂСѓРєРё = РєР°СЂС‚С‹ РІ СЂСѓРєРµ РЅР° СЃС‚Р°СЂС‚Рµ + СЌС‚Рѕ Р·РЅР°С‡РµРЅРёРµ)</summary>
     [SerializeField] private int currentCardsInHand = 5;
     [SerializeField] private CardCostStatus status;
+    [SerializeField] private int cardsPerRound = 2;
 
-    private int currentCardsPerRound;
+    private int maxHandSize;
+    private HandLayoutController handLayout;
 
     public RectTransform playerDeck;
     public GridLayoutGroup layoutGroup;
+    /// <summary>Р—Р°РґРµСЂР¶РєР° РјРµР¶РґСѓ РІС‹РґР°С‡РµР№ РєР°СЂС‚</summary>
     public float duration;
     public RectTransform CDPOS;
+
+    public HandLayoutController HandLayout => handLayout;
 
     private void Awake()
     {
         CDPOS = cardDeck.GetComponent<RectTransform>();
+
+        handLayout = playerDeck.GetComponent<HandLayoutController>();
+        if (handLayout == null)
+        {
+            handLayout = playerDeck.gameObject.AddComponent<HandLayoutController>();
+        }
+        maxHandSize = playerDeck.childCount + currentCardsInHand;
     }
 
-
-    public int GetCardInHand
+    private void Start()
     {
-        get { return currentCardsInHand; }
-        set { currentCardsInHand = value; }
+        handLayout.Init(playerDeck, layoutGroup);
     }
 
     /// <summary>
-    /// Завершение раунда игры, добавление карт в колоду игрока и вызов метода <see cref="MoveCardsToPlayerDeck(List{RectTransform})"/>
+    /// РЎРІРѕР±РѕРґРЅС‹Рµ РјРµСЃС‚Р° РІ СЂСѓРєРµ
+    /// </summary>
+    public int GetCardInHand
+    {
+        get { return Mathf.Max(0, maxHandSize - playerDeck.childCount); }
+    }
+
+    /// <summary>
+    /// РќР°С‡Р°Р»Рѕ С…РѕРґР° РёРіСЂРѕРєР°: РґРѕР±РѕСЂ РєР°СЂС‚ РёР· РєРѕР»РѕРґС‹ РІ СЂСѓРєСѓ Рё РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёРµ РјР°РЅС‹
     /// </summary>
     public void TurnRound()
     {
-        List<RectTransform> newCards = new List<RectTransform>();
-
-        for (currentCardsPerRound = 0; currentCardsPerRound < 2; currentCardsPerRound++)
+        var drawn = 0;
+        while (drawn < cardsPerRound && cardDeck.GetTotalCards() > 0 && GetCardInHand > 0 && deck.Count > 0)
         {
-            if (cardDeck.GetTotalCards() > 0 && currentCardsPerRound < 2 && currentCardsInHand > 0)
+            var randomCard = deck[Random.Range(0, deck.Count)];
+            var newCard = Instantiate(randomCard, playerDeck);
+            var cardRect = newCard.GetComponent<RectTransform>();
+
+            var cardComponent = newCard.GetComponent<Card>();
+            if (cardComponent != null)
             {
-                var randomCard = deck[Random.Range(0, deck.Count)];
-                var newCard = Instantiate(randomCard, CDPOS.position, Quaternion.identity);
-                var getcard = newCard.GetComponent<RectTransform>();
-                getcard.SetParent(cardDeck.transform);
-                getcard.localScale = Vector3.one;
-
-                var cardComponent = newCard.GetComponent<Card>();
-                if (cardComponent != null)
-                {
-                    cardComponent.UpdateCardDisplay();
-                }
-
-                newCards.Add(getcard);
-
-                MoveCardsToPlayerDeck(newCards);
-
-                currentCardsInHand--;
-                cardDeck.RemoveCard(1);
+                cardComponent.UpdateCardDisplay();
             }
+
+            handLayout.AddCardFromDeck(cardRect, CDPOS.position, drawn * duration);
+            cardDeck.RemoveCard(1);
+            drawn++;
         }
         status.totalMana = 3;
         status.updateText();
         status.setStatusPreparedness();
-
-        Sequence sequence = DOTween.Sequence();
-        sequence.AppendInterval(0.1f)
-                .OnComplete(() =>
-                {
-                    MoveCardsToPlayerDeck(newCards);
-                });
-    }
-
-
-
-    /// <summary>
-    /// Перемещение карт из колоды <see cref="CardDeck"/> в колоду игрока <see cref="GameControlManager"/>
-    /// </summary>
-    /// <param name="newCards">Новая карта из списка карт</param>
-    public void MoveCardsToPlayerDeck(List<RectTransform> newCards)
-    {
-        layoutGroup.enabled = false;
-
-        var existingCardCount = playerDeck.childCount;
-
-        var cellSize = layoutGroup.cellSize;
-        var spacing = layoutGroup.spacing;
-
-        Sequence sequence = DOTween.Sequence();
-
-        for (var i = 0; i < newCards.Count; i++)
-        {
-            var newCard = newCards[i];
-            var delay = i * duration;
-
-            newCard.DOScale(Vector3.zero, 0.1f).SetEase(Ease.OutQuad).SetDelay(delay);
-            newCard.DOScale(Vector3.one, 0.1f).SetEase(Ease.InQuad).SetDelay(delay + 0.1f);
-
-            var targetLocalPosition = new Vector2(
-                (existingCardCount + i) * (cellSize.x + spacing.x),
-                0
-            );
-
-            var targetWorldPosition = GetCardWorldPosition(existingCardCount + i, cellSize, spacing);
-            newCard.localPosition = new Vector3(targetLocalPosition.x, targetLocalPosition.y, newCard.localPosition.z);
-
-            sequence.Append(newCard.DOMove(targetWorldPosition, duration)
-                .SetEase(Ease.OutQuad)
-                .SetDelay(delay + 0.2f)
-                .OnComplete(() =>
-                {
-                    newCard.SetParent(playerDeck, false);
-                    newCard.localPosition = targetLocalPosition;
-
-                    LayoutRebuilder.ForceRebuildLayoutImmediate(playerDeck);
-                    Canvas.ForceUpdateCanvases();
-                }));
-        }
-
-        sequence.AppendCallback(() =>
-        {
-            layoutGroup.enabled = true;
-        });
-    }
-
-    private Vector3 GetCardWorldPosition(int index, Vector2 cellSize, Vector2 spacing)
-    {
-        var localPosition = new Vector2(
-            index * (cellSize.x + spacing.x),
-            0
-        );
-
-        var worldPosition = playerDeck.TransformPoint(localPosition);
-
-        return worldPosition;
     }
 }

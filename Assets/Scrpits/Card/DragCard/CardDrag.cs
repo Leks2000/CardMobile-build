@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// ����������� ����
+/// Перетаскивание карт из руки на поле
 /// </summary>
 public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -15,13 +15,12 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public bool isPlaced = false;
     public static bool IsDraggingAnyCard = false;
 
-    private Vector3 originalPosition;
-    private Transform mapTrans;
+    private bool isDragging;
+    private int handIndex;
     private Transform defaultParent;
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
     private Canvas canvas;
-    private DropCard[] allDropZones;
 
     public float liftHeight;
     public float liftDuration;
@@ -29,33 +28,35 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public static List<string> Tags = new List<string>() { "Board", "Player" };
 
+    private void Awake()
+    {
+        rectTransform = GetComponent<RectTransform>();
+        canvasGroup = GetComponent<CanvasGroup>();
+    }
+
     private void Start()
     {
         canvas = GetComponentInParent<Canvas>();
-        canvasGroup = GetComponent<CanvasGroup>();
-        rectTransform = GetComponent<RectTransform>();
-        mapTrans = GameObject.FindGameObjectWithTag("Deck").GetComponent<Transform>();
-        cardManag = FindObjectOfType<GameControlManager>().GetComponent<GameControlManager>();
-        allDropZones = FindObjectsOfType<DropCard>();
-        defaultParent = cardManag.gameObject.transform.parent;
-        originalPosition = transform.localPosition;
+        cardManag = FindAnyObjectByType<GameControlManager>();
+        defaultParent = transform.parent;
         status = cardData.status;
-        ResetCard();
     }
+
+    private bool IsInHand => cardManag != null && transform.parent == cardManag.playerDeck;
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!isPlaced && !IsDraggingAnyCard && transform.parent.tag == "PlayerDeck")
+        if (!isPlaced && !IsDraggingAnyCard && IsInHand)
         {
-            rectTransform.DOLocalMoveY(originalPosition.y + liftHeight, liftDuration).SetEase(Ease.OutQuad);
+            cardManag.HandLayout.SetHover(rectTransform, true, liftHeight, liftDuration);
         }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!isPlaced && !IsDraggingAnyCard && transform.parent.tag == "PlayerDeck")
+        if (!isPlaced && !IsDraggingAnyCard && IsInHand)
         {
-            rectTransform.DOLocalMoveY(originalPosition.y, liftDuration).SetEase(Ease.InQuad);
+            cardManag.HandLayout.SetHover(rectTransform, false, liftHeight, liftDuration);
         }
     }
 
@@ -64,68 +65,90 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         set { defaultParent = value; }
     }
 
+    public bool IsDragging => isDragging;
+
     public void OnBeginDrag(PointerEventData eventData)
     {
-        DOTween.PauseAll();
-        GlobalDragTracker.BeginDrag();
-        FindObjectOfType<Tooltip>().HideTooltip();
-        if (isPlaced)
+        if (isPlaced || !IsInHand)
         {
             return;
         }
+        GlobalDragTracker.BeginDrag();
+        var tooltip = FindAnyObjectByType<Tooltip>();
+        if (tooltip != null)
+        {
+            tooltip.HideTooltip();
+        }
+        isDragging = true;
         IsDraggingAnyCard = true;
         canvasGroup.alpha = 0.8f;
         canvasGroup.blocksRaycasts = false;
+
+        cardManag.HandLayout.KillMove(rectTransform);
+        rectTransform.DOKill();
+        rectTransform.localScale = Vector3.one;
+        handIndex = transform.GetSiblingIndex();
         defaultParent = transform.parent;
-        transform.SetParent(defaultParent.parent);
+        transform.SetParent(defaultParent.parent, true);
+        cardManag.HandLayout.Relayout(false);
+
         rectTransform.DOLocalRotate(Vector3.zero, 0.2f).SetEase(Ease.InOutCubic);
-        rectTransform.localPosition = mapTrans.localPosition;
+        rectTransform.localPosition = new Vector3(rectTransform.localPosition.x, rectTransform.localPosition.y, 0f);
+        FollowPointer(eventData);
         PulseEffectManager.ShowPlacementPulses();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (isPlaced)
+        if (!isDragging)
         {
             return;
         }
+        FollowPointer(eventData);
+    }
+
+    private void FollowPointer(PointerEventData eventData)
+    {
         RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform.parent as RectTransform, eventData.position, canvas.worldCamera, out var localPoint);
         rectTransform.anchoredPosition = localPoint;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        GlobalDragTracker.EndDrag();
-        if (isPlaced)
+        if (!isDragging)
         {
             return;
         }
+        GlobalDragTracker.EndDrag();
+        isDragging = false;
+        IsDraggingAnyCard = false;
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
-        transform.SetParent(defaultParent);
-        IsDraggingAnyCard = false;
         PulseEffectManager.HideAllPlacementPulses();
-        if (Tags.Contains(defaultParent.tag))
+
+        if (defaultParent != null && defaultParent != cardManag.playerDeck && Tags.Contains(defaultParent.tag))
         {
+            // Карта положена в слот поля (DropCard назначил defaultParent)
+            transform.SetParent(defaultParent, true);
+            isPlaced = true;
+            status.returnManaText(gameObject);
+
             var targetRect = defaultParent.GetComponent<RectTransform>();
+            rectTransform.DOKill();
             rectTransform.DOLocalMove(targetRect.rect.center, moveDuration)
                 .SetEase(Ease.InOutCubic)
-                .OnComplete(() =>
-                {
-                    ResetCard();
-                    var curCarInHand = cardManag.GetCardInHand;
-                    cardManag.GetCardInHand = curCarInHand + 1;
-                    isPlaced = true;
-                    status.returnManaText(gameObject);
-                });
+                .OnComplete(ResetCard);
         }
         else
         {
-            ResetCard();
+            // Некуда положить - возвращаем в руку на своё место
+            defaultParent = cardManag.playerDeck;
+            cardManag.HandLayout.ReturnCard(rectTransform, handIndex);
         }
     }
+
     /// <summary>
-    /// ��������� ������� ���� �� ������
+    /// Центрирует карту в слоте поля
     /// </summary>
     private void ResetCard()
     {

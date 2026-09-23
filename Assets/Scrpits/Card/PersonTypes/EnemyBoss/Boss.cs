@@ -27,6 +27,10 @@ public class Boss : MonoBehaviour
         }
         cardHp = transform.Find("BossHP/HP").GetComponent<TMP_Text>();
         UpdateCardDisplay();
+        if (damageAnimator != null && bossImage != null)
+        {
+            damageAnimator.SetHitTargets(bossImage.transform, bossImage);
+        }
     }
     public void UpdateCardDisplay()
     {
@@ -38,6 +42,11 @@ public class Boss : MonoBehaviour
         bossData.ApplyDamage(damage);
         UpdateCardDisplay();
         damageAnimator.Animate(takeDamage, damage);
+        if (cardHp != null) CombatFx.Punch(cardHp.transform.parent, 0.12f, 0.25f);
+        if (IsDefeated() && bossImage != null)
+        {
+            CombatFx.ScreenFlash(Color.white, 0.3f, 0.4f);
+        }
     }
 
     public bool IsDefeated()

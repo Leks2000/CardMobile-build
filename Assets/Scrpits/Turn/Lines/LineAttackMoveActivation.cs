@@ -20,9 +20,12 @@ public class LineAttackMoveActivation : MonoBehaviour
     public static List<string> Tags = new List<string>() { "Card", "Enemy" };
     public List<MoveForward> moveForwardLines;
 
-    private bool attackCompleted = false;
     private int finishedAttacks = 0;
     private int totalAttackers = 0;
+    /// <summary>Карты, уже атаковавшие в этом ходу (каждая атакует максимум 1 раз)</summary>
+    private readonly HashSet<CardForwardAttack> attackedThisTurn = new HashSet<CardForwardAttack>();
+    /// <summary>Страховка от зависания хода, если атака так и не сообщила о завершении</summary>
+    [SerializeField] private float attackTimeout = 5f;
 
     [SerializeField] private Boss boss;
     [SerializeField] private Player player;
@@ -39,13 +42,14 @@ public class LineAttackMoveActivation : MonoBehaviour
 
     public IEnumerator changeLine()
     {
-        mesh.enabled = true;
-        coll.enabled = true;
-        rectTransform.localPosition = new Vector3(0, 0, 5);
-        rectTransform.DOScale(new Vector3(125f, 900f, 1), 0.25f);
-
         totalAttackers = 0;
         finishedAttacks = 0;
+        attackedThisTurn.Clear();
+        moveForwardLines.RemoveAll(m => m == null);
+
+        mesh.enabled = true;
+        rectTransform.localPosition = new Vector3(0, 0, 5);
+        rectTransform.DOScale(new Vector3(125f, 900f, 1), 0.25f);
 
         GameObject initialLine = lines.FirstOrDefault(line =>
             line.GetComponentsInChildren<Transform>().Any(child => Tags.Contains(child.tag)));
@@ -54,10 +58,12 @@ public class LineAttackMoveActivation : MonoBehaviour
         {
             transform.SetParent(initialLine.transform);
             rectTransform.anchoredPosition = Vector2.zero;
+            // Коллайдер включаем только на первой линии, иначе срабатывают карты линии, где он остался с прошлого хода
+            coll.enabled = true;
             yield return rectTransform.DOAnchorPos(Vector2.zero, 1f)
                 .SetEase(Ease.OutElastic, 0.6f, 1f)
                 .WaitForCompletion();
-            yield return new WaitUntil(() => attackCompleted);
+            yield return WaitForAttacks();
 
             foreach (var line in lines)
             {
@@ -75,7 +81,7 @@ public class LineAttackMoveActivation : MonoBehaviour
                     yield return rectTransform.DOAnchorPos(Vector2.zero, 1f)
                         .SetEase(Ease.OutElastic, 0.6f, 1f)
                         .WaitForCompletion();
-                    yield return new WaitUntil(() => attackCompleted);
+                    yield return WaitForAttacks();
                 }
             }
         }
@@ -87,7 +93,7 @@ public class LineAttackMoveActivation : MonoBehaviour
         coll.enabled = false;
         rectTransform.localScale = new Vector3(25f, 900f, 1);
 
-        yield return new WaitUntil(() => finishedAttacks >= totalAttackers);
+        yield return WaitForAttacks();
 
         if (boss.IsDefeated())
         {
@@ -108,6 +114,25 @@ public class LineAttackMoveActivation : MonoBehaviour
         yield return StartCoroutine(turnCamera.ChangeRotation());
     }
 
+    /// <summary>
+    /// Ждём завершения всех начатых атак (с таймаутом, чтобы ход никогда не завис)
+    /// </summary>
+    private IEnumerator WaitForAttacks()
+    {
+        yield return new WaitForFixedUpdate();
+        var elapsed = 0f;
+        while (finishedAttacks < totalAttackers && elapsed < attackTimeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        if (finishedAttacks < totalAttackers)
+        {
+            Debug.LogWarning($"LineAttackMoveActivation: attack timeout ({finishedAttacks}/{totalAttackers})");
+            finishedAttacks = totalAttackers;
+        }
+    }
+
     public void OnTriggerEnter(Collider hit)
     {
         if (Tags.Contains(hit.tag))
@@ -116,16 +141,17 @@ public class LineAttackMoveActivation : MonoBehaviour
 
             cardForwardAttack.HandleErrorIfNullGetComponent<CardForwardAttack, LineAttackMoveActivation>(this, gameObject);
 
-            if (cardForwardAttack != null)
+            if (cardForwardAttack != null && attackedThisTurn.Add(cardForwardAttack))
             {
                 totalAttackers++;
-                attackCompleted = false;
 
-                cardForwardAttack.OnAttackComplete += () =>
+                CardForwardAttack.AttackCompleteHandler handler = null;
+                handler = () =>
                 {
+                    cardForwardAttack.OnAttackComplete -= handler;
                     finishedAttacks++;
-                    attackCompleted = true;
                 };
+                cardForwardAttack.OnAttackComplete += handler;
 
                 StartCoroutine(cardForwardAttack.PerformAttack());
             }
@@ -136,8 +162,9 @@ public class LineAttackMoveActivation : MonoBehaviour
     {
         if (Tags.Contains(hit.tag))
         {
-            var moveForward = hit.gameObject.GetComponentInParent<CardForwardAttack>().GetComponentInParent<MoveForward>();
-            if (moveForward != null && !moveForward.isMovingBackLine)
+            var attacker = hit.gameObject.GetComponentInParent<CardForwardAttack>();
+            var moveForward = attacker != null ? attacker.GetComponentInParent<MoveForward>() : null;
+            if (moveForward != null && !moveForward.isMovingBackLine && !moveForwardLines.Contains(moveForward))
             {
                 moveForwardLines.Add(moveForward);
             }

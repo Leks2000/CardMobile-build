@@ -1,5 +1,4 @@
-﻿using DG.Tweening;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
@@ -14,15 +13,17 @@ public class DropCard : MonoBehaviour, IDropHandler
     /// </summary>
     public void OnDrop(PointerEventData eventData)
     {
-        var card = eventData.pointerDrag.GetComponent<CardDrag>();
-        if (card && canDrop)
+        if (eventData.pointerDrag == null)
         {
+            return;
+        }
+        var card = eventData.pointerDrag.GetComponent<CardDrag>();
+        // Слот свободен и карта реально перетаскивается из руки (не уже выложенная)
+        if (card && card.IsDragging && !card.isPlaced && canDrop && GetComponentInChildren<Card>() == null)
+        {
+            // Перемещение в слот выполняет CardDrag.OnEndDrag (в правильном пространстве координат)
             card.GetParent = transform;
             canDrop = false;
-
-            RectTransform targetRect = transform as RectTransform;
-            card.transform.DOLocalMove(targetRect.rect.center, card.moveDuration)
-                .SetEase(Ease.InOutCubic);
         }
     }
 }

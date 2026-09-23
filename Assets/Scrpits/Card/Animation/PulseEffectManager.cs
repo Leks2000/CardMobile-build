@@ -12,6 +12,8 @@ public static class PulseEffectManager
 
     public static void RegisterEffect(CardPulseEffect effect)
     {
+        // Статический список переживает смену сцен — чистим уничтоженные эффекты
+        allEffects.RemoveAll(e => e == null);
         if (!allEffects.Contains(effect))
         {
             allEffects.Add(effect);

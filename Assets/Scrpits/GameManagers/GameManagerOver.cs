@@ -6,6 +6,7 @@ using System.Collections;
 using UnityEngine.UI;
 using System.Threading;
 using Assets.Scrpits.Location;
+using Assets.Scrpits.Run;
 
 /// <summary>
 /// Мэнэджер для концовки игры
@@ -137,6 +138,23 @@ public class GameManagerOver : MonoBehaviour
         exitSeq.Append(resPanel.transform.DOScale(0f, 0.5f).SetEase(Ease.InBack));
         yield return exitSeq.WaitForCompletion();
 
+        // Забег: результат боя -> обратно на карту (победа над боссом / поражение показываются там)
+        if (RunState.IsActive)
+        {
+            if (isWin)
+            {
+                RunBattleSetup.StorePlayerHp();
+                RunState.CompleteCurrentNode();
+            }
+            else
+            {
+                RunState.FailRun();
+            }
+            RunState.LoadMap();
+            yield break;
+        }
+
+        // Без забега (EnemyScene запущена напрямую) - старое поведение
         if (isWin)
         {
             yield return StartCoroutine(endturncam.nextLocation());

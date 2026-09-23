@@ -26,6 +26,7 @@ public class CardCostStatus : MonoBehaviour
     }
     public void setStatusPreparedness()
     {
+        card.RemoveAll(c => c == null);
         card.ForEach(cardIndex =>
         {
             var cardTrans = cardIndex.GetComponent<CanvasGroup>();

@@ -17,7 +17,12 @@ public class MoveForward : MonoBehaviour
     /// </summary>
     public void GetPath()
     {
-        var card = GetComponentInChildren<Card>().GetComponent<RectTransform>();
+        var cardComponent = GetComponentInChildren<Card>();
+        if (cardComponent == null)
+        {
+            return;
+        }
+        var card = cardComponent.GetComponent<RectTransform>();
 
         if (!Physics.Raycast(transform.position, transform.up, out var hit, 32))
         {

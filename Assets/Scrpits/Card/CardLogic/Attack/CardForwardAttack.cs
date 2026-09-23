@@ -15,6 +15,8 @@ public abstract class CardForwardAttack : MonoBehaviour
     public delegate void AttackCompleteHandler();
     public event AttackCompleteHandler OnAttackComplete;
 
+    private bool attackInProgress;
+
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -27,26 +29,37 @@ public abstract class CardForwardAttack : MonoBehaviour
     /// Если впереди ничего нет, завершается без выполнения атаки.
     /// </summary>
     /// <returns>Возвращает IEnumerator для управления анимацией и логикой атаки.</returns>
+    /// <remarks>OnAttackComplete вызывается ровно один раз в любом случае (даже если впереди пусто или карта уничтожена).</remarks>
     public IEnumerator PerformAttack()
     {
+        attackInProgress = true;
         var raycastDistance = 34;
         if (Physics.Raycast(transform.position, transform.up, out var hit, raycastDistance))
         {
             if (IsEnemy(hit.collider))
             {
                 var enemyCard = hit.collider.GetComponentInParent<Card>();
-                yield return StartCoroutine(AttackAnimation(enemyCard, null, false));
-                Debug.Log("ЭТО ОНО");
+                if (enemyCard != null)
+                {
+                    yield return AttackAnimation(enemyCard, null, false);
+                }
             }
-            if (IsBoss(hit.collider))
+            else if (IsBoss(hit.collider))
             {
-                yield return StartCoroutine(OnBossHit(null, boss, false));
-            }
-            else
-            {
-                OnAttackComplete?.Invoke();
+                yield return OnBossHit(null, boss, false);
             }
         }
+        CompleteAttack();
+    }
+
+    private void CompleteAttack()
+    {
+        if (!attackInProgress)
+        {
+            return;
+        }
+        attackInProgress = false;
+        OnAttackComplete?.Invoke();
     }
     /// <summary>
     /// Выполняет только когда враг - босс
@@ -73,7 +86,7 @@ public abstract class CardForwardAttack : MonoBehaviour
 
     protected virtual IEnumerator OnBossHit(Card enemyData, Boss boss, bool shake)
     {
-        yield return StartCoroutine(AttackAnimation(enemyData, boss, shake));
+        yield return AttackAnimation(enemyData, boss, shake);
     }
     protected void ShakeCamera()
     {
@@ -82,6 +95,7 @@ public abstract class CardForwardAttack : MonoBehaviour
     private void OnDestroy()
     {
         DOTween.Kill(transform);
+        CompleteAttack();
     }
     /// <summary>
     /// 
@@ -93,10 +107,14 @@ public abstract class CardForwardAttack : MonoBehaviour
     protected IEnumerator AttackAnimation(Card enemyData, Boss boss, bool shake)
     {
         yield return new WaitForSeconds(0.25f);
+        if (this == null)
+        {
+            yield break;
+        }
         var transDef = transform.GetComponent<RectTransform>().position;
         var forwardPosition = transDef + transform.up * moveDistance;
 
-        Sequence bossAttackSequence = DOTween.Sequence();
+        Sequence bossAttackSequence = DOTween.Sequence().SetTarget(transform);
 
         bossAttackSequence.Append(transform.DOMove(forwardPosition, 0.2f).SetEase(Ease.OutQuad));
 
@@ -118,9 +136,8 @@ public abstract class CardForwardAttack : MonoBehaviour
                 boss.TakeDamage(card.CardData.Damage);
             }
         });
-        OnAttackComplete?.Invoke();
         bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));
         bossAttackSequence.Play();
-        yield return new WaitForSeconds(0.25f);
+        yield return bossAttackSequence.WaitForCompletion();
     }
 }

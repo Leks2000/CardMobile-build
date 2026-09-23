@@ -3,9 +3,9 @@ using Assets.Scrpits.GameManagers;
 using UnityEngine;
 
 /// <summary>
-/// Передвижение камеры с различными этапами
+/// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 /// </summary>
-/// <remarks> 3 этапа передвжиения в конце раунда </remarks>
+/// <remarks> 3 пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ </remarks>
 public class EndTurnCamera : MonoBehaviour
 {
     [SerializeField] GameControlManager cardManager;
@@ -121,7 +121,7 @@ public class EndTurnCamera : MonoBehaviour
 
 
     /// <summary>
-    /// Движение к игровому полю
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     /// </summary>
     private IEnumerator MoveCamera()
     {
@@ -152,7 +152,7 @@ public class EndTurnCamera : MonoBehaviour
     }
 
     /// <summary>
-    /// Движение к вражескому полю где он выкладывает карты
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     public IEnumerator ChangeRotation()
     {
@@ -172,9 +172,9 @@ public class EndTurnCamera : MonoBehaviour
         enemySpawnCardLogic.SpawnEnemyCardsThisRound();
     }
     /// <summary>
-    /// Возвращение в дефолтную позицию
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
-    /// <remarks> + Активация возможности кликнуть на конец раунда</remarks>
+    /// <remarks> + пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</remarks>
     public IEnumerator ReturnToInitialPosition()
     {
         var timeElapsed = 0f;
@@ -192,6 +192,13 @@ public class EndTurnCamera : MonoBehaviour
 
         mainCam.transform.position = initialPosition;
         mainCam.transform.rotation = initialRotation;
+
+        // Р‘РѕР№ РѕРєРѕРЅС‡РµРЅ вЂ” РЅРµ РґРѕР±РёСЂР°РµРј РєР°СЂС‚С‹ Рё РЅРµ СЂР°Р·Р±Р»РѕРєРёСЂСѓРµРј End Turn РїРѕРІРµСЂС… СЌРєСЂР°РЅР° СЂРµР·СѓР»СЊС‚Р°С‚Р°
+        var boss = FindAnyObjectByType<Boss>();
+        if (hasClicked && ((boss != null && boss.IsDefeated()) || (Player.Instance != null && Player.Instance.IsDefeated())))
+        {
+            yield break;
+        }
 
         if (hasClicked)
         {
