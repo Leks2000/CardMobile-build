@@ -60,10 +60,12 @@ public static class JuiceInstaller
             if (etc.GetComponent<TurnBannerWatcher>() == null) etc.gameObject.AddComponent<TurnBannerWatcher>();
         }
 
-        // Victory / defeat punch.
-        foreach (var gm in Object.FindObjectsByType<GameManagerOver>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        // [V] Victory / defeat presentation now lives in ResultOverlayView (added by GameManagerOver).
+
+        // [V] Card draw trail on the hand root.
+        foreach (var gcm in Object.FindObjectsByType<GameControlManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (gm.GetComponent<ResultPanelFx>() == null) gm.gameObject.AddComponent<ResultPanelFx>();
+            if (gcm.playerDeck != null && gcm.playerDeck.GetComponent<HandDrawFx>() == null) gcm.playerDeck.gameObject.AddComponent<HandDrawFx>();
         }
     }
 }

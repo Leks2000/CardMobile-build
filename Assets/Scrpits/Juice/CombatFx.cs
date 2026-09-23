@@ -369,8 +369,7 @@ public static class CombatFx
         {
             if (font == null)
             {
-                var any = UnityEngine.Object.FindAnyObjectByType<TextMeshProUGUI>();
-                font = any != null ? any.font : TMP_Settings.defaultFontAsset;
+                font = UiTheme.Font != null ? UiTheme.Font : TMP_Settings.defaultFontAsset; // [V] unified font
             }
             return font;
         }
@@ -423,7 +422,8 @@ public static class CombatFx
             bannerStrip.anchorMin = Vector2.zero; bannerStrip.anchorMax = Vector2.one;
             bannerStrip.offsetMin = bannerStrip.offsetMax = Vector2.zero;
             var img = strip.AddComponent<Image>();
-            img.color = new Color(0.05f, 0.03f, 0.08f, 0.7f);
+            img.color = new Color(0.08f, 0.06f, 0.12f, 0.78f);
+            img.sprite = ProcSprites.Get(ProcSprites.Glow); // [V] soft-edged strip
             img.raycastTarget = false;
 
             var txt = new GameObject("Text", typeof(RectTransform));
@@ -433,6 +433,7 @@ public static class CombatFx
             trt.offsetMin = trt.offsetMax = Vector2.zero;
             bannerText = txt.AddComponent<TextMeshProUGUI>();
             bannerText.font = Font;
+            if (VisualTheme.OutlineMaterial != null) bannerText.fontSharedMaterial = VisualTheme.OutlineMaterial;
             bannerText.fontSize = 84;
             bannerText.fontStyle = FontStyles.Bold;
             bannerText.alignment = TextAlignmentOptions.Center;

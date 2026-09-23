@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using DG.Tweening;
 using TMPro;
@@ -45,6 +45,10 @@ namespace Assets.Scrpits.Card.Animation
         {
             damageText.text = "-" + damage.ToString();
             damageText.enabled = true;
+            // [V] unified font + outlined material, drawn above siblings
+            if (UiTheme.Font != null && damageText.font != UiTheme.Font) damageText.font = UiTheme.Font;
+            if (VisualTheme.OutlineMaterial != null) damageText.fontSharedMaterial = VisualTheme.OutlineMaterial;
+            damageText.transform.SetAsLastSibling();
             Vector3 initialPosition = damageText.transform.localPosition;
             Vector3 initialScale = damageText.transform.localScale;
             Color initialColor = damageText.color;
@@ -52,7 +56,7 @@ namespace Assets.Scrpits.Card.Animation
             damageText.transform.localScale = initialScale * 0.3f;
 
             // Same total duration as before: onMidAnimation/onComplete timing is unchanged (Card.cs relies on it).
-            Sequence sequence = DOTween.Sequence();
+            Sequence sequence = DOTween.Sequence().SetLink(damageText.gameObject);
 
             sequence.Append(damageText.transform.DOLocalMoveY(initialPosition.y + moveDistance, duration).SetEase(Ease.OutQuad));
             sequence.Join(damageText.DOFade(0, duration * 0.5f).SetDelay(0.25f));
@@ -71,6 +75,7 @@ namespace Assets.Scrpits.Card.Animation
                 if (playHitFx && hitTarget != null)
                 {
                     CombatFx.Hit(hitTarget, flashTarget);
+                    ImpactFx.Burst(hitTarget, damageColor, Mathf.Clamp(5 + damage, 6, 12), 0.9f); // [V]
                 }
                 onMidAnimation?.Invoke();
             });

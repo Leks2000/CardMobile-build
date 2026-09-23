@@ -1,18 +1,22 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Рука и колода боя. [D] Колода = RunState.Deck (вне забега - CardDatabase.StarterDeck),
+/// перемешанная стопка добора; когда стопка пуста - колода перемешивается заново (тупика нет).
+/// </summary>
 public class GameControlManager : MonoBehaviour
 {
     [SerializeField] private CardDeck cardDeck;
-    [SerializeField] private List<GameObject> deck;
-    /// <summary>Свободных мест в руке на старте (макс. размер руки = карты в руке на старте + это значение)</summary>
-    [SerializeField] private int currentCardsInHand = 5;
     [SerializeField] private CardCostStatus status;
     [SerializeField] private int cardsPerRound = 2;
+    [SerializeField] private int startingHand = 4;
+    [SerializeField] private int handLimit = 7;
 
-    private int maxHandSize;
     private HandLayoutController handLayout;
+    private readonly List<CardData> deckList = new List<CardData>();
+    private readonly List<CardData> drawPile = new List<CardData>();
 
     public RectTransform playerDeck;
     public GridLayoutGroup layoutGroup;
@@ -21,6 +25,7 @@ public class GameControlManager : MonoBehaviour
     public RectTransform CDPOS;
 
     public HandLayoutController HandLayout => handLayout;
+    public int DrawPileCount => drawPile.Count;
 
     private void Awake()
     {
@@ -31,12 +36,28 @@ public class GameControlManager : MonoBehaviour
         {
             handLayout = playerDeck.gameObject.AddComponent<HandLayoutController>();
         }
-        maxHandSize = playerDeck.childCount + currentCardsInHand;
     }
 
     private void Start()
     {
+        // Карты-заглушки из сцены убираем: рука строится из колоды забега
+        for (var i = playerDeck.childCount - 1; i >= 0; i--)
+        {
+            var placeholder = playerDeck.GetChild(i);
+            placeholder.SetParent(null, false);
+            Destroy(placeholder.gameObject);
+        }
         handLayout.Init(playerDeck, layoutGroup);
+
+        deckList.Clear();
+        deckList.AddRange(Assets.Scrpits.Run.RunState.IsActive && Assets.Scrpits.Run.RunState.Deck.Count > 0
+            ? Assets.Scrpits.Run.RunState.Deck
+            : CardDatabase.StarterDeck);
+        Reshuffle();
+        Debug.Log($"[D] Battle deck: {deckList.Count} cards");
+
+        DrawCards(startingHand);
+        RefillMana();
     }
 
     /// <summary>
@@ -44,7 +65,7 @@ public class GameControlManager : MonoBehaviour
     /// </summary>
     public int GetCardInHand
     {
-        get { return Mathf.Max(0, maxHandSize - playerDeck.childCount); }
+        get { return Mathf.Max(0, handLimit - playerDeck.childCount); }
     }
 
     /// <summary>
@@ -52,24 +73,40 @@ public class GameControlManager : MonoBehaviour
     /// </summary>
     public void TurnRound()
     {
-        var drawn = 0;
-        while (drawn < cardsPerRound && cardDeck.GetTotalCards() > 0 && GetCardInHand > 0 && deck.Count > 0)
+        RelicSystem.OnRoundStart();
+        DrawCards(cardsPerRound);
+        RefillMana();
+    }
+
+    private void DrawCards(int count)
+    {
+        for (var drawn = 0; drawn < count && GetCardInHand > 0; drawn++)
         {
-            var randomCard = deck[Random.Range(0, deck.Count)];
-            var newCard = Instantiate(randomCard, playerDeck);
-            var cardRect = newCard.GetComponent<RectTransform>();
-
-            var cardComponent = newCard.GetComponent<Card>();
-            if (cardComponent != null)
+            if (drawPile.Count == 0)
             {
-                cardComponent.UpdateCardDisplay();
+                Reshuffle();
+                if (drawPile.Count == 0) break;
             }
+            var data = drawPile[drawPile.Count - 1];
+            drawPile.RemoveAt(drawPile.Count - 1);
 
-            handLayout.AddCardFromDeck(cardRect, CDPOS.position, drawn * duration);
-            cardDeck.RemoveCard(1);
-            drawn++;
+            var card = CardFactory.Spawn(data, playerDeck);
+            handLayout.AddCardFromDeck((RectTransform)card.transform, CDPOS.position, drawn * duration);
         }
-        status.totalMana = 3;
+        cardDeck.SetCount(drawPile.Count);
+    }
+
+    private void Reshuffle()
+    {
+        drawPile.Clear();
+        drawPile.AddRange(deckList);
+        MoveActivation.Shuffle(drawPile);
+        cardDeck.SetCount(drawPile.Count);
+    }
+
+    private void RefillMana()
+    {
+        status.totalMana = status.maxMana;
         status.updateText();
         status.setStatusPreparedness();
     }

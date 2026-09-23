@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using DG.Tweening;
 using UnityEngine;
 using System.Linq;
@@ -35,61 +35,25 @@ public class GameManagerOver : MonoBehaviour
     }
 
     /// <summary>
-    /// Временная система наград
+    /// [V] Результат боя: награда (BattleRewards.Grant ровно один раз при победе) + оверлей ResultOverlayView.
+    /// Старый блок "Salary / Bonus / PlayerPrefs" удалён - единая валюта теперь Wallet.
     /// </summary>
     private void GetResult(bool result)
     {
         if (result)
         {
-            int salary = 26;
-            int bonus = 14;
-            int total = salary + bonus;
-
-            resultSalary.text = "Salary" + new string(' ', 35) + $"{salary}$";
-            resultBonus.text = "No Damage Bonus" + new string(' ', 12) + $"{bonus}$";
-            totalCash.text = "Total" + new string(' ', 38) + $"{total}$";
-            cashOUT.text = "CASH OUT";
-
-            int currentCoins = PlayerPrefs.GetInt("Coins", 0);
-            PlayerPrefs.SetInt("Coins", currentCoins + total);
+            BattleRewards.Grant();
         }
-        else
-        {
-            resultSalary.text = "";
-            resultBonus.text = "";
-            totalCash.text = "";
-            cashOUT.text = "TAP TO CONTINUE";
-        }
-
-        Sequence sequence = DOTween.Sequence();
-
-        resultGame.transform.localPosition = new Vector2(resultGame.transform.localPosition.x, Screen.height + 200f);
-
-        sequence.Append(resultGame.rectTransform.DOAnchorPos(new Vector2(0, 0), 1.25f, false).SetEase(Ease.OutBounce))
-                .AppendInterval(0.2f);
-
-        StartCoroutine(DOTextWaveMovement(resultGame, 25f));
-
-        sequence.Append(resultSalary.transform.DOScale(new Vector3(1f, 1f, 1), 0.1f).SetEase(Ease.OutCubic))
-              .AppendInterval(0.2f);
-
-        sequence.Append(resultBonus.transform.DOScale(new Vector3(1f, 1f, 1), 0.1f).SetEase(Ease.OutCubic))
-              .AppendInterval(0.2f);
-
-        sequence.Append(totalCash.transform.DOScale(new Vector3(1f, 1f, 1), 0.1f).SetEase(Ease.OutCubic))
-               .AppendInterval(0.2f);
-
-        sequence.Append(cashOUT.transform.DOScale(new Vector3(1f, 1f, 1), 1f).SetEase(Ease.OutElastic));
-
-        sequence.Append(cashOUT.transform.DOScale(new Vector3(1f, 1f, 1), 1.5f).SetEase(Ease.OutElastic));
-        sequence.Play();
 
         buttonNextScene.interactable = false;
-        sequence.OnComplete(() =>
+        var view = GetComponent<ResultOverlayView>();
+        if (view == null) view = gameObject.AddComponent<ResultOverlayView>();
+        view.Play(result, resPanel, resultGame, new[] { resultSalary, resultBonus, totalCash, cashOUT }, () =>
         {
             canContinue = true;
             buttonNextScene.interactable = true;
         });
+        StartCoroutine(DOTextWaveMovement(resultGame, 25f));
     }
 
     /// <summary>
@@ -145,6 +109,7 @@ public class GameManagerOver : MonoBehaviour
             {
                 RunBattleSetup.StorePlayerHp();
                 RunState.CompleteCurrentNode();
+                RunState.PendingBattleReward = true; // [M] карта покажет тост BattleRewards.Last*
             }
             else
             {

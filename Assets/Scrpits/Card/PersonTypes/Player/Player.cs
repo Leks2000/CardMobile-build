@@ -1,4 +1,4 @@
-﻿using Assets.Scrpits.Card.Animation;
+using Assets.Scrpits.Card.Animation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +12,11 @@ public class Player : MonoBehaviour
     public TMP_Text takeDamageText;
     public TMP_Text playerHpText;
     public static Player Instance { get; private set; }
+    private HpBarView hpBar; // [V]
+
+    /// <summary>[V] Read-only HP for HUD.</summary>
+    public int HP => playerData != null ? playerData.playerHP : 0;
+    public int MaxHP => playerData != null ? playerData.playerHPMAX : 0;
 
     private void Awake()
     {
@@ -21,6 +26,7 @@ public class Player : MonoBehaviour
         {
             playerData = playerData.Clone();
         }
+        hpBar = GetComponentInChildren<HpBarView>(true);
         UpdatePlayerDisplay();
         if (damageAnimator != null && playerHpText != null)
         {
@@ -32,7 +38,8 @@ public class Player : MonoBehaviour
 
     public void UpdatePlayerDisplay()
     {
-        playerHpText.text = "HP: " + (playerData.playerHP + "/" + playerData.playerHPMAX).ToString();
+        if (hpBar != null) hpBar.Set(playerData.playerHP, playerData.playerHPMAX); // [V] bar + "hp/max" label
+        else playerHpText.text = "HP: " + (playerData.playerHP + "/" + playerData.playerHPMAX).ToString();
     }
 
     public void TakeDamage(int damage)

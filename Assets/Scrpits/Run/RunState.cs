@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Assets.Scrpits.Map;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,6 +16,7 @@ namespace Assets.Scrpits.Run
         public const string MainMenuSceneName = "MainMenuScene";
         public const string MapSceneName = "MapScene";
         public const string BattleSceneName = "EnemyScene";
+        public const string ShopSceneName = "CardShopScene";
 
         public static bool IsActive { get; private set; }
         /// <summary>Узел, в который игрок зашёл последним (-1 = ещё не выбран).</summary>
@@ -32,6 +33,25 @@ namespace Assets.Scrpits.Run
         public static float EliteHpMultiplier = 0.75f;
         public static float BossHpMultiplier = 1f;
 
+        /// <summary>Колода забега (стартовая + выбитые/купленные карты). Бой добирает из неё.</summary>
+        public static readonly List<CardData> Deck = new List<CardData>();
+        /// <summary>Id реликвий/пассивок, собранных за забег.</summary>
+        public static readonly List<string> Relics = new List<string>();
+        /// <summary>Монеты, заработанные за текущий забег (для статистики; сами монеты в Wallet).</summary>
+        public static int CoinsEarned;
+
+        /// <summary>[M] Победа в бою -> карта покажет тост с BattleRewards.Last* при возврате.</summary>
+        public static bool PendingBattleReward;
+        /// <summary>[M] Тосты для карты от небоевых узлов (магазин и т.п.): текст + опционально карта.</summary>
+        public static readonly List<(string text, CardData card)> PendingToasts = new List<(string, CardData)>();
+
+        public static void QueueMapToast(string text, CardData card = null) => PendingToasts.Add((text, card));
+
+        public static void AddCard(CardData card)
+        {
+            if (card != null) Deck.Add(card);
+        }
+
         public static MapNodeType CurrentNodeType =>
             MapGraph.TryGet(CurrentNodeId, out var n) ? n.type : MapNodeType.Battle;
 
@@ -44,7 +64,15 @@ namespace Assets.Scrpits.Run
         {
             Reset();
             IsActive = true;
-            Debug.Log("[RUN] New run started");
+            Deck.AddRange(CardDatabase.StarterDeck);
+            // HP известно с начала забега (для HUD, событий и отдыха)
+            var pd = Resources.Load<PlayerData>("ScriptableObjects/Player");
+            if (pd != null && pd.playerHPMAX > 0)
+            {
+                PlayerHPMax = pd.playerHPMAX;
+                PlayerHP = pd.playerHPMAX; // забег начинается с полным HP
+            }
+            Debug.Log($"[RUN] New run started, deck={Deck.Count}");
         }
 
         public static void Reset()
@@ -55,6 +83,11 @@ namespace Assets.Scrpits.Run
             Outcome = RunOutcome.None;
             PlayerHP = -1;
             PlayerHPMax = -1;
+            Deck.Clear();
+            Relics.Clear();
+            CoinsEarned = 0;
+            PendingBattleReward = false;
+            PendingToasts.Clear();
         }
 
         public static bool IsCompleted(int id) => CompletedNodes.Contains(id);
@@ -113,6 +146,16 @@ namespace Assets.Scrpits.Run
         // ---------- scene flow ----------
         public static void LoadMap() => SceneManager.LoadScene(MapSceneName);
         public static void LoadBattle() => SceneManager.LoadScene(BattleSceneName);
+        public static void LoadShop() => SceneManager.LoadScene(ShopSceneName);
+
+        /// <summary>Потерять HP вне боя (события). Не опускает ниже 1. Возвращает фактическое кол-во.</summary>
+        public static int Damage(int amount)
+        {
+            if (PlayerHP < 0 || amount <= 0) return 0;
+            int before = PlayerHP;
+            PlayerHP = Mathf.Max(1, PlayerHP - amount);
+            return before - PlayerHP;
+        }
 
         public static void ReturnToMainMenu()
         {
@@ -124,7 +167,7 @@ namespace Assets.Scrpits.Run
         public static string Describe()
         {
             return $"active={IsActive} current={CurrentNodeId}({CurrentNodeType}) completed=[{string.Join(",", CompletedNodes)}] " +
-                   $"available=[{string.Join(",", GetAvailableNodes())}] outcome={Outcome} hp={PlayerHP}/{PlayerHPMax} " +
+                   $"available=[{string.Join(",", GetAvailableNodes())}] outcome={Outcome} hp={PlayerHP}/{PlayerHPMax} deck={Deck.Count} relics=[{string.Join(",", Relics)}] coins={Wallet.Coins} " +
                    $"scene={SceneManager.GetActiveScene().name}";
         }
     }

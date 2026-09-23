@@ -12,5 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39601ff703faa4d4c9c46b8f33b3b93c, type: 3}
   m_Name: Boss
   m_EditorClassIdentifier: 
-  bossHP: 1
+  bossHP: 50
   attackPower: 3
+  displayName: The CEO
+  sprite: {fileID: 0}
+  tint: {r: 1, g: 0.62, b: 0.3, a: 1}
+  maxHP: 50

@@ -12,7 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
   m_Name: MiddleWorker
   m_EditorClassIdentifier: 
-  HP: 3
+  HP: 4
   Damage: 2
   Cost: 2
-  cardInfo: Not Again  Please god no
+  cardInfo: Not again. Please, god, no.
+  id: MiddleWorker
+  displayName: Middle Worker
+  art: {fileID: 0}
+  rarity: 0
+  isEnemy: 0
+  isStarter: 1
+  starterCopies: 2
+  inShopPool: 1
+  statuses: []

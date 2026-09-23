@@ -47,6 +47,12 @@ public class LineAttackMoveActivation : MonoBehaviour
         attackedThisTurn.Clear();
         moveForwardLines.RemoveAll(m => m == null);
 
+        // [D] начало раунда: яд / кровотечение
+        if (CombatRules.TickRound())
+        {
+            yield return new WaitForSeconds(0.6f);
+        }
+
         mesh.enabled = true;
         rectTransform.localPosition = new Vector3(0, 0, 5);
         rectTransform.DOScale(new Vector3(125f, 900f, 1), 0.25f);
@@ -94,6 +100,9 @@ public class LineAttackMoveActivation : MonoBehaviour
         rectTransform.localScale = new Vector3(25f, 900f, 1);
 
         yield return WaitForAttacks();
+
+        // [D] конец раунда: босс бьёт игрока (телеграф - подпись под HP босса)
+        yield return CombatRules.BossAttack(boss);
 
         if (boss.IsDefeated())
         {

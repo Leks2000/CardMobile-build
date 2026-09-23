@@ -12,7 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
   m_Name: JuniorWorker
   m_EditorClassIdentifier: 
-  HP: 1
+  HP: 2
   Damage: 1
   Cost: 1
   cardInfo: Work? Again?...
+  id: JuniorWorker
+  displayName: Junior Worker
+  art: {fileID: 0}
+  rarity: 0
+  isEnemy: 0
+  isStarter: 1
+  starterCopies: 2
+  inShopPool: 1
+  statuses: []

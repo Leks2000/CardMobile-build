@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
+  m_Name: Accountant
+  m_EditorClassIdentifier: Assembly-CSharp::CardData
+  HP: 2
+  Damage: 1
+  Cost: 1
+  cardInfo: Hits apply 2 Poison.
+  id: Accountant
+  displayName: Accountant
+  art: {fileID: 0}
+  rarity: 0
+  isEnemy: 0
+  isStarter: 1
+  starterCopies: 1
+  inShopPool: 1
+  statuses:
+  - type: 1
+    value: 2
+    self: 0

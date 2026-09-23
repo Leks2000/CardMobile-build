@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -132,6 +132,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             transform.SetParent(defaultParent, true);
             isPlaced = true;
             status.returnManaText(gameObject);
+            RelicSystem.OnCardPlayed(cardData);
 
             var targetRect = defaultParent.GetComponent<RectTransform>();
             rectTransform.DOKill();

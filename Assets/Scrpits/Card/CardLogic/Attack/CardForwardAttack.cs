@@ -120,20 +120,20 @@ public abstract class CardForwardAttack : MonoBehaviour
 
         bossAttackSequence.AppendCallback(() =>
         {
+            // [D] урон идёт через CombatRules: щит, статусы при ударе, вампиризм, шипы, реликвии
             if (shake == true)
             {
                 ShakeCamera();
-                Player.Instance.TakeDamage(card.CardData.Damage);
-
+                CombatRules.CardHitsPlayer(card);
             }
             if (enemyData != null)
             {
-                enemyData.TakeDamage(card.CardData.Damage);
+                CombatRules.CardHitsCard(card, enemyData);
             }
             if (boss != null)
             {
                 ShakeCamera();
-                boss.TakeDamage(card.CardData.Damage);
+                CombatRules.CardHitsBoss(card, boss);
             }
         });
         bossAttackSequence.Append(transform.DOMove(transDef, 0.2f).SetEase(Ease.OutQuad));

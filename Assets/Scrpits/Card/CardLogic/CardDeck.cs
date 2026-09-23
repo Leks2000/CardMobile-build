@@ -18,6 +18,19 @@ public class CardDeck : MonoBehaviour
     {
         return totalCard;
     }
+    /// <summary>[D] Показать размер стопки добора.</summary>
+    public void SetCount(int count)
+    {
+        totalCard = Mathf.Max(0, count);
+        if (deck == null && transform.childCount > 1)
+        {
+            deck = transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        }
+        if (deck != null)
+        {
+            deck.text = $"x{totalCard}";
+        }
+    }
     public void RemoveCard(int count)
     {
         totalCard = Mathf.Max(0, totalCard - count);

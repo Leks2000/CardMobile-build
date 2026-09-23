@@ -5,6 +5,8 @@ using UnityEngine;
 public class CardCostStatus : MonoBehaviour
 {
     public int totalMana = 3;
+    /// <summary>[D] Мана в начале каждого раунда (реликвия Espresso: 4).</summary>
+    public int maxMana = 3;
     protected List<GameObject> card = new();
     public TextMeshProUGUI manaValue;
 
@@ -22,7 +24,7 @@ public class CardCostStatus : MonoBehaviour
     }
     public void updateText()
     {
-        manaValue.text = totalMana.ToString() + "/3";
+        manaValue.text = totalMana.ToString() + "/" + maxMana;
     }
     public void setStatusPreparedness()
     {

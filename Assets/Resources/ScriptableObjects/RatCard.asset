@@ -16,3 +16,12 @@ MonoBehaviour:
   Damage: 1
   Cost: 1
   cardInfo: Cheese...
+  id: RatCard
+  displayName: Rat
+  art: {fileID: 0}
+  rarity: 0
+  isEnemy: 1
+  isStarter: 0
+  starterCopies: 1
+  inShopPool: 0
+  statuses: []

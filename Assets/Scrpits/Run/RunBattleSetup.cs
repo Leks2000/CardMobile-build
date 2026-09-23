@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Assets.Scrpits.Map;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -6,8 +6,8 @@ using UnityEngine.SceneManagement;
 namespace Assets.Scrpits.Run
 {
     /// <summary>
-    /// Настраивает бой при загрузке EnemyScene в рамках забега:
-    /// масштабирует HP босса по типу узла и переносит HP игрока между боями.
+    /// Настраивает бой при загрузке EnemyScene: [D] состав боя по типу узла (Encounters: BossData +
+    /// враги), HP игрока между боями, реликвии на старте боя. Вне забега - обычный Battle.
     /// Работает через рефлексию, чтобы не трогать Boss.cs / Player.cs.
     /// </summary>
     public static class RunBattleSetup
@@ -23,31 +23,12 @@ namespace Assets.Scrpits.Run
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.name != RunState.BattleSceneName || !RunState.IsActive || !RunState.IsCurrentNodeBattle) return;
+            if (scene.name != RunState.BattleSceneName) return;
             Time.timeScale = 1f;
-            ApplyBossHp();
-            ApplyPlayerHp();
-        }
-
-        public static void ApplyBossHp()
-        {
-            var boss = Object.FindFirstObjectByType<Boss>();
-            if (boss == null) { Debug.LogWarning("[RUN] Boss not found in battle scene"); return; }
-
-            var data = typeof(Boss).GetField("bossData", Flags)?.GetValue(boss) as BossData;
-            // Awake клонирует данные; если Awake не отработал - это ассет, его не трогаем.
-            if (data == null || !boss.gameObject.activeInHierarchy) { Debug.LogWarning("[RUN] Boss data unavailable, HP not scaled"); return; }
-
-            float mult = RunState.CurrentNodeType switch
-            {
-                MapNodeType.Elite => RunState.EliteHpMultiplier,
-                MapNodeType.Boss => RunState.BossHpMultiplier,
-                _ => RunState.BattleHpMultiplier,
-            };
-            float baseHp = data.bossHP;
-            data.bossHP = Mathf.Max(1f, Mathf.Round(baseHp * mult));
-            boss.UpdateCardDisplay();
-            Debug.Log($"[RUN] Battle '{RunState.CurrentNodeType}' boss HP {baseHp} x{mult} -> {data.bossHP}");
+            var inRun = RunState.IsActive && RunState.IsCurrentNodeBattle;
+            Encounters.Setup(inRun ? RunState.CurrentNodeType : MapNodeType.Battle);
+            if (inRun) ApplyPlayerHp();
+            RelicSystem.OnBattleStart();
         }
 
         public static void ApplyPlayerHp()

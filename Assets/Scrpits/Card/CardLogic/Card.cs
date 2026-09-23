@@ -27,11 +27,33 @@ public class Card : MonoBehaviour
     private int damageCard;
 
 
+    /// <summary>[D] Статусы этой карты (Shield/Thorns/Lifesteal на себе, Bleed/Poison от врагов).</summary>
+    public StatusHolder Statuses { get; private set; }
+
+    /// <summary>
+    /// [D] Назначить исходные данные. Вызывать ДО Awake (см. <see cref="CardFactory"/>);
+    /// если карта уже инициализирована - пересобирает клон.
+    /// </summary>
+    public void SetSourceData(CardData data)
+    {
+        cardData = data;
+        if (CardData != null && data != null)
+        {
+            CardData = data.Clone();
+            UpdateCardDisplay();
+        }
+    }
+
     private void Awake()
     {
         if (cardData != null)
         {
             CardData = cardData.Clone();
+            Statuses = StatusHolder.Of(this);
+            foreach (var spec in CardData.statuses)
+            {
+                if (spec.self) Statuses.Add(spec.type, spec.value);
+            }
             UpdateCardDisplay();
             if (gameObject.CompareTag("Card"))
             {
@@ -46,10 +68,24 @@ public class Card : MonoBehaviour
         cardHp.text = CardData.HP.ToString();
         cardDmg.text = CardData.Damage.ToString();
         cardCost.text = CardData.Cost.ToString();
+        if (TryGetComponent<CardView>(out var view)) view.Refresh(); // [D] V's view redraws stats
     }
 
-    public void TakeDamage(int damage)
+    /// <summary>
+    /// Получить урон. Щит (StatusHolder) поглощает урон, если не <paramref name="ignoreShield"/> (яд/кровотечение).
+    /// Возвращает урон, реально прошедший по HP.
+    /// </summary>
+    public int TakeDamage(int damage, bool ignoreShield = false)
     {
+        if (!ignoreShield && Statuses != null)
+        {
+            damage = Statuses.AbsorbWithShield(damage);
+        }
+        if (damage <= 0)
+        {
+            CombatFx.Punch(transform, 0.1f, 0.2f);
+            return 0;
+        }
         damageCard = damage;
         damageText.text = "-" + damage.ToString();
         damageAnimator.Animate(damageText, damage,
@@ -71,5 +107,6 @@ public class Card : MonoBehaviour
                 Destroy(gameObject);
             }
         });
+        return damage;
     }
 }

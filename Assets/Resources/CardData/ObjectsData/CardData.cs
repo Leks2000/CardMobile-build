@@ -13,6 +13,29 @@ public class CardData : ScriptableObject
     public int Damage;
     public int Cost;
     public string cardInfo;
+
+    [Header("Identity / presentation")]
+    /// <summary>Уникальный id (для колоды забега и дропа из кейсов). Пусто = имя ассета.</summary>
+    public string id;
+    public string displayName;
+    /// <summary>Арт карты (пользователь подкладывает свой PNG). null = старый арт префаба.</summary>
+    public Sprite art;
+    public CardRarity rarity = CardRarity.Common;
+    /// <summary>Карта врага (спавнится на стороне противника).</summary>
+    public bool isEnemy;
+    /// <summary>Входит в стартовую колоду забега.</summary>
+    public bool isStarter;
+    /// <summary>[D] Сколько копий карты в стартовой колоде (если isStarter).</summary>
+    public int starterCopies = 1;
+    /// <summary>Можно выбить из кейса / купить.</summary>
+    public bool inShopPool = true;
+
+    [Header("Statuses")]
+    public System.Collections.Generic.List<StatusSpec> statuses = new System.Collections.Generic.List<StatusSpec>();
+
+    public string Id => string.IsNullOrEmpty(id) ? name.Replace("(Clone)", "") : id;
+    public string Title => string.IsNullOrEmpty(displayName) ? Id : displayName;
+
     public void ApplyDamage(int damage)
     {
         HP -= damage;
