@@ -105,7 +105,7 @@ namespace Assets.Scrpits.Shop
             {
                 var pool = CardDatabase.ShopPool((CardRarity)r).ToList();
                 if (pool.Count > 0) return pool[Random.Range(0, pool.Count)];
-                var byRarity = CardDatabase.PlayerCards.Where(c => c.rarity == (CardRarity)r && !c.isStarter).ToList();
+                var byRarity = CardDatabase.PlayerCards.Where(c => c.rarity == (CardRarity)r && !c.isStarter && MetaProgress.IsCardUnlocked(c.Id)).ToList();
                 if (byRarity.Count > 0) return byRarity[Random.Range(0, byRarity.Count)];
             }
             var any = CardDatabase.PlayerCards.ToList();

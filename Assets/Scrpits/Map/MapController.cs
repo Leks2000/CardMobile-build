@@ -57,6 +57,7 @@ namespace Assets.Scrpits.Map
         private float nodeS = 110f;
         private bool landscape;
         private bool busy;
+        private bool actBanner;
 
         private class Edge
         {
@@ -78,6 +79,14 @@ namespace Assets.Scrpits.Map
             Time.timeScale = 1f;
             root = (RectTransform)transform;
             if (!RunState.IsActive) RunState.StartNewRun(); // карта открыта напрямую - начинаем забег
+            RunState.EnsureMap();
+            // босс акта побеждён -> новая локация
+            if (RunState.PendingActAdvance)
+            {
+                RunState.AdvanceAct();
+                actBanner = true;
+            }
+            if (RunState.Act == 1 && RunState.CurrentNodeId < 0 && RunState.CompletedNodes.Count == 0) actBanner = true;
 
             // страховка: небоевой узел, в который вошли, но не завершили (например, вышли из магазина иначе)
             if (RunState.CurrentNodeId >= 0 && !RunState.IsCompleted(RunState.CurrentNodeId) && !RunState.IsCurrentNodeBattle
@@ -104,7 +113,10 @@ namespace Assets.Scrpits.Map
             }
             foreach (var (text, card) in RunState.PendingToasts) toasts.Enqueue((null, text, card));
             RunState.PendingToasts.Clear();
-            if (toasts.Count > 0) DOVirtual.DelayedCall(0.6f, ShowNextToast).SetLink(gameObject);
+            float delay = 0.6f;
+            if (actBanner) { ShowActBanner(); delay += 2.2f; }
+            if (toasts.Count > 0) DOVirtual.DelayedCall(delay, ShowNextToast).SetLink(gameObject);
+            if (RunState.NeedsDeckChoice) DOVirtual.DelayedCall(delay, ShowDeckChoice).SetLink(gameObject);
         }
 
         private void OnEnable() => Wallet.Changed += OnCoinsChanged;
@@ -306,7 +318,23 @@ namespace Assets.Scrpits.Map
         private void PickChoice(NodeChoice choice)
         {
             string title = popupScenario != null ? popupScenario.title : "";
+            var scenario = popupScenario;
             popupScenario = null;
+            if (choice.pick != null)
+            {
+                // выбор карты из колоды: попап прячем, после выбора - результат, после отмены - снова варианты
+                if (popup != null) { Destroy(popup); popup = null; }
+                DeckPicker.Show(root, "Choose a card", "It becomes Senior: +1 ATK, +1 HP, golden frame", choice.pickFilter, idx =>
+                {
+                    NodeResult r;
+                    try { r = choice.pick(idx); }
+                    catch (Exception ex) { Debug.LogException(ex); r = new NodeResult(title, "Something went wrong..."); }
+                    RunState.CompleteCurrentNode();
+                    ShowResult(r);
+                    RefreshHud();
+                }, () => ShowChoices(scenario));
+                return;
+            }
             NodeResult res;
             try { res = choice.apply(); }
             catch (Exception ex) { Debug.LogException(ex); res = new NodeResult(title, "Something went wrong..."); }
@@ -339,7 +367,14 @@ namespace Assets.Scrpits.Map
             foreach (var rt in nodeRects.Values) { rt.DOKill(); rt.localScale = Vector3.one; }
             endTitle.text = won ? "RUN COMPLETE!" : "RUN FAILED";
             endTitle.color = won ? UiTheme.Accent : UiTheme.Damage;
-            endStats.text = $"Coins earned: <color=#{UiKit.Hex(UiTheme.Accent)}>{RunState.CoinsEarned}</color>     Deck: {RunState.Deck.Count} cards     Relics: {RunState.Relics.Count}";
+            int renown = RunState.RunScore;
+            if (!RunState.RenownAwarded)
+            {
+                RunState.RenownAwarded = true;
+                MetaProgress.AddPoints(renown);
+            }
+            endStats.text = $"Act {RunState.Act}   Coins earned: <color=#{UiKit.Hex(UiTheme.Accent)}>{RunState.CoinsEarned}</color>   Deck: {RunState.Deck.Count}   Relics: {RunState.Relics.Count}\n" +
+                            $"Renown <color=#{UiKit.Hex(UiTheme.Accent)}>+{renown}</color>  (total {MetaProgress.Points}) - spend it in UNLOCKS";
             if (!endPanel.activeSelf)
             {
                 endPanel.SetActive(true);
@@ -352,6 +387,59 @@ namespace Assets.Scrpits.Map
         }
 
         public static void GoToMainMenu() => RunState.ReturnToMainMenu();
+
+        /// <summary>Большая надпись «ACT N / локация» при входе в акт.</summary>
+        private void ShowActBanner()
+        {
+            var info = MapGraph.Info(RunState.Act);
+            var group = UiKit.Rect("ActBanner", root);
+            UiKit.Stretch(group);
+            group.SetSiblingIndex(toastRoot.GetSiblingIndex());
+            var cg = group.gameObject.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false;
+            var strip = UiKit.Img("Strip", group, new Color(0.03f, 0.02f, 0.05f, 0.85f), UiKit.Glow);
+            UiKit.Place(strip.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(2600, 420));
+            var a = UiKit.Text("Act", group, $"ACT {RunState.Act}", 64, UiTheme.TextDim);
+            a.characterSpacing = 12;
+            UiKit.Place(a.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 70), new Vector2(1400, 90));
+            var n = UiKit.Text("Name", group, info.name.ToUpper(), 120, UiTheme.Accent);
+            UiKit.Place(n.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, -30), new Vector2(1800, 150));
+            cg.alpha = 0f;
+            var seq = DOTween.Sequence().SetLink(group.gameObject);
+            seq.Append(cg.DOFade(1f, 0.4f));
+            seq.AppendInterval(1.3f);
+            seq.Append(cg.DOFade(0f, 0.5f));
+            seq.OnComplete(() => Destroy(group.gameObject));
+            SoundFx.Play(SoundFx.Clip.Reveal);
+        }
+
+        /// <summary>Выбор стартовой колоды (если открыто больше одной).</summary>
+        private void ShowDeckChoice()
+        {
+            if (!RunState.NeedsDeckChoice || RunState.CurrentNodeId >= 0) return;
+            busy = true;
+            var decks = MetaProgress.UnlockedDecks();
+            float rowH = 120f, gap = 16f;
+            NewPopup(1060, 250f + decks.Count * (rowH + gap), out var box);
+            var title = UiKit.Text("Title", box, "Choose your team", 64, UiTheme.Accent);
+            UiKit.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(980, 90));
+            for (int i = 0; i < decks.Count; i++)
+            {
+                var d = decks[i];
+                var btn = UiKit.Button("Deck" + i, box, "", UiTheme.PanelLight, new Vector2(940, rowH), () =>
+                {
+                    RunState.ChooseStarterDeck(d.id);
+                    ClosePopup();
+                });
+                UiKit.Place((RectTransform)btn.transform, new Vector2(0.5f, 1f), new Vector2(0, -160 - i * (rowH + gap) - rowH * 0.5f), new Vector2(940, rowH));
+                var lbl = btn.transform.Find("Text").GetComponent<TMP_Text>();
+                lbl.text = $"{d.name}\n<size=60%><color=#{UiKit.Hex(UiTheme.TextDim)}>{d.description}</color></size>";
+                lbl.fontSize = 44;
+                lbl.color = UiTheme.Text;
+                lbl.alignment = TextAlignmentOptions.Left;
+                UiKit.Stretch(lbl.rectTransform, 36, 36, 0, 12);
+            }
+        }
 
         // ---------------- HUD ----------------
 
@@ -627,14 +715,26 @@ namespace Assets.Scrpits.Map
 
             var bg = UiKit.Img("Background", root, UiTheme.Background);
             UiKit.Stretch(bg.rectTransform);
-            var glow = UiKit.Img("BgGlow", root, new Color(UiTheme.PanelLight.r, UiTheme.PanelLight.g, UiTheme.PanelLight.b, 0.8f), UiKit.Glow);
+            // фон локации акта (арт проекта), приглушённый, чтобы узлы читались
+            var act = MapGraph.Info(RunState.Act);
+            var art = Resources.Load<Sprite>(act.background);
+            if (art != null)
+            {
+                var artImg = UiKit.Img("LocationArt", root, act.tint * 0.55f, art);
+                artImg.color = new Color(act.tint.r * 0.55f, act.tint.g * 0.55f, act.tint.b * 0.55f, 1f);
+                UiKit.Stretch(artImg.rectTransform);
+                var fitter = artImg.gameObject.AddComponent<AspectRatioFitter>();
+                fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+                fitter.aspectRatio = art.rect.width / Mathf.Max(1f, art.rect.height);
+            }
+            var glow = UiKit.Img("BgGlow", root, new Color(UiTheme.PanelLight.r, UiTheme.PanelLight.g, UiTheme.PanelLight.b, art != null ? 0.35f : 0.8f), UiKit.Glow);
             UiKit.Place(glow.rectTransform, new Vector2(0.5f, 0.45f), Vector2.zero, new Vector2(2600, 1500));
             var bottom = UiKit.Img("BgShade", root, new Color(0, 0, 0, 0.5f), UiKit.VGradient);
             bottom.rectTransform.localScale = new Vector3(1, -1, 1);
             UiKit.Place(bottom.rectTransform, new Vector2(0.5f, 0f), new Vector2(0, 110), new Vector2(4000, 220));
 
-            var title = UiKit.Text("Title", root, "DUNGEON MAP", 80, UiTheme.Accent);
-            UiKit.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(900, 110));
+            var title = UiKit.Text("Title", root, $"ACT {RunState.Act}: {act.name.ToUpper()}", 76, UiTheme.Accent);
+            UiKit.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(1400, 110));
             var tsh = title.gameObject.AddComponent<Shadow>();
             tsh.effectColor = new Color(0, 0, 0, 0.6f); tsh.effectDistance = new Vector2(0, -5);
 
@@ -831,9 +931,9 @@ namespace Assets.Scrpits.Map
             else Stretch(mapArea, 150, 150, 420, 320);
 
             Vector2 size = mapArea.rect.size;
-            float rowGap = (landscape ? size.x : size.y) / 4f;
-            float colGap = (landscape ? size.y : size.x) * 0.25f;
-            nodeS = Mathf.Max(60f, Mathf.Min(nodeSize.x * 0.65f, rowGap * 0.6f, colGap * 0.75f));
+            float rowGap = (landscape ? size.x : size.y) / Mathf.Max(1, MapGraph.Rows - 1);
+            float colGap = (landscape ? size.y : size.x) / (MapGraph.MaxPerRow + 1f);
+            nodeS = Mathf.Max(56f, Mathf.Min(nodeSize.x * 0.65f, rowGap * 0.62f, colGap * 0.7f));
             foreach (var node in MapGraph.Nodes)
             {
                 if (!nodeRects.TryGetValue(node.id, out var nrt)) continue;
@@ -903,10 +1003,13 @@ namespace Assets.Scrpits.Map
             sh.effectColor = new Color(0, 0, 0, 0.7f); sh.effectDistance = new Vector2(0, -6);
 
             endStats = UiKit.Text("Stats", dim.rectTransform, "", 40, UiTheme.Text);
-            UiKit.Place(endStats.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(1400, 60));
+            UiKit.Place(endStats.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 20), new Vector2(1500, 120));
 
             var btn = UiKit.Button("MainMenu", dim.rectTransform, "Main Menu", UiTheme.Accent, new Vector2(420, 120), GoToMainMenu, 54);
-            UiKit.Place((RectTransform)btn.transform, new Vector2(0.5f, 0.5f), new Vector2(0, -130), new Vector2(420, 120));
+            UiKit.Place((RectTransform)btn.transform, new Vector2(0.5f, 0.5f), new Vector2(-240, -150), new Vector2(420, 120));
+            var unlocks = UiKit.Button("Unlocks", dim.rectTransform, "Unlocks", UiTheme.PanelLight, new Vector2(420, 120), () => MetaScreen.Show(root), 54);
+            unlocks.transform.Find("Text").GetComponent<TMP_Text>().color = UiTheme.Text;
+            UiKit.Place((RectTransform)unlocks.transform, new Vector2(0.5f, 0.5f), new Vector2(240, -150), new Vector2(420, 120));
             endPanel.SetActive(false);
         }
     }

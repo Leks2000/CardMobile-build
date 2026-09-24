@@ -72,6 +72,9 @@ public static class BattleRewards
     /// <summary>Расходник, выпавший за этот бой (элита/босс - всегда, обычный бой - шанс), иначе null.</summary>
     public static ItemDef LastItem;
     public const float BattleItemChance = 0.4f;
+    /// <summary>Монет за каждую единицу сверхурона по боссу.</summary>
+    public const int OverkillCoins = 3;
+    public static int LastOverkill;
 
     private static bool granted;
 
@@ -96,6 +99,9 @@ public static class BattleRewards
         }
         if (CombatRules.DamageTaken == 0) LastBreakdown.Add(("No damage taken", 10));
         if (CombatRules.Round <= 3) LastBreakdown.Add(("Quick victory", 5));
+        // сверхурон по боссу: каждая единица урона ниже нуля HP = монеты
+        LastOverkill = Encounters.Boss != null ? UnityEngine.Mathf.Max(0, -UnityEngine.Mathf.RoundToInt(Encounters.Boss.bossHP)) : 0;
+        if (LastOverkill > 0) LastBreakdown.Add(($"Overkill x{LastOverkill}", LastOverkill * OverkillCoins));
         RelicSystem.OnBattleWon(LastBreakdown);
 
         LastCoins = 0;

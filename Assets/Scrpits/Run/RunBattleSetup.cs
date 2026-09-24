@@ -29,6 +29,7 @@ namespace Assets.Scrpits.Run
             Encounters.Setup(inRun ? RunState.CurrentNodeType : MapNodeType.Battle);
             if (inRun) ApplyPlayerHp();
             RelicSystem.OnBattleStart();
+            BossMechanics.OnBattleStart();
             BattleSceneDresser.Install(); // [V] HUD / фон / босс / панель предметов (кодом, сцену не трогаем)
         }
 

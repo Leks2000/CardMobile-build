@@ -26,6 +26,27 @@ public static class Encounters
         [MapNodeType.Boss] = new Def { bossAsset = "Boss", enemies = new[] { "MoldSlime", "StaplerBat", "FilingGolem", "FilingGolem", "RatCard", "PaperArcher", "PaperArcher" }, enemyCount = 10, openingWave = 2 },
     };
 
+    /// <summary>Механика босса боя (BossMechanics) и её сила.</summary>
+    public static BossMechanic Mechanic { get; private set; }
+    public static int MechanicValue { get; private set; }
+    /// <summary>Акт боя (1..3): растут HP/атака босса и число/сила врагов.</summary>
+    public static int Act { get; private set; } = 1;
+
+    // Босс акта: имя и механика по номеру акта
+    private static readonly (string name, BossMechanic mech, int value)[] ActBosses =
+    {
+        ("The CEO", BossMechanic.Summoner, 2),
+        ("The CFO", BossMechanic.ManaThief, 1),
+        ("The Board", BossMechanic.RangedShield, 10),
+    };
+    // Элита: механика по номеру акта
+    private static readonly (BossMechanic mech, int value)[] ActElites =
+    {
+        (BossMechanic.RangedShield, 6),
+        (BossMechanic.Summoner, 1),
+        (BossMechanic.ManaThief, 1),
+    };
+
     public static MapNodeType Type { get; private set; } = MapNodeType.Battle;
     public static Def Current { get; private set; }
     /// <summary>Клон BossData текущего боя (тот же объект, что у Boss).</summary>
@@ -36,6 +57,11 @@ public static class Encounters
     {
         Type = Defs.ContainsKey(type) ? type : MapNodeType.Battle;
         Current = Defs[Type];
+        Act = Assets.Scrpits.Run.RunState.IsActive ? Mathf.Clamp(Assets.Scrpits.Run.RunState.Act, 1, 3) : 1;
+        Mechanic = BossMechanic.None;
+        MechanicValue = 0;
+        if (Type == MapNodeType.Boss) { var b = ActBosses[Act - 1]; Mechanic = b.mech; MechanicValue = b.value; }
+        else if (Type == MapNodeType.Elite) { var e = ActElites[Act - 1]; Mechanic = e.mech; MechanicValue = e.value; }
         CombatRules.ResetBattle();
         BattleRewards.BeginBattle();
 
@@ -44,7 +70,7 @@ public static class Encounters
         if (spawner != null)
         {
             var pool = Current.enemies.Select(CardDatabase.Get).Where(c => c != null).ToList();
-            spawner.Configure(pool, Current.enemyCount);
+            spawner.Configure(pool, Current.enemyCount + (Act - 1) * 2);
             spawner.SpawnWave(Current.openingWave);
         }
         Debug.Log($"[D] Encounter {Type}: boss={Boss?.displayName} hp={Boss?.bossHP} atk={BossAttack} enemies={Current.enemyCount} [{string.Join(",", Current.enemies)}]");
@@ -61,11 +87,24 @@ public static class Encounters
         }
         Boss = asset.Clone();
         if (Boss.maxHP <= 0) Boss.maxHP = Boss.bossHP;
+        // сложность по акту
+        Boss.maxHP = Mathf.Round(Boss.maxHP * (1f + 0.45f * (Act - 1)));
+        Boss.attackPower += Act - 1;
+        if (Type == MapNodeType.Boss) Boss.displayName = ActBosses[Act - 1].name;
         Boss.bossHP = Boss.maxHP;
         typeof(Boss).GetField("bossData", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(boss, Boss);
         boss.UpdateCardDisplay();
         boss.SendMessage("OnBossDataChanged", SendMessageOptions.DontRequireReceiver); // [V] может перерисовать имя/тинт
         ShowIntent(boss);
+    }
+
+    /// <summary>Усилить вражескую карту по акту (+1 HP за акт после первого, +1 ATK с третьего).</summary>
+    public static void ScaleEnemy(Card card)
+    {
+        if (card == null || card.CardData == null || Act <= 1) return;
+        card.CardData.HP += Act - 1;
+        if (Act >= 3) card.CardData.Damage += 1;
+        card.UpdateCardDisplay();
     }
 
     /// <summary>Телеграф атаки босса: подпись под HP босса.</summary>
@@ -97,6 +136,7 @@ public static class Encounters
             text.raycastTarget = false;
             UiTheme.Apply(text, UiTheme.Damage);
         }
-        text.text = BossAttack > 0 ? $"{Boss.displayName}: hits you for {BossAttack} each round" : Boss.displayName;
+        text.text = (BossAttack > 0 ? $"{Boss.displayName}: hits you for {BossAttack} each round" : Boss.displayName) +
+                    (Mechanic != BossMechanic.None ? "\n<color=#FFC44D>" + BossMechanics.Describe(Mechanic, MechanicValue) + "</color>" : "");
     }
 }

@@ -63,6 +63,11 @@ public class Boss : MonoBehaviour
         damageAnimator.Animate(takeDamage, damage);
         if (view != null) view.PlayHit(damage);
         else if (cardHp != null) CombatFx.Punch(cardHp.transform.parent, 0.12f, 0.25f);
+        if (bossData.bossHP < 0 && bossImage != null)
+        {
+            // [Rewards] сверхурон = доп. монеты после боя
+            ImpactFx.Sparkle(bossImage.transform, UiTheme.Accent, 6 + Mathf.Min(10, damage), 1.2f);
+        }
         if (IsDefeated() && bossImage != null)
         {
             CombatFx.ScreenFlash(Color.white, 0.3f, 0.4f);

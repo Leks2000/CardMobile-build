@@ -45,6 +45,7 @@ public class BattleSceneDresser : MonoBehaviour
         Safe("pause", DressPause);
         Safe("atmosphere", DressAtmosphere);
         Safe("post", DressPostFx);
+        Safe("intents", () => { if (FindAnyObjectByType<IntentOverlay>() == null) gameObject.AddComponent<IntentOverlay>(); });
         if (uiRoot != null)
         {
             Safe("items", () => { if (FindAnyObjectByType<BattleItemBar>() == null) BattleItemBar.Create(uiRoot); });

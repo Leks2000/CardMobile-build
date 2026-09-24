@@ -62,6 +62,7 @@ namespace Assets.Scrpits.Map
             cb.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
             cb.disabledColor = new Color(0.45f, 0.45f, 0.5f, 0.8f);
             btn.colors = cb;
+            btn.onClick.AddListener(() => SoundFx.Play(SoundFx.Clip.Click, 0.6f));
             if (onClick != null) btn.onClick.AddListener(() => onClick());
             var t = Text("Text", img.rectTransform, label, fontSize, UiTheme.Background);
             Stretch(t.rectTransform, 10, 10, 4, 12); // над нижней кромкой кнопки

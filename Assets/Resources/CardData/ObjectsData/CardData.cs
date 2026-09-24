@@ -30,6 +30,9 @@ public class CardData : ScriptableObject
     /// <summary>Можно выбить из кейса / купить.</summary>
     public bool inShopPool = true;
 
+    /// <summary>Прокачанная «Senior»-версия (+1 ATK / +1 HP, золотая рамка). Создаётся CardUpgrade.</summary>
+    public bool upgraded;
+
     [Header("Ability (CardAbilities)")]
     /// <summary>Особое свойство карты: дальний бой, баффы соседей, щит каждый раунд, лечение.</summary>
     public CardAbility ability = CardAbility.None;

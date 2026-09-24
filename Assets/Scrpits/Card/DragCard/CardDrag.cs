@@ -134,6 +134,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             status.returnManaText(gameObject);
             RelicSystem.OnCardPlayed(cardData);
             CardAbilities.OnPlayed(cardData);
+            SoundFx.Play(SoundFx.Clip.PlayCard);
 
             var targetRect = defaultParent.GetComponent<RectTransform>();
             rectTransform.DOKill();

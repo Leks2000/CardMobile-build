@@ -47,6 +47,25 @@ public class EnemySpawnCardLogic : MonoBehaviour
         SpawnWave(Random.Range(1, maxCardsThisRound + 1));
     }
 
+    /// <summary>[Boss] Призыв босса: сверх лимита боя, в свободные клетки линии появления. Возвращает сколько вышло.</summary>
+    public int Summon(int count)
+    {
+        if (pool.Count == 0) return 0;
+        int spawned = 0;
+        foreach (Transform slot in imageSlots)
+        {
+            if (slot.childCount != 0 || spawned >= count) continue;
+            var card = CardFactory.Spawn(pool[Random.Range(0, pool.Count)], slot);
+            card.transform.localPosition = Vector3.zero;
+            Encounters.ScaleEnemy(card);
+            var mf = slot.GetComponent<MoveForward>();
+            if (mf != null && !lineback.moveBackLines.Contains(mf)) lineback.moveBackLines.Add(mf);
+            ImpactFx.Ring(card.transform, VisualTheme.EnemyAccent, 1.2f);
+            spawned++;
+        }
+        return spawned;
+    }
+
     public void SpawnWave(int count)
     {
         if (pool.Count == 0)
@@ -67,6 +86,7 @@ public class EnemySpawnCardLogic : MonoBehaviour
             {
                 var card = CardFactory.Spawn(pool[Random.Range(0, pool.Count)], slot);
                 card.transform.localPosition = Vector3.zero;
+                Encounters.ScaleEnemy(card);
                 lineback.moveBackLines.Add(slot.gameObject.GetComponent<MoveForward>());
 
                 spawned++;

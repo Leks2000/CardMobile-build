@@ -17,6 +17,7 @@ public static class Wallet
         if (amount == 0) return;
         PlayerPrefs.SetInt(Key, Mathf.Max(0, Coins + amount));
         PlayerPrefs.Save();
+        if (amount > 0) SoundFx.Play(SoundFx.Clip.Coin, 0.7f);
         Changed?.Invoke(Coins);
     }
 

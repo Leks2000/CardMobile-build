@@ -27,6 +27,7 @@ public static class CombatRules
     {
         if (attacker == null || target == null) return;
         var dealt = target.TakeDamage(attacker.CardData.Damage);
+        SoundFx.Play(SoundFx.Clip.Hit);
         AfterHit(attacker, target.Statuses, dealt);
 
         var thorns = target.Statuses != null ? target.Statuses.Get(StatusType.Thorns) : 0;
@@ -39,9 +40,11 @@ public static class CombatRules
     public static void CardHitsBoss(Card attacker, Boss boss)
     {
         if (attacker == null || boss == null) return;
+        if (BossMechanics.BlocksHit(attacker, boss)) return; // [Boss] щит держит ближний бой
         var holder = StatusHolder.Of(boss);
         var dealt = holder.AbsorbWithShield(attacker.CardData.Damage);
         if (dealt > 0) boss.TakeDamage(dealt);
+        SoundFx.Play(dealt > 0 ? SoundFx.Clip.BossHit : SoundFx.Clip.Block);
         AfterHit(attacker, holder, dealt);
     }
 
@@ -62,6 +65,8 @@ public static class CombatRules
         {
             player.TakeDamage(damage);
             DamageTaken += damage;
+            SoundFx.Play(SoundFx.Clip.PlayerHit);
+            SoundFx.Vibrate();
         }
         return damage;
     }
@@ -130,6 +135,7 @@ public static class CombatRules
     /// <summary>Конец раунда: босс бьёт игрока на attackPower (показано в BossIntent).</summary>
     public static IEnumerator BossAttack(Boss boss)
     {
+        yield return BossMechanics.OnBossTurn(boss); // [Boss] призыв / восстановление щита
         var power = Encounters.BossAttack;
         if (boss == null || boss.IsDefeated() || power <= 0 || Player.Instance == null || Player.Instance.IsDefeated())
         {

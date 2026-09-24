@@ -143,6 +143,8 @@ public class GameManagerOver : MonoBehaviour
         isWin = result;
         resPanel.gameObject.SetActive(true);
         resultGame.text = result ? "VICTORY!" : "DEFEAT...";
+        SoundFx.Play(result ? SoundFx.Clip.Win : SoundFx.Clip.Lose, 1f, 0f);
+        if (!result) SoundFx.Vibrate();
         GetResult(result);
     }
 }

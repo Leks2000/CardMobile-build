@@ -17,7 +17,7 @@ namespace Assets.Scrpits.Shop
         public static RectTransform Build(Transform parent, CardData card, float scale = 1f, bool glow = false)
         {
             CardRarity rarity = card != null ? card.rarity : CardRarity.Common;
-            Color rc = RarityColors.Get(rarity);
+            Color rc = card != null && card.upgraded ? CardUpgrade.Gold : RarityColors.Get(rarity);
 
             var root = UiKit.Rect("Card_" + (card != null ? card.Id : "none"), parent);
             root.sizeDelta = BaseSize;
@@ -71,7 +71,7 @@ namespace Assets.Scrpits.Shop
             UiKit.Place(t.rectTransform, new Vector2(0.5f, 0), new Vector2(0, 86), new Vector2(176, 34));
 
             // rarity
-            var r = UiKit.Text("Rarity", root, RarityColors.Name(rarity).ToUpper(), 20, rc);
+            var r = UiKit.Text("Rarity", root, card != null && card.upgraded ? "SENIOR" : RarityColors.Name(rarity).ToUpper(), 20, rc);
             r.characterSpacing = 4;
             UiKit.Place(r.rectTransform, new Vector2(0.5f, 0), new Vector2(0, 26), new Vector2(100, 28));
 

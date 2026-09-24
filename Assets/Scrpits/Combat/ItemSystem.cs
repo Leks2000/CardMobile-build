@@ -100,6 +100,7 @@ public static class ItemSystem
         result = Apply(item);
         Debug.Log($"[ITEM] Used {id}: {result}. Left {RunState.ItemCount(id)}");
         Used?.Invoke(item);
+        SoundFx.Play(SoundFx.Clip.Item);
         CheckBossDefeated();
         return true;
     }

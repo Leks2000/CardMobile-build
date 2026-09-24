@@ -96,6 +96,12 @@ public class CardView : MonoBehaviour
             float a = isEnemy ? 0f : d.rarity == CardRarity.Legendary ? 0.45f : d.rarity == CardRarity.Epic ? 0.3f : 0f;
             glow.color = VisualTheme.WithA(rarity, a);
         }
+        if (d.upgraded && !isEnemy)
+        {
+            // «Senior»-карта: золотая рамка и лёгкое золотое свечение
+            frame.color = CardUpgrade.Gold;
+            if (glow != null) glow.color = VisualTheme.WithA(CardUpgrade.Gold, 0.35f);
+        }
         if (title != null) title.text = d.Title;
         if (abilityTag != null)
         {

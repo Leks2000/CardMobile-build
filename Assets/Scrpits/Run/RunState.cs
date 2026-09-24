@@ -24,6 +24,18 @@ namespace Assets.Scrpits.Run
         public static readonly HashSet<int> CompletedNodes = new HashSet<int>();
         public static RunOutcome Outcome { get; private set; }
 
+        /// <summary>Текущий акт (1..MapGraph.Acts). Карта акта генерируется по MapSeed.</summary>
+        public static int Act { get; private set; } = 1;
+        public static int MapSeed { get; private set; }
+        /// <summary>Босс акта побеждён - карта при возврате переключится на следующий акт.</summary>
+        public static bool PendingActAdvance { get; private set; }
+        /// <summary>В начале забега нужно выбрать стартовую колоду (если открыто больше одной).</summary>
+        public static bool NeedsDeckChoice;
+        public static string StarterDeckId = MetaProgress.DefaultDeck;
+        // статистика забега (очки мета-прогрессии)
+        public static int NodesCleared, ElitesKilled, BossesKilled;
+        public static bool RenownAwarded;
+
         /// <summary>HP игрока между боями (-1 = не задано, берётся из PlayerData).</summary>
         public static int PlayerHP = -1;
         public static int PlayerHPMax = -1;
@@ -102,7 +114,12 @@ namespace Assets.Scrpits.Run
         {
             Reset();
             IsActive = true;
-            Deck.AddRange(CardDatabase.StarterDeck);
+            Act = 1;
+            MapSeed = Random.Range(1, int.MaxValue);
+            MapGraph.Generate(Act, MapSeed);
+            StarterDeckId = MetaProgress.DefaultDeck;
+            Deck.AddRange(MetaProgress.DeckCards(StarterDeckId));
+            NeedsDeckChoice = MetaProgress.UnlockedDecks().Count > 1;
             // HP известно с начала забега (для HUD, событий и отдыха)
             var pd = Resources.Load<PlayerData>("ScriptableObjects/Player");
             if (pd != null && pd.playerHPMAX > 0)
@@ -119,6 +136,11 @@ namespace Assets.Scrpits.Run
             CurrentNodeId = -1;
             CompletedNodes.Clear();
             Outcome = RunOutcome.None;
+            Act = 1;
+            PendingActAdvance = false;
+            NeedsDeckChoice = false;
+            NodesCleared = ElitesKilled = BossesKilled = 0;
+            RenownAwarded = false;
             PlayerHP = -1;
             PlayerHPMax = -1;
             Deck.Clear();
@@ -160,12 +182,48 @@ namespace Assets.Scrpits.Run
         public static void CompleteCurrentNode()
         {
             if (CurrentNodeId < 0) return;
-            CompletedNodes.Add(CurrentNodeId);
+            if (CompletedNodes.Add(CurrentNodeId)) NodesCleared++;
+            if (CurrentNodeType == MapNodeType.Elite) ElitesKilled++;
             if (CurrentNodeType == MapNodeType.Boss)
             {
-                Outcome = RunOutcome.Won;
+                BossesKilled++;
+                if (Act < MapGraph.Acts) PendingActAdvance = true;
+                else Outcome = RunOutcome.Won;
             }
             Debug.Log($"[RUN] Node {CurrentNodeId} completed. Outcome={Outcome}");
+        }
+
+        /// <summary>Следующий акт: новая карта (новая локация), фишка в начале, лечение 25%.</summary>
+        public static void AdvanceAct()
+        {
+            if (!PendingActAdvance) return;
+            PendingActAdvance = false;
+            Act++;
+            CompletedNodes.Clear();
+            CurrentNodeId = -1;
+            MapGraph.Generate(Act, MapSeed);
+            if (PlayerHPMax > 0) Heal(Mathf.CeilToInt(PlayerHPMax * 0.25f));
+            Debug.Log($"[RUN] Act {Act} begins");
+        }
+
+        /// <summary>Сменить стартовую колоду (только до первого узла).</summary>
+        public static void ChooseStarterDeck(string deckId)
+        {
+            NeedsDeckChoice = false;
+            if (CurrentNodeId >= 0) return;
+            StarterDeckId = deckId;
+            Deck.Clear();
+            Deck.AddRange(MetaProgress.DeckCards(deckId));
+            Debug.Log($"[RUN] Starter deck {deckId}: {Deck.Count} cards");
+        }
+
+        /// <summary>Очки мета-прогрессии за этот забег.</summary>
+        public static int RunScore => NodesCleared * 3 + ElitesKilled * 10 + BossesKilled * 30 + (Outcome == RunOutcome.Won ? 60 : 0);
+
+        /// <summary>Карта на месте (после перезагрузки домена статика MapGraph пустая).</summary>
+        public static void EnsureMap()
+        {
+            if (IsActive) MapGraph.Ensure(Act, MapSeed);
         }
 
         public static void FailRun()
@@ -207,7 +265,7 @@ namespace Assets.Scrpits.Run
         public static string Describe()
         {
             return $"active={IsActive} current={CurrentNodeId}({CurrentNodeType}) completed=[{string.Join(",", CompletedNodes)}] " +
-                   $"available=[{string.Join(",", GetAvailableNodes())}] outcome={Outcome} hp={PlayerHP}/{PlayerHPMax} deck={Deck.Count} relics=[{string.Join(",", Relics)}] items=[{string.Join(",", Items.Keys)}] coins={Wallet.Coins} " +
+                   $"available=[{string.Join(",", GetAvailableNodes())}] outcome={Outcome} act={Act} hp={PlayerHP}/{PlayerHPMax} deck={Deck.Count} relics=[{string.Join(",", Relics)}] items=[{string.Join(",", Items.Keys)}] coins={Wallet.Coins} " +
                    $"scene={SceneManager.GetActiveScene().name}";
         }
     }

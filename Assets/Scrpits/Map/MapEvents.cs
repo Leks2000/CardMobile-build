@@ -21,6 +21,9 @@ namespace Assets.Scrpits.Map
         public string detail;
         public Func<bool> enabled;
         public Func<NodeResult> apply;
+        /// <summary>Выбор требует карты из колоды: MapController открывает DeckPicker и передаёт индекс карты.</summary>
+        public Func<int, NodeResult> pick;
+        public Func<CardData, bool> pickFilter;
 
         public NodeChoice(string label, string detail, Func<NodeResult> apply, Func<bool> enabled = null)
         {
@@ -65,6 +68,17 @@ namespace Assets.Scrpits.Map
                 int healed = RunState.Heal(heal);
                 return new NodeResult("Rested", healed > 0 ? $"You feel better.\n{C(UiTheme.Heal, $"+{healed} HP")}" : "You were already at full health.");
             }, () => !HpFull));
+            s.choices.Add(new NodeChoice("Train", "Promote a card: " + C(CardUpgrade.Gold, "Senior +1 ATK +1 HP"), null, CardUpgrade.AnyUpgradable)
+            {
+                pickFilter = CardUpgrade.CanUpgrade,
+                pick = idx =>
+                {
+                    var card = CardUpgrade.UpgradeDeckCard(idx);
+                    return card != null
+                        ? new NodeResult("Promoted!", $"{C(CardUpgrade.Gold, card.Title)} is stronger now.", card)
+                        : new NodeResult("Campfire", "Nothing to train.");
+                }
+            });
             s.choices.Add(new NodeChoice("Search the camp", "Free card from a " + C(new Color32(0xFF, 0x9E, 0x5A, 0xFF), "Wooden Case"), () =>
             {
                 var card = CaseDefs.Get("wood").RollCard();

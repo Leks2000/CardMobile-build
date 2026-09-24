@@ -77,6 +77,7 @@ public class GameControlManager : MonoBehaviour
         CardAbilities.OnRoundStart();
         DrawCards(cardsPerRound);
         RefillMana();
+        BossMechanics.OnPlayerTurnStart(); // [Boss] кража маны
     }
 
     /// <summary>[Items] Добрать карты вне начала хода (свиток). Возвращает сколько карт реально пришло.</summary>
@@ -101,6 +102,7 @@ public class GameControlManager : MonoBehaviour
 
             var card = CardFactory.Spawn(data, playerDeck);
             handLayout.AddCardFromDeck((RectTransform)card.transform, CDPOS.position, drawn * duration);
+            SoundFx.PlayDelayed(SoundFx.Clip.Draw, drawn * duration);
         }
         cardDeck.SetCount(drawPile.Count);
     }

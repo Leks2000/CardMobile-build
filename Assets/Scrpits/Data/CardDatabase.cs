@@ -32,8 +32,9 @@ public static class CardDatabase
     /// <summary>Стартовая колода: каждая isStarter-карта в starterCopies экземплярах (одинаковые ссылки на ассет).</summary>
     public static IEnumerable<CardData> StarterDeck =>
         PlayerCards.Where(c => c.isStarter).SelectMany(c => Enumerable.Repeat(c, Mathf.Max(1, c.starterCopies))); // [D]
+    /// <summary>Карты магазина/кейсов этой редкости (закрытые мета-прогрессией не выпадают).</summary>
     public static IEnumerable<CardData> ShopPool(CardRarity rarity) =>
-        PlayerCards.Where(c => c.inShopPool && c.rarity == rarity);
+        PlayerCards.Where(c => c.inShopPool && c.rarity == rarity && MetaProgress.IsCardUnlocked(c.Id));
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetCache() => all = null;

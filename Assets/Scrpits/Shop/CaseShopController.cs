@@ -194,6 +194,7 @@ namespace Assets.Scrpits.Shop
                 if (idx != lastIdx)
                 {
                     lastIdx = idx;
+                    SoundFx.Play(SoundFx.Clip.Tick, 0.8f, 0.03f); // щелчок на каждой карте ленты
                     marker.DOKill(true);
                     marker.DOPunchScale(new Vector3(0.25f, 0.08f, 0), 0.12f, 1, 0).SetLink(marker.gameObject);
                 }
@@ -251,6 +252,8 @@ namespace Assets.Scrpits.Shop
             revealRarity.transform.DOScale(1f, 0.45f).SetEase(Ease.OutBack).SetDelay(0.25f).SetTarget(this);
 
             revealTitle.text = drop.Title;
+            if (rarity >= CardRarity.Epic) { SoundFx.Play(SoundFx.Clip.RevealEpic); SoundFx.Vibrate(); }
+            else SoundFx.Play(SoundFx.Clip.Reveal);
             if (drop.card != null)
             {
                 var card = drop.card;
@@ -356,6 +359,14 @@ namespace Assets.Scrpits.Shop
                 if (cg == null) cg = st.tile.gameObject.AddComponent<CanvasGroup>();
                 cg.alpha = closed ? 0.45f : 1f;
             }
+            if (promoteBtn != null)
+            {
+                int pp = RelicSystem.ShopPrice(CardUpgrade.ShopPrice);
+                bool canP = Wallet.Coins >= pp && CardUpgrade.AnyUpgradable();
+                ((Image)promoteBtn.targetGraphic).color = canP ? CardUpgrade.Gold : new Color(0.38f, 0.35f, 0.42f, 1f);
+                promotePrice.text = pp.ToString();
+                promotePrice.color = canP ? UiTheme.Background : UiTheme.Damage;
+            }
             RefreshDeck();
         }
 
@@ -440,6 +451,7 @@ namespace Assets.Scrpits.Shop
                 return false;
             }
             ItemDatabase.Grant(st.item);
+            SoundFx.Play(SoundFx.Clip.Coin);
             st.sold = true;
             boughtThisVisit.Add(st.item);
             Debug.Log($"[SHOP] Bought {st.item.id} for {price}. Items={RunState.TotalItems} Relics={RunState.Relics.Count}");
@@ -456,9 +468,43 @@ namespace Assets.Scrpits.Shop
             return true;
         }
 
+        private Button promoteBtn;
+        private TMP_Text promotePrice;
+
+        /// <summary>Прокачка карты за монеты: выбор карты -> оплата -> Senior-версия.</summary>
+        private void Promote()
+        {
+            if (IsBusy) return;
+            int price = RelicSystem.ShopPrice(CardUpgrade.ShopPrice);
+            if (Wallet.Coins < price || !CardUpgrade.AnyUpgradable())
+            {
+                var prt = (RectTransform)promoteBtn.transform;
+                prt.DOKill(true);
+                prt.DOShakeAnchorPos(0.4f, new Vector2(14, 0), 20, 0).SetLink(prt.gameObject);
+                return;
+            }
+            DeckPicker.Show(root, "Promote a card", $"Pay {price} coins: +1 ATK, +1 HP, golden frame", CardUpgrade.CanUpgrade, idx =>
+            {
+                if (!Wallet.TrySpend(price)) return;
+                var card = CardUpgrade.UpgradeDeckCard(idx);
+                if (card == null) { Wallet.Add(price); return; }
+                RunState.QueueMapToast($"{card.Title} promoted!", card);
+                RefreshAffordability();
+            }, null);
+        }
+
         private void BuildMerchant(RectTransform parent)
         {
             RollStock();
+            promoteBtn = UiKit.Button("Promote", parent, "PROMOTE A CARD", UiTheme.Accent, new Vector2(560, 84), Promote, 36);
+            UiKit.Place((RectTransform)promoteBtn.transform, new Vector2(0.5f, 0.5f), new Vector2(0, -335), new Vector2(560, 84));
+            var plabel = promoteBtn.transform.Find("Text").GetComponent<TMP_Text>();
+            UiKit.Stretch(plabel.rectTransform, 24, 130, 0, 12);
+            plabel.alignment = TextAlignmentOptions.Left;
+            var pcoin = UiKit.Img("Coin", promoteBtn.transform, new Color(1f, 0.9f, 0.4f), UiKit.Circle);
+            UiKit.Place(pcoin.rectTransform, new Vector2(1, 0.5f), new Vector2(-100, 4), new Vector2(34, 34));
+            promotePrice = UiKit.Text("Price", promoteBtn.transform, "", 36, UiTheme.Background, TextAlignmentOptions.Left);
+            UiKit.Place(promotePrice.rectTransform, new Vector2(1, 0.5f), new Vector2(-44, 4), new Vector2(80, 70));
             float scale = 1.05f;
             float w = CardTile.BaseSize.x * scale, gap = 42f;
             for (int i = 0; i < stock.Count; i++)
