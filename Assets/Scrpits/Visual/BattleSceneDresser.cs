@@ -23,7 +23,6 @@ public class BattleSceneDresser : MonoBehaviour
 
     private static readonly Color PlayerHpColor = new Color32(0x46, 0xC3, 0x5A, 0xFF);
     private static readonly Color BossHpColor = new Color32(0xE0, 0x3A, 0x45, 0xFF);
-    private static readonly Color Track = new Color(0.06f, 0.05f, 0.08f, 0.95f);
 
     public static void Install()
     {
@@ -74,19 +73,12 @@ public class BattleSceneDresser : MonoBehaviour
         if (boss == null || boss.GetComponent<BossView>() != null || boss.bossImage == null) return;
         var panel = (RectTransform)boss.transform;
 
-        // подложка всей колонки босса
-        var plate = VisualTheme.Stretch("V_BossPlate", panel, -8f);
-        var plateImg = VisualTheme.Img(plate, ProcSprites.RoundRect, VisualTheme.WithA(UiTheme.Panel, 0.82f), true);
-        VisualTheme.Ensure<Outline>(plate.gameObject).effectColor = new Color(0, 0, 0, 0.6f);
-        plate.SetAsFirstSibling();
-        plateImg.raycastTarget = false;
-
         // имя
         var nameBox = panel.Find("BossName") as RectTransform;
         TMP_Text nameText = null;
         if (nameBox != null)
         {
-            PanelImg(nameBox, UiTheme.PanelLight);
+            HideBg(nameBox);
             nameText = nameBox.GetComponentInChildren<TMP_Text>(true);
             if (nameText != null)
             {
@@ -120,7 +112,7 @@ public class BattleSceneDresser : MonoBehaviour
         if (hpBox != null)
         {
             var hpText = hpBox.Find("HP") != null ? hpBox.Find("HP").GetComponent<TMP_Text>() : null;
-            hpBar = BuildHpBar(hpBox, hpText, BossHpColor, "{0}/{1}", 40);
+            hpBar = BuildStatBar(hpBox, hpText, BossHpColor, "{0}/{1}", 42);
             var intent = hpBox.Find("D_BossIntent") as RectTransform;
             if (intent != null && intent.TryGetComponent<TMP_Text>(out var it))
             {
@@ -165,7 +157,7 @@ public class BattleSceneDresser : MonoBehaviour
         var hpBox = panel.Find("PlayerHP") as RectTransform;
         if (hpBox != null && player.playerHpText != null)
         {
-            hpBar = BuildHpBar(hpBox, player.playerHpText, PlayerHpColor, "HP {0}/{1}", 36);
+            hpBar = BuildStatBar(hpBox, player.playerHpText, PlayerHpColor, "{0}/{1}", 42);
             if (player.takeDamageText != null) player.takeDamageText.transform.SetAsLastSibling();
             typeof(Player).GetField("hpBar", Flags)?.SetValue(player, hpBar);
             player.UpdatePlayerDisplay();
@@ -181,36 +173,37 @@ public class BattleSceneDresser : MonoBehaviour
         var money = panel.Find("Money") as RectTransform;
         if (money != null)
         {
-            PanelImg(money, UiTheme.Panel);
-            coinIcon = VisualTheme.Centered("V_Coin", money, new Vector2(0, 0.5f), new Vector2(46, 46), new Vector2(34, 0));
-            VisualTheme.Img(coinIcon, ProcSprites.Circle, UiTheme.Accent);
-            VisualTheme.Ensure<Outline>(coinIcon.gameObject).effectColor = new Color(0.45f, 0.25f, 0.05f, 1f);
-            VisualTheme.Img(VisualTheme.Stretch("Ring", coinIcon, 8f), ProcSprites.Ring, new Color(0.85f, 0.55f, 0.1f, 1f));
+            HideBg(money);
+            coinIcon = VisualTheme.Node("V_Coin", money, new Vector2(0, 0.02f), new Vector2(0.3f, 0.98f), Vector2.zero, Vector2.zero);
+            var coinImg = VisualTheme.Img(coinIcon, null, Color.white);
+            coinImg.sprite = Resources.Load<Sprite>(BankIcon);
+            coinImg.preserveAspect = true;
             coinsText = money.GetComponentInChildren<TMP_Text>(true);
             if (coinsText != null)
             {
-                VisualTheme.Style(coinsText, 40, UiTheme.Accent, true, TextAlignmentOptions.Left);
+                VisualTheme.Style(coinsText, 48, UiTheme.Accent, true, TextAlignmentOptions.Left);
                 var trt = coinsText.rectTransform;
                 trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
-                trt.offsetMin = new Vector2(66, 0); trt.offsetMax = new Vector2(-8, 0);
+                trt.anchorMin = new Vector2(0.32f, 0); trt.offsetMin = Vector2.zero; trt.offsetMax = new Vector2(-4, 0);
             }
         }
 
         // End Turn
         var end = panel.Find("EndTurn") as RectTransform;
         Image endFace = null, endGlow = null;
+        RawImage endSign = null;
         TMP_Text endLabel = null;
         if (end != null)
         {
-            var glowRt = VisualTheme.Node("V_EndTurnGlow", panel, end.anchorMin, end.anchorMax, new Vector2(-26, -26), new Vector2(26, 26));
+            var glowRt = VisualTheme.Node("V_EndTurnGlow", panel, end.anchorMin, end.anchorMax, new Vector2(-20, -20), new Vector2(20, 20));
             glowRt.SetSiblingIndex(end.GetSiblingIndex());
             endGlow = VisualTheme.Img(glowRt, ProcSprites.Glow, Color.clear);
-            endFace = PanelImg(end, BattleHud.EndTurnOn);
-            VisualTheme.Img(VisualTheme.Node("V_Gloss", end, new Vector2(0, 0.5f), new Vector2(1, 1), new Vector2(8, 0), new Vector2(-8, -5)), ProcSprites.Gloss, Color.white, true);
+            HideBg(end);
+            endSign = Sign(end);
             endLabel = end.GetComponentInChildren<TMP_Text>(true);
             if (endLabel != null)
             {
-                VisualTheme.Style(endLabel, 38, new Color32(0x2A, 0x16, 0x08, 0xFF), false);
+                VisualTheme.Style(endLabel, 40, UiTheme.Text);
                 endLabel.transform.SetAsLastSibling();
             }
         }
@@ -222,6 +215,7 @@ public class BattleSceneDresser : MonoBehaviour
         var magic = uiRoot != null ? uiRoot.Find("UI/Magic") as RectTransform : null;
         if (magic != null)
         {
+            HideBg(magic);
             var drop = magic.Find("Magic");
             if (drop != null) manaGem = drop.GetComponent<Image>();
             var power = magic.Find("MagicPower");
@@ -254,6 +248,7 @@ public class BattleSceneDresser : MonoBehaviour
         hud.endTurnFace = endFace;
         hud.endTurnLabel = endLabel;
         hud.endTurnGlow = endGlow;
+        hud.endTurnSign = endSign;
         hud.deckCount = deckCount;
         hud.Bind();
         if (gcm == null) Debug.LogWarning("[V] No GameControlManager in battle scene");
@@ -263,9 +258,9 @@ public class BattleSceneDresser : MonoBehaviour
     {
         var c = FindCanvas("CanvasSetBTN");
         var pause = c != null ? c.transform.Find("Pause") as RectTransform : null;
-        if (pause == null || pause.Find("V_Gloss") != null) return;
-        PanelImg(pause, UiTheme.Panel);
-        VisualTheme.Img(VisualTheme.Node("V_Gloss", pause, new Vector2(0, 0.5f), new Vector2(1, 1), new Vector2(6, 0), new Vector2(-6, -4)), ProcSprites.Gloss, new Color(1, 1, 1, 0.5f), true);
+        if (pause == null || pause.Find("V_Sign") != null) return;
+        HideBg(pause);
+        Sign(pause);
         var t = pause.GetComponentInChildren<TMP_Text>(true);
         if (t != null)
         {
@@ -355,28 +350,57 @@ public class BattleSceneDresser : MonoBehaviour
         if (scene.IsValid() && go.scene != scene) SceneManager.MoveGameObjectToScene(go, scene);
     }
 
-    /// <summary>Перекрасить существующую плашку: скруглённый 9-slice + контур.</summary>
-    private static Image PanelImg(RectTransform rt, Color color)
+    private const string HeartIcon = "Images/CardUi/Hurt";
+    private const string BankIcon = "Images/CardUi/Bank";
+    private const string SignTexture = "Images/LocationImages/Doors/-a-crooked-wooden-signboard-with-iron-nails-in-dar";
+    /// <summary>Доска без цепей (UV-кроп картинки таблички).</summary>
+    private static readonly Rect SignPlankUv = new Rect(0.13f, 0.12f, 0.725f, 0.505f);
+
+    /// <summary>Спрятать фон плашки, не ломая клики (raycast остаётся на прозрачном Image).</summary>
+    private static void HideBg(RectTransform rt)
     {
         var img = rt.GetComponent<Image>();
-        if (img == null) img = rt.gameObject.AddComponent<Image>();
-        img.sprite = ProcSprites.Get(ProcSprites.RoundRect);
-        img.type = Image.Type.Sliced;
-        img.color = color;
-        var ol = VisualTheme.Ensure<Outline>(rt.gameObject);
-        ol.effectColor = VisualTheme.Outline;
-        ol.effectDistance = new Vector2(2f, -2f);
-        return img;
+        if (img != null) img.color = new Color(1, 1, 1, 0f);
+        var ol = rt.GetComponent<Outline>();
+        if (ol != null) ol.enabled = false;
     }
 
-    /// <summary>HP-бар на месте старой плашки «HP: N»: трек, скруглённая маска, хвост урона, заливка, блик, число.</summary>
-    private static HpBarView BuildHpBar(RectTransform box, TMP_Text label, Color fillColor, string format, float fontSize)
+    /// <summary>Деревянная табличка проекта (как у дверей локаций) под кнопкой.</summary>
+    private static RawImage Sign(RectTransform button)
     {
-        PanelImg(box, Track);
-        var clip = VisualTheme.Stretch("V_Clip", box, 6f);
-        var clipImg = VisualTheme.Img(clip, ProcSprites.RoundRect, Color.white, true);
-        var mask = VisualTheme.Ensure<Mask>(clip.gameObject);
-        mask.showMaskGraphic = false;
+        var rt = VisualTheme.Stretch("V_Sign", button, -4f);
+        rt.SetAsFirstSibling();
+        var raw = rt.GetComponent<RawImage>();
+        if (raw == null) raw = rt.gameObject.AddComponent<RawImage>();
+        raw.texture = Resources.Load<Texture2D>(SignTexture);
+        raw.uvRect = SignPlankUv;
+        raw.raycastTarget = false;
+        raw.color = Color.white;
+        var sh = VisualTheme.Ensure<Shadow>(rt.gameObject);
+        sh.effectColor = new Color(0, 0, 0, 0.55f);
+        sh.effectDistance = new Vector2(0, -5);
+        return raw;
+    }
+
+    /// <summary>
+    /// HP в стиле карт: сердце проекта слева, крупное число справа, под числом тонкая полоса HP
+    /// (трек, «хвост» урона, заливка). Фона у плашки нет.
+    /// </summary>
+    private static HpBarView BuildStatBar(RectTransform box, TMP_Text label, Color fillColor, string format, float fontSize)
+    {
+        HideBg(box);
+        var heartRt = VisualTheme.Node("V_Heart", box, new Vector2(0, 0.02f), new Vector2(0.28f, 0.98f), Vector2.zero, Vector2.zero);
+        var heart = VisualTheme.Img(heartRt, null, Color.white);
+        heart.sprite = Resources.Load<Sprite>(HeartIcon);
+        heart.preserveAspect = true;
+
+        var track = VisualTheme.Node("V_Track", box, new Vector2(0.3f, 0.1f), new Vector2(0.98f, 0.3f), Vector2.zero, Vector2.zero);
+        var trackImg = VisualTheme.Img(track, ProcSprites.RoundRectSmall, new Color(0.05f, 0.03f, 0.06f, 0.9f), true);
+        var trackOl = VisualTheme.Ensure<Outline>(track.gameObject);
+        trackOl.effectColor = new Color(0, 0, 0, 0.8f); trackOl.effectDistance = new Vector2(1.5f, -1.5f);
+        var clip = VisualTheme.Stretch("V_Clip", track, 2f);
+        var clipImg = VisualTheme.Img(clip, ProcSprites.RoundRectSmall, Color.white, true);
+        VisualTheme.Ensure<Mask>(clip.gameObject).showMaskGraphic = false;
         clipImg.raycastTarget = false;
 
         var trail = VisualTheme.Img(VisualTheme.Stretch("Trail", clip), null, new Color(1f, 0.92f, 0.75f, 0.9f));
@@ -387,9 +411,6 @@ public class BattleSceneDresser : MonoBehaviour
         fill.type = Image.Type.Filled;
         fill.fillMethod = Image.FillMethod.Horizontal;
         fill.fillOrigin = (int)Image.OriginHorizontal.Left;
-        var shade = VisualTheme.Img(VisualTheme.Node("Shade", clip, Vector2.zero, new Vector2(1, 0.45f), Vector2.zero, Vector2.zero), null, new Color(0, 0, 0, 0.18f));
-        shade.raycastTarget = false;
-        VisualTheme.Img(VisualTheme.Node("Gloss", clip, new Vector2(0, 0.55f), new Vector2(1, 1), new Vector2(4, 0), new Vector2(-4, -3)), ProcSprites.Gloss, new Color(1, 1, 1, 0.55f), true);
 
         var bar = VisualTheme.Ensure<HpBarView>(box.gameObject);
         bar.fill = fill;
@@ -398,11 +419,11 @@ public class BattleSceneDresser : MonoBehaviour
         bar.format = format;
         if (label != null)
         {
-            VisualTheme.Style(label, fontSize, Color.white);
+            VisualTheme.Style(label, fontSize, Color.white, true, TextAlignmentOptions.Left);
             label.enableAutoSizing = true; label.fontSizeMin = fontSize * 0.55f; label.fontSizeMax = fontSize;
             var lrt = label.rectTransform;
-            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = new Vector2(8, 0); lrt.offsetMax = new Vector2(-8, 0);
+            lrt.anchorMin = new Vector2(0.32f, 0.3f); lrt.anchorMax = new Vector2(1f, 1f);
+            lrt.offsetMin = Vector2.zero; lrt.offsetMax = Vector2.zero;
             label.transform.SetAsLastSibling();
             bar.label = label;
         }

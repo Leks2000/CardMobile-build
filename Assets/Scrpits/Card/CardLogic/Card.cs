@@ -98,6 +98,7 @@ public class Card : MonoBehaviour
         {
             if (CardData.HP <= 0)
             {
+                var slot = transform.parent;
                 var dropCard = GetComponentInParent<DropCard>();
                 if (dropCard != null)
                 {
@@ -105,6 +106,7 @@ public class Card : MonoBehaviour
                 }
                 CombatFx.PlayDeath(gameObject); // [FX] visual-only ghost; original is still destroyed right away
                 Destroy(gameObject);
+                CardAbilities.OnSlotFreed(slot); // [Board] карта сзади сразу выходит вперёд
             }
         });
         return damage;

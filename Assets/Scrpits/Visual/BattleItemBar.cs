@@ -173,8 +173,8 @@ public class BattleItemBar : MonoBehaviour
         ubRt.sizeDelta = new Vector2(170, 58);
         ubRt.anchoredPosition = new Vector2(20, 16);
         var face = VisualTheme.Img(ubRt, ProcSprites.RoundRect, UiTheme.Accent, true);
+        face.sprite = Assets.Scrpits.Map.UiKit.ButtonShape;
         face.raycastTarget = true;
-        VisualTheme.Ensure<Outline>(face.gameObject).effectColor = VisualTheme.Outline;
         useButton = VisualTheme.Ensure<Button>(ubRt.gameObject);
         useButton.onClick.AddListener(() => { if (selected != null) Use(selected); });
         useLabel = VisualTheme.Txt(VisualTheme.Stretch("Label", ubRt), "USE", 32, new Color32(0x2A, 0x16, 0x08, 0xFF), false);

@@ -133,6 +133,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             isPlaced = true;
             status.returnManaText(gameObject);
             RelicSystem.OnCardPlayed(cardData);
+            CardAbilities.OnPlayed(cardData);
 
             var targetRect = defaultParent.GetComponent<RectTransform>();
             rectTransform.DOKill();

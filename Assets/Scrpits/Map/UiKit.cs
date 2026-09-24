@@ -50,7 +50,7 @@ namespace Assets.Scrpits.Map
         /// <summary>Кнопка: скруглённая панель + текст. Возвращает Button; текст - child "Text".</summary>
         public static Button Button(string name, Transform parent, string label, Color color, Vector2 size, Action onClick, float fontSize = 44)
         {
-            var img = Img(name, parent, color, RoundedRect, true);
+            var img = Img(name, parent, color, ButtonShape, true);
             img.raycastTarget = true;
             img.rectTransform.sizeDelta = size;
             var sh = img.gameObject.AddComponent<Shadow>();
@@ -64,7 +64,7 @@ namespace Assets.Scrpits.Map
             btn.colors = cb;
             if (onClick != null) btn.onClick.AddListener(() => onClick());
             var t = Text("Text", img.rectTransform, label, fontSize, UiTheme.Background);
-            Stretch(t.rectTransform, 10, 10, 4, 4);
+            Stretch(t.rectTransform, 10, 10, 4, 12); // над нижней кромкой кнопки
             return btn;
         }
 
@@ -111,6 +111,28 @@ namespace Assets.Scrpits.Map
         }));
         /// <summary>Скруглённый прямоугольник под 9-slice (border 24).</summary>
         public static Sprite RoundedRect => Get("rrect", () => Make(64, 64, p => SdRoundBox(p - new Vector2(32, 32), new Vector2(31, 31), 22), null, 24));
+        /// <summary>
+        /// Игровая кнопка под 9-slice (border 24): тёмный контур, светлая верхняя грань, основной цвет,
+        /// тёмная «губа» снизу (объём). Белая - тинтуется Image.color.
+        /// </summary>
+        public static Sprite ButtonShape => Get("button", () => MakeColored(64, 64, p =>
+        {
+            float d = SdRoundBox(p - new Vector2(32, 32), new Vector2(31, 31), 16);
+            float a = Mathf.Clamp01(0.5f - d);
+            if (a <= 0f) return new Color(0, 0, 0, 0);
+            Color outline = new Color(0.09f, 0.06f, 0.1f, a);
+            if (d > -3.5f) return outline;
+            float shade;
+            if (p.y < 13f) shade = 0.58f;                 // нижняя кромка
+            else if (p.y < 15f) shade = 0.45f;            // линия перелома
+            else if (p.y > 52f && d < -5f) shade = 1f;    // блик сверху
+            else shade = 0.86f;                           // лицевая часть
+            float edge = Mathf.Clamp01(-d - 3.5f);        // мягкий переход к контуру
+            var c = Color.Lerp(new Color(0.09f, 0.06f, 0.1f), new Color(shade, shade, shade), edge);
+            c.a = a;
+            return c;
+        }, 24));
+
         /// <summary>Рамка скруглённого прямоугольника под 9-slice.</summary>
         public static Sprite RoundedFrame => Get("rframe", () => Make(64, 64, p => Mathf.Abs(SdRoundBox(p - new Vector2(32, 32), new Vector2(28, 28), 20)) - 3f, null, 24));
         /// <summary>Вертикальный градиент (белый сверху -> прозрачный снизу), тинтуется.</summary>
@@ -259,7 +281,7 @@ namespace Assets.Scrpits.Map
             return ToSprite(tex, 0);
         }
 
-        private static Sprite MakeColored(int w, int h, Func<Vector2, Color> color)
+        private static Sprite MakeColored(int w, int h, Func<Vector2, Color> color, float border = 0)
         {
             var tex = NewTex(w, h);
             var px = new Color32[w * h];
@@ -267,7 +289,7 @@ namespace Assets.Scrpits.Map
                 for (int x = 0; x < w; x++)
                     px[y * w + x] = color(new Vector2(x + 0.5f, y + 0.5f));
             tex.SetPixels32(px);
-            return ToSprite(tex, 0);
+            return ToSprite(tex, border);
         }
 
         /// <summary>Фигура с контуром, вертикальным градиентом (light сверху, dark снизу) и бликом слева.</summary>

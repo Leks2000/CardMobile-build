@@ -7,8 +7,9 @@ using UnityEngine.UI;
 /// [V] Presentation of a card (player or enemy), in the style of the project's first card design:
 /// the art fills the whole card inside a thin frame, and each number sits next to the project's
 /// hand-drawn icon (Images/CardUi: mana drop, sword, heart) so it is obvious what it means:
-///   top    - name strip, mana cost [drop 2] on the right (player cards only);
-///   bottom - [sword 2] attack on the left, [2 heart] HP on the right.
+///   top    - mana drop with the cost on it (player cards only), name next to it;
+///   bottom - sword + attack on the left, heart with HP on it on the right.
+/// No backgrounds behind stats: icon + big outlined number only.
 /// The frame colour shows rarity (enemies: red). Everything stays inside the card rect.
 /// Gameplay stays on <see cref="Card"/> / CardDrag / attack components; this only draws.
 /// Usage: <c>GetComponent&lt;CardView&gt;().Bind(data)</c> after spawning, <c>Refresh()</c> after stats change.
@@ -34,6 +35,7 @@ public class CardView : MonoBehaviour
     [SerializeField] private Image atkBadge;
     [SerializeField] private Image hpBadge;
     [SerializeField] private Sprite fallbackArt;
+    [SerializeField] private TMP_Text abilityTag;
 
     private CardData bound;
 
@@ -50,7 +52,6 @@ public class CardView : MonoBehaviour
     private static readonly Color PlayerInner = new Color32(0x2A, 0x24, 0x30, 0xFF);
     private static readonly Color EnemyInner = new Color32(0x30, 0x18, 0x1C, 0xFF);
     private static readonly Color CommonFrame = new Color32(0x1C, 0x16, 0x22, 0xFF);
-    private static readonly Color PillColor = new Color(0.05f, 0.04f, 0.07f, 0.8f);
 
     private static readonly Dictionary<string, Sprite> icons = new Dictionary<string, Sprite>();
 
@@ -96,6 +97,11 @@ public class CardView : MonoBehaviour
             glow.color = VisualTheme.WithA(rarity, a);
         }
         if (title != null) title.text = d.Title;
+        if (abilityTag != null)
+        {
+            abilityTag.text = CardAbilities.Label(d.ability);
+            abilityTag.color = CardAbilities.LabelColor(d.ability);
+        }
 
         if (art != null)
         {
@@ -179,28 +185,32 @@ public class CardView : MonoBehaviour
         var oldVig = artWindow.Find("V_ArtVignette");
         if (oldVig != null) oldVig.gameObject.SetActive(false);
 
-        // Name strip at the top (dark band over the art), leaves room for the mana pill on the right.
-        var plate = VisualTheme.Node("V_NamePlate", root, new Vector2(0, 0.86f), new Vector2(1, 1), new Vector2(4, 0), new Vector2(-4, -4));
-        namePlate = VisualTheme.Img(plate, ProcSprites.RoundRectSmall, PillColor, true);
+        // Top: mana drop (number on the drop) in the left corner, name to the right of it. No backgrounds -
+        // only icons and outlined numbers/text.
+        var plate = VisualTheme.Node("V_NamePlate", root, new Vector2(0, 0.86f), new Vector2(1, 1), new Vector2(isEnemy ? 5 : 33, 0), new Vector2(-4, -4));
+        namePlate = VisualTheme.Img(plate, ProcSprites.RoundRectSmall, Color.clear, true);
         var plateOl = plate.GetComponent<Outline>();
         if (plateOl != null) plateOl.enabled = false;
-        var titleRt = VisualTheme.Node("V_Title", plate, Vector2.zero, Vector2.one, new Vector2(5, 1), new Vector2(isEnemy ? -5 : -34, -1));
-        title = VisualTheme.Txt(titleRt, name, 12, UiTheme.Text);
+        var titleRt = VisualTheme.Node("V_Title", plate, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        title = VisualTheme.Txt(titleRt, name, 13, UiTheme.Text);
         title.alignment = TextAlignmentOptions.Left;
-        title.enableAutoSizing = true; title.fontSizeMin = 7; title.fontSizeMax = 12;
+        title.enableAutoSizing = true; title.fontSizeMin = 7; title.fontSizeMax = 13;
         title.overflowMode = TextOverflowModes.Ellipsis;
 
-        // Status icons under the name strip.
-        statusRow = VisualTheme.Node("V_StatusRow", root, new Vector2(0, 0.86f), new Vector2(1, 0.86f), new Vector2(6, -20), new Vector2(-6, -2));
+        // Ability tag (RANGED / INSPIRE / FLANK / GUARD / HEAL) under the name - coloured outlined text only.
+        var abilityRt = VisualTheme.Node("V_Ability", root, new Vector2(0, 0.8f), new Vector2(1, 0.86f), new Vector2(isEnemy ? 5 : 33, 0), new Vector2(-4, 0));
+        abilityTag = VisualTheme.Txt(abilityRt, "", 10, Color.white);
+        abilityTag.alignment = TextAlignmentOptions.Left;
+        abilityTag.characterSpacing = 2;
+
+        // Status icons under the name.
+        statusRow = VisualTheme.Node("V_StatusRow", root, new Vector2(0, 0.8f), new Vector2(1, 0.8f), new Vector2(6, -20), new Vector2(-6, -2));
         StatusRowView.Setup(statusRow, 17, 11);
 
-        // Stat pills: icon + number. Existing text objects are reused (Card.cs keeps writing into them).
-        costGem = StatPill("Magic", "MagicCost", card != null ? card.cardCost : null,
-            new Vector2(0.64f, 0.86f), new Vector2(1f, 1f), new Vector2(0, 0), new Vector2(-4, -4), ManaIcon, ManaTint, true);
-        atkBadge = StatPill("DmgCard", "SwordImage", card != null ? card.cardDmg : null,
-            new Vector2(0f, 0f), new Vector2(0.46f, 0.17f), new Vector2(4, 4), Vector2.zero, AttackIcon, Color.white, true);
-        hpBadge = StatPill("HP", "HPImage", card != null ? card.cardHp : null,
-            new Vector2(0.54f, 0f), new Vector2(1f, 0.17f), Vector2.zero, new Vector2(-4, 4), HpIcon, Color.white, false);
+        // Stats: icon + big outlined number, nothing behind. Existing text objects are reused (Card.cs writes into them).
+        costGem = StatIcon("Magic", "MagicCost", card != null ? card.cardCost : null, new Vector2(0.17f, 0.895f), new Vector2(30, 30), Vector2.zero, ManaIcon, ManaTint, 20);
+        atkBadge = StatIcon("DmgCard", "SwordImage", card != null ? card.cardDmg : null, new Vector2(0.14f, 0.13f), new Vector2(20, 34), new Vector2(14, -3), AttackIcon, Color.white, 22);
+        hpBadge = StatIcon("HP", "HPImage", card != null ? card.cardHp : null, new Vector2(0.82f, 0.125f), new Vector2(32, 32), Vector2.zero, HpIcon, Color.white, 20);
 
         // Old baked parts from previous layouts.
         foreach (var old in new[] { "V_BottomBar", "V_RarityDot" })
@@ -233,11 +243,12 @@ public class CardView : MonoBehaviour
     }
 
     /// <summary>
-    /// Dark pill (anchored rect) with the stat icon on one side and the number on the other.
-    /// The holder / icon / text objects already exist on the card prefabs and are only re-arranged.
+    /// Stat = project icon + big outlined number (no background). The holder / icon / text objects already
+    /// exist on the card prefabs and are only re-arranged. <paramref name="numberOffset"/> = number position
+    /// relative to the icon centre (zero = on top of the icon).
     /// </summary>
-    private Image StatPill(string holderName, string imageName, TMP_Text text, Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax,
-        string iconPath, Color iconColor, bool iconLeft)
+    private Image StatIcon(string holderName, string imageName, TMP_Text text, Vector2 anchor, Vector2 iconSize, Vector2 numberOffset,
+        string iconPath, Color iconColor, float fontSize)
     {
         var holder = FindDeep(transform, holderName) as RectTransform;
         var imgTr = FindDeep(transform, imageName) as RectTransform;
@@ -247,19 +258,18 @@ public class CardView : MonoBehaviour
         {
             holder.SetParent(transform, false);
         }
-        holder.anchorMin = aMin; holder.anchorMax = aMax;
+        holder.anchorMin = holder.anchorMax = anchor;
         holder.pivot = new Vector2(0.5f, 0.5f);
-        holder.offsetMin = oMin; holder.offsetMax = oMax;
+        holder.anchoredPosition = Vector2.zero;
+        holder.sizeDelta = iconSize;
         holder.localScale = Vector3.one;
-        var pill = VisualTheme.Img(holder, ProcSprites.RoundRectSmall, PillColor, true);
-        pill.raycastTarget = false;
+        var oldPill = holder.GetComponent<Image>();
+        if (oldPill != null) oldPill.enabled = false; // подложка из прошлой версии
 
-        // icon: half of the pill, keeps its drawn proportions
         imgTr.SetParent(holder, false);
-        imgTr.anchorMin = new Vector2(iconLeft ? 0f : 0.5f, 0f);
-        imgTr.anchorMax = new Vector2(iconLeft ? 0.5f : 1f, 1f);
+        imgTr.anchorMin = Vector2.zero; imgTr.anchorMax = Vector2.one;
         imgTr.pivot = new Vector2(0.5f, 0.5f);
-        imgTr.offsetMin = new Vector2(1, 1); imgTr.offsetMax = new Vector2(-1, -1);
+        imgTr.offsetMin = imgTr.offsetMax = Vector2.zero;
         imgTr.localScale = Vector3.one;
         imgTr.localRotation = Quaternion.identity;
         var img = imgTr.GetComponent<Image>();
@@ -271,18 +281,16 @@ public class CardView : MonoBehaviour
         img.raycastTarget = false;
         foreach (var s in img.GetComponents<Shadow>()) s.enabled = false;
 
-        // number: the other half
         if (text != null)
         {
             var trt = (RectTransform)text.transform;
             trt.SetParent(holder, false);
-            trt.anchorMin = new Vector2(iconLeft ? 0.45f : 0f, 0f);
-            trt.anchorMax = new Vector2(iconLeft ? 1f : 0.55f, 1f);
+            trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 0.5f);
             trt.pivot = new Vector2(0.5f, 0.5f);
-            trt.offsetMin = trt.offsetMax = Vector2.zero;
+            trt.sizeDelta = new Vector2(30, 26);
+            trt.anchoredPosition = numberOffset;
             trt.localScale = Vector3.one;
-            VisualTheme.Style(text, 16, Color.white);
-            text.enableAutoSizing = true; text.fontSizeMin = 9; text.fontSizeMax = 16;
+            VisualTheme.Style(text, fontSize, Color.white);
             text.transform.SetAsLastSibling();
         }
         return img;

@@ -24,6 +24,8 @@ public class BattleHud : MonoBehaviour
     public Image endTurnFace;
     public TMP_Text endTurnLabel;
     public Image endTurnGlow;
+    /// <summary>Деревянная табличка End Turn (если задана - вместо цветной плашки endTurnFace).</summary>
+    public Graphic endTurnSign;
 
     [Header("Deck")]
     public TMP_Text deckCount;
@@ -124,7 +126,7 @@ public class BattleHud : MonoBehaviour
 
     private void UpdateEndTurn()
     {
-        if (endTurn == null || endTurnFace == null) return;
+        if (endTurn == null || (endTurnFace == null && endTurnSign == null)) return;
         bool busy = clickedField != null && (bool)clickedField.GetValue(endTurn);
         if (boss == null) boss = FindAnyObjectByType<Boss>();
         bool over = (boss != null && boss.IsDefeated()) || (Player.Instance != null && Player.Instance.IsDefeated());
@@ -132,17 +134,21 @@ public class BattleHud : MonoBehaviour
         if (shownEnabled != enabled)
         {
             shownEnabled = enabled;
-            endTurnFace.color = enabled ? EndTurnOn : EndTurnOff;
+            if (endTurnFace != null) endTurnFace.color = enabled ? EndTurnOn : EndTurnOff;
+            if (endTurnSign != null) endTurnSign.color = enabled ? Color.white : new Color(0.45f, 0.42f, 0.48f, 1f);
             if (endTurnLabel != null)
             {
                 endTurnLabel.text = enabled ? "END TURN" : "ENEMY TURN";
-                endTurnLabel.color = enabled ? new Color32(0x2A, 0x16, 0x08, 0xFF) : UiTheme.TextDim;
+                endTurnLabel.color = endTurnSign != null
+                    ? (enabled ? UiTheme.Text : UiTheme.TextDim)
+                    : (enabled ? (Color)new Color32(0x2A, 0x16, 0x08, 0xFF) : UiTheme.TextDim);
             }
-            if (Application.isPlaying && enabled) CombatFx.Punch(endTurnFace.transform.parent, 0.12f, 0.35f);
+            var t = endTurnSign != null ? endTurnSign.transform : endTurnFace.transform.parent;
+            if (Application.isPlaying && enabled) CombatFx.Punch(t, 0.08f, 0.3f);
         }
         if (endTurnGlow != null)
         {
-            float a = enabled ? 0.35f + 0.25f * Mathf.Sin(Time.unscaledTime * 3f) : 0f;
+            float a = enabled ? 0.25f + 0.2f * Mathf.Sin(Time.unscaledTime * 3f) : 0f;
             endTurnGlow.color = new Color(EndTurnOn.r, EndTurnOn.g, EndTurnOn.b, a);
         }
     }

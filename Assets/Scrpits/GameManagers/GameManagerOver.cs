@@ -98,9 +98,24 @@ public class GameManagerOver : MonoBehaviour
 
     private IEnumerator HandleTapToContinue()
     {
-        Sequence exitSeq = DOTween.Sequence();
-        exitSeq.Append(resPanel.transform.DOScale(0f, 0.5f).SetEase(Ease.InBack));
-        yield return exitSeq.WaitForCompletion();
+        // Экран результата плавно гаснет вместе с затемнением экрана (без «сжимающейся» чёрной панели)
+        var group = resPanel.GetComponent<CanvasGroup>();
+        if (group == null) group = resPanel.AddComponent<CanvasGroup>();
+        group.interactable = false;
+        group.DOFade(0f, 0.35f).SetUpdate(true);
+
+        // Без забега (EnemyScene запущена напрямую) и победа - старое поведение (двери следующей локации)
+        if (!RunState.IsActive && isWin)
+        {
+            yield return new WaitForSeconds(0.35f);
+            resPanel.SetActive(false);
+            yield return StartCoroutine(endturncam.nextLocation());
+            yield break;
+        }
+
+        bool done = false;
+        SceneFade.Out(0.4f, () => done = true);
+        while (!done) yield return null;
 
         // Забег: результат боя -> обратно на карту (победа над боссом / поражение показываются там)
         if (RunState.IsActive)
@@ -119,15 +134,7 @@ public class GameManagerOver : MonoBehaviour
             yield break;
         }
 
-        // Без забега (EnemyScene запущена напрямую) - старое поведение
-        if (isWin)
-        {
-            yield return StartCoroutine(endturncam.nextLocation());
-        }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("EnemyScene");
-        }
+        UnityEngine.SceneManagement.SceneManager.LoadScene("EnemyScene");
     }
 
 

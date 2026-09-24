@@ -74,6 +74,7 @@ public class GameControlManager : MonoBehaviour
     public void TurnRound()
     {
         RelicSystem.OnRoundStart();
+        CardAbilities.OnRoundStart();
         DrawCards(cardsPerRound);
         RefillMana();
     }

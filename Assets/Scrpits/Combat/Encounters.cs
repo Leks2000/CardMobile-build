@@ -21,9 +21,9 @@ public static class Encounters
 
     private static readonly Dictionary<MapNodeType, Def> Defs = new Dictionary<MapNodeType, Def>
     {
-        [MapNodeType.Battle] = new Def { bossAsset = "BossGuard", enemies = new[] { "RatCard", "RatCard", "MoldSlime", "StaplerBat" }, enemyCount = 6, openingWave = 1 },
-        [MapNodeType.Elite] = new Def { bossAsset = "EliteEnemy", enemies = new[] { "RatCard", "MoldSlime", "StaplerBat", "FilingGolem" }, enemyCount = 8, openingWave = 2 },
-        [MapNodeType.Boss] = new Def { bossAsset = "Boss", enemies = new[] { "MoldSlime", "StaplerBat", "FilingGolem", "FilingGolem", "RatCard" }, enemyCount = 10, openingWave = 2 },
+        [MapNodeType.Battle] = new Def { bossAsset = "BossGuard", enemies = new[] { "RatCard", "RatCard", "MoldSlime", "StaplerBat", "PaperArcher" }, enemyCount = 6, openingWave = 1 },
+        [MapNodeType.Elite] = new Def { bossAsset = "EliteEnemy", enemies = new[] { "RatCard", "MoldSlime", "StaplerBat", "FilingGolem", "PaperArcher" }, enemyCount = 8, openingWave = 2 },
+        [MapNodeType.Boss] = new Def { bossAsset = "Boss", enemies = new[] { "MoldSlime", "StaplerBat", "FilingGolem", "FilingGolem", "RatCard", "PaperArcher", "PaperArcher" }, enemyCount = 10, openingWave = 2 },
     };
 
     public static MapNodeType Type { get; private set; } = MapNodeType.Battle;

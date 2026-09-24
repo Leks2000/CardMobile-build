@@ -30,6 +30,12 @@ public class CardData : ScriptableObject
     /// <summary>Можно выбить из кейса / купить.</summary>
     public bool inShopPool = true;
 
+    [Header("Ability (CardAbilities)")]
+    /// <summary>Особое свойство карты: дальний бой, баффы соседей, щит каждый раунд, лечение.</summary>
+    public CardAbility ability = CardAbility.None;
+    /// <summary>Сила свойства (+ATK / +Shield / +HP).</summary>
+    public int abilityValue;
+
     [Header("Statuses")]
     public System.Collections.Generic.List<StatusSpec> statuses = new System.Collections.Generic.List<StatusSpec>();
 

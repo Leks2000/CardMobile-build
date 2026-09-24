@@ -34,6 +34,18 @@ public abstract class CardForwardAttack : MonoBehaviour
     {
         attackInProgress = true;
         var raycastDistance = 34;
+        // [Board] дальний бой: стреляет из любого ряда через своих
+        if (card != null && card.CardData != null && card.CardData.ability == CardAbility.Ranged)
+        {
+            if (CardAbilities.FindRangedTarget(transform, IsEnemy, IsBoss, out var target))
+            {
+                var enemy = IsEnemy(target) ? target.GetComponentInParent<Card>() : null;
+                if (enemy != null) yield return AttackAnimation(enemy, null, false);
+                else if (IsBoss(target)) yield return OnBossHit(null, boss, false);
+            }
+            CompleteAttack();
+            yield break;
+        }
         if (Physics.Raycast(transform.position, transform.up, out var hit, raycastDistance))
         {
             if (IsEnemy(hit.collider))

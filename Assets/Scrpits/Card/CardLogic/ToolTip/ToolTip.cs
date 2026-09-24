@@ -42,7 +42,7 @@ public class Tooltip : MonoBehaviour
 
         currentTween?.Kill();
 
-        tooltipTextAbility.text = cardData.cardInfo;
+        tooltipTextAbility.text = string.IsNullOrEmpty(cardData.cardInfo) ? CardAbilities.Describe(cardData) : cardData.cardInfo;
         tooltipTextInfo.text = cardData.name;
         tooltipTextStatus.text = $"Dmg {cardData.Damage} / Hp {cardData.Cost}";
 

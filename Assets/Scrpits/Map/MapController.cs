@@ -217,9 +217,10 @@ namespace Assets.Scrpits.Map
                 glow.color = new Color(c.r, c.g, c.b, avail ? 0.75f : (bossy && !done ? 0.35f : 0f));
                 if (avail && !busy)
                 {
-                    rt.DOScale(1.1f, 0.6f).SetEase(Ease.InOutSine).SetLoops(-1, LoopType.Yoyo).SetLink(rt.gameObject);
-                    glow.DOFade(0.3f, 0.6f).SetEase(Ease.InOutSine).SetLoops(-1, LoopType.Yoyo).SetLink(glow.gameObject);
+                    glow.DOFade(0.35f, 0.8f).SetEase(Ease.InOutSine).SetLoops(-1, LoopType.Yoyo).SetLink(glow.gameObject);
                 }
+                var hover = rt.GetComponent<MapNodeHover>();
+                if (hover != null) hover.SetState(avail && !busy, TypeColor(node.type));
             }
 
             foreach (var e in edges)
@@ -607,6 +608,17 @@ namespace Assets.Scrpits.Map
             }
         }
 
+        /// <summary>Подсказка при наведении на узел.</summary>
+        private static string NodeHint(MapNodeType t) => t switch
+        {
+            MapNodeType.Battle => "Regular enemies\nReward: coins, maybe an item",
+            MapNodeType.Elite => "Strong enemy\nReward: more coins, relic, item",
+            MapNodeType.Event => "Something unexpected\nChoices with risks and rewards",
+            MapNodeType.Shop => "Card cases, item cases\nand the merchant",
+            MapNodeType.Rest => "Heal or search the camp",
+            _ => "The final fight",
+        };
+
         private static float SizeMul(MapNodeType t) => t == MapNodeType.Boss ? 1.5f : t == MapNodeType.Elite ? 1.2f : 1f;
 
         private void Build()
@@ -641,7 +653,11 @@ namespace Assets.Scrpits.Map
 
             foreach (var node in MapGraph.Nodes) BuildNode(node);
             foreach (var (from, to) in MapGraph.Edges())
-                edges.Add(new Edge { from = from, to = to, root = UiKit.Rect($"Path_{from}_{to}", linesRoot) });
+            {
+                var er = UiKit.Rect($"Path_{from}_{to}", linesRoot);
+                UiKit.Stretch(er); // точки считаются от левого нижнего угла области карты (как и узлы)
+                edges.Add(new Edge { from = from, to = to, root = er });
+            }
             token = MapPlayerToken.Create(tokenRoot, fxRoot);
 
             BuildEndPanel();
@@ -785,6 +801,7 @@ namespace Assets.Scrpits.Map
             status.rectTransform.anchoredPosition = new Vector2(0, -48);
             status.rectTransform.sizeDelta = new Vector2(0, 32);
 
+            rt.gameObject.AddComponent<MapNodeHover>().Init(TypeName(node.type), NodeHint(node.type));
             var btn = rt.gameObject.AddComponent<Button>();
             btn.targetGraphic = disc;
             btn.transition = Selectable.Transition.None;
@@ -831,6 +848,7 @@ namespace Assets.Scrpits.Map
             float spacing = 24f, dotSize = Mathf.Clamp(nodeS * 0.1f, 8, 14);
             foreach (var e in edges)
             {
+                UiKit.Stretch(e.root);
                 foreach (var d in e.dots) if (d != null) Destroy(d.gameObject);
                 e.dots.Clear();
                 var na = MapGraph.Nodes[e.from];

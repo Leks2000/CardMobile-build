@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
+  m_Name: CompliancePaladin
+  m_EditorClassIdentifier: Assembly-CSharp::CardData
+  HP: 5
+  Damage: 1
+  Cost: 2
+  cardInfo: 'Guard 2: gains 2 Shield every turn. Starts with 4 Shield.'
+  id: CompliancePaladin
+  displayName: Compliance Paladin
+  art: {fileID: 21300000, guid: ace34d00d6b31de4fa9af022df9efc80, type: 3}
+  rarity: 1
+  isEnemy: 0
+  isStarter: 0
+  starterCopies: 1
+  inShopPool: 1
+  ability: 4
+  abilityValue: 2
+  statuses:
+  - type: 2
+    value: 4
+    self: 1
