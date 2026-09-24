@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace Assets.Scrpits.Map
 {
     /// <summary>
-    /// Окно выбора карты из колоды забега (прокачка «Senior» в отдыхе и магазине).
+    /// Окно выбора карты из колоды забега (прокачка «Veteran» в отдыхе и магазине).
     /// Сетка плиток CardTile с прокруткой; неподходящие карты затемнены. Возвращает индекс карты в RunState.Deck.
     /// </summary>
     public static class DeckPicker

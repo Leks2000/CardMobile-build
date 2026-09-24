@@ -2,7 +2,7 @@ using Assets.Scrpits.Run;
 using UnityEngine;
 
 /// <summary>
-/// Прокачка карты колоды забега в «Senior»-версию: +1 ATK, +1 HP, золотая рамка, имя «Senior ...».
+/// Прокачка карты колоды забега в «Veteran»-версию: +1 ATK, +1 HP, золотая рамка, имя «Veteran ...».
 /// Где: узел «Отдых» (бесплатно, вместо лечения) и магазин (за монеты).
 /// </summary>
 public static class CardUpgrade
@@ -23,16 +23,24 @@ public static class CardUpgrade
     {
         if (index < 0 || index >= RunState.Deck.Count || !CanUpgrade(RunState.Deck[index])) return null;
         var src = RunState.Deck[index];
+        var c = MakeVeteran(src);
+        RunState.Deck[index] = c;
+        RunState.Save();
+        Debug.Log($"[UPGRADE] {src.Title} -> {c.Title} ({c.Damage}/{c.HP})");
+        return c;
+    }
+
+    /// <summary>Veteran-копия карты (+1 ATK, +1 HP, золотая рамка). Также при загрузке сохранённого забега.</summary>
+    public static CardData MakeVeteran(CardData src)
+    {
         var c = Object.Instantiate(src);
         c.name = src.name;
         c.id = src.Id;
         c.upgraded = true;
         c.HP += 1;
         c.Damage += 1;
-        c.displayName = "Senior " + src.Title;
+        c.displayName = "Veteran " + src.Title;
         c.hideFlags = HideFlags.DontUnloadUnusedAsset; // живёт между сценами, пока идёт забег
-        RunState.Deck[index] = c;
-        Debug.Log($"[UPGRADE] {src.Title} -> {c.Title} ({c.Damage}/{c.HP})");
         return c;
     }
 }

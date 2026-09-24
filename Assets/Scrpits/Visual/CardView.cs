@@ -134,7 +134,7 @@ public class CardView : MonoBehaviour
         }
         if (d.upgraded && !isEnemy)
         {
-            // «Senior»-карта: золотая рамка и лёгкое золотое свечение
+            // «Veteran»-карта: золотая рамка и лёгкое золотое свечение
             frame.color = CardUpgrade.Gold;
             if (glow != null) glow.color = VisualTheme.WithA(CardUpgrade.Gold, 0.35f);
         }

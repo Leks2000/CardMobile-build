@@ -65,8 +65,13 @@ namespace Assets.Scrpits.Run
 
         public static void AddCard(CardData card)
         {
-            if (card != null) Deck.Add(card);
+            if (card == null) return;
+            Deck.Add(card);
+            Save();
         }
+
+        /// <summary>Сохранить забег (RunSave). Безопасно вызывать часто.</summary>
+        public static void Save() => RunSave.Save();
 
         /// <summary>Сообщить подписчикам об изменении инвентаря; ошибка одного подписчика не ломает забег.</summary>
         private static void NotifyItems()
@@ -77,6 +82,7 @@ namespace Assets.Scrpits.Run
                 try { h(); }
                 catch (System.Exception e) { Debug.LogWarning("[RUN] ItemsChanged handler failed: " + e.Message); }
             }
+            if (IsActive) Save();
         }
 
         public static int ItemCount(string id) => id != null && Items.TryGetValue(id, out var n) ? n : 0;
@@ -139,6 +145,7 @@ namespace Assets.Scrpits.Run
                 PlayerHP = pd.playerHPMAX; // забег начинается с полным HP
             }
             Debug.Log($"[RUN] New run started, deck={Deck.Count}");
+            Save();
         }
 
         public static void Reset()
@@ -187,6 +194,7 @@ namespace Assets.Scrpits.Run
         public static void EnterNode(int id)
         {
             CurrentNodeId = id;
+            Save(); // продолжение вернёт прямо в этот бой / магазин
             Debug.Log($"[RUN] Enter node {id} ({CurrentNodeType})");
         }
 
@@ -202,6 +210,7 @@ namespace Assets.Scrpits.Run
                 else Outcome = RunOutcome.Won;
             }
             Debug.Log($"[RUN] Node {CurrentNodeId} completed. Outcome={Outcome}");
+            Save();
         }
 
         /// <summary>Следующий акт: новая карта (новая локация), фишка в начале, лечение 25%.</summary>
@@ -215,6 +224,7 @@ namespace Assets.Scrpits.Run
             MapGraph.Generate(Act, MapSeed);
             if (PlayerHPMax > 0) Heal(Mathf.CeilToInt(PlayerHPMax * 0.25f));
             Debug.Log($"[RUN] Act {Act} begins");
+            Save();
         }
 
         /// <summary>Сменить стартовую колоду (только до первого узла).</summary>
@@ -226,6 +236,7 @@ namespace Assets.Scrpits.Run
             Deck.Clear();
             Deck.AddRange(MetaProgress.DeckCards(deckId));
             Debug.Log($"[RUN] Starter deck {deckId}: {Deck.Count} cards");
+            Save();
         }
 
         /// <summary>Начислить очки славы за забег (один раз).</summary>
@@ -250,6 +261,7 @@ namespace Assets.Scrpits.Run
             Outcome = RunOutcome.Failed;
             AwardRenown();
             Debug.Log("[RUN] Run failed");
+            RunSave.Clear();
         }
 
         /// <summary>Хилит игрока (для Rest). Возвращает фактическое кол-во HP.</summary>
@@ -258,6 +270,7 @@ namespace Assets.Scrpits.Run
             if (PlayerHP < 0 || PlayerHPMax < 0) return 0;
             int before = PlayerHP;
             PlayerHP = Mathf.Min(PlayerHPMax, PlayerHP + amount);
+            Save();
             return PlayerHP - before;
         }
 
@@ -275,14 +288,97 @@ namespace Assets.Scrpits.Run
             if (PlayerHP < 0 || amount <= 0) return 0;
             int before = PlayerHP;
             PlayerHP = Mathf.Max(1, PlayerHP - amount);
+            Save();
             return before - PlayerHP;
         }
 
+        /// <summary>В меню без потери забега: START продолжит его (сохранение остаётся).</summary>
         public static void ReturnToMainMenu()
         {
-            Reset();
+            Save();
             Time.timeScale = 1f;
             LoadFaded(MainMenuSceneName);
+        }
+
+        /// <summary>
+        /// Куда вести при продолжении: бой/магазин, в который вошли и не завершили, иначе карта.
+        /// </summary>
+        public static string ResumeSceneName
+        {
+            get
+            {
+                if (!IsActive || Outcome != RunOutcome.None || CurrentNodeId < 0 || IsCompleted(CurrentNodeId)) return MapSceneName;
+                EnsureMap();
+                if (IsCurrentNodeBattle) return BattleSceneName;
+                if (CurrentNodeType == MapNodeType.Shop) return ShopSceneName;
+                return MapSceneName;
+            }
+        }
+
+        // ---------- save / load (RunSave) ----------
+
+        public static RunSaveData Export()
+        {
+            var d = new RunSaveData
+            {
+                currentNodeId = CurrentNodeId,
+                act = Act,
+                mapSeed = MapSeed,
+                pendingActAdvance = PendingActAdvance,
+                needsDeckChoice = NeedsDeckChoice,
+                starterDeckId = StarterDeckId,
+                nodesCleared = NodesCleared,
+                elitesKilled = ElitesKilled,
+                bossesKilled = BossesKilled,
+                playerHp = PlayerHP,
+                playerHpMax = PlayerHPMax,
+                coinsEarned = CoinsEarned,
+            };
+            d.completed.AddRange(CompletedNodes);
+            foreach (var c in Deck)
+            {
+                if (c == null) continue;
+                d.deck.Add(c.Id);
+                d.deckVeteran.Add(c.upgraded);
+            }
+            d.relics.AddRange(Relics);
+            foreach (var kv in Items)
+            {
+                d.itemIds.Add(kv.Key);
+                d.itemCounts.Add(kv.Value);
+            }
+            return d;
+        }
+
+        public static void Import(RunSaveData d)
+        {
+            Reset();
+            IsActive = true;
+            Act = Mathf.Max(1, d.act);
+            MapSeed = d.mapSeed;
+            MapGraph.Generate(Act, MapSeed);
+            CurrentNodeId = d.currentNodeId;
+            foreach (var id in d.completed) CompletedNodes.Add(id);
+            PendingActAdvance = d.pendingActAdvance;
+            NeedsDeckChoice = d.needsDeckChoice;
+            StarterDeckId = string.IsNullOrEmpty(d.starterDeckId) ? MetaProgress.DefaultDeck : d.starterDeckId;
+            NodesCleared = d.nodesCleared;
+            ElitesKilled = d.elitesKilled;
+            BossesKilled = d.bossesKilled;
+            PlayerHP = d.playerHp;
+            PlayerHPMax = d.playerHpMax;
+            CoinsEarned = d.coinsEarned;
+            for (int i = 0; i < d.deck.Count; i++)
+            {
+                var card = CardDatabase.Get(d.deck[i]);
+                if (card == null) continue; // карту удалили из игры - пропускаем
+                bool vet = i < d.deckVeteran.Count && d.deckVeteran[i];
+                Deck.Add(vet ? CardUpgrade.MakeVeteran(card) : card);
+            }
+            Relics.AddRange(d.relics);
+            for (int i = 0; i < d.itemIds.Count && i < d.itemCounts.Count; i++)
+                if (d.itemCounts[i] > 0) Items[d.itemIds[i]] = d.itemCounts[i];
+            NotifyItems();
         }
 
         public static string Describe()

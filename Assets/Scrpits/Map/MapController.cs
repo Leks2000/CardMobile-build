@@ -110,6 +110,13 @@ namespace Assets.Scrpits.Map
 
         private void Start()
         {
+            // вошли в бой и вышли из него (меню / перезапуск игры) - бой узла начинается заново
+            if (RunState.Outcome == RunOutcome.None && RunState.IsCurrentNodeBattle && !RunState.IsCompleted(RunState.CurrentNodeId))
+            {
+                RunState.LoadBattle();
+                return;
+            }
+            RunState.Save();
             // прибытие на карту
             fade.color = new Color(0, 0, 0, 1f);
             fade.raycastTarget = false;
@@ -346,7 +353,7 @@ namespace Assets.Scrpits.Map
             {
                 // выбор карты из колоды: попап прячем, после выбора - результат, после отмены - снова варианты
                 if (popup != null) { Destroy(popup); popup = null; }
-                DeckPicker.Show(root, "Choose a card", "It becomes Senior: +1 ATK, +1 HP, golden frame", choice.pickFilter, idx =>
+                DeckPicker.Show(root, "Choose a card", "It becomes Veteran: +1 ATK, +1 HP, golden frame", choice.pickFilter, idx =>
                 {
                     NodeResult r;
                     try { r = choice.pick(idx); }

@@ -109,8 +109,35 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     private void FollowPointer(PointerEventData eventData)
     {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform.parent as RectTransform, eventData.position, canvas.worldCamera, out var localPoint);
+        // пальцем: карта чуть выше точки касания, чтобы палец не закрывал её (цель броска - под пальцем)
+        var pos = eventData.position;
+        if (eventData.pointerId >= 0) pos.y += Screen.height * 0.06f;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform.parent as RectTransform, pos, canvas.worldCamera, out var localPoint);
         rectTransform.anchoredPosition = localPoint;
+    }
+
+    private int releasedFrames;
+
+    /// <summary>
+    /// Страховка: касание пропало без OnEndDrag (свернули приложение, системный жест) - карта не должна
+    /// «залипнуть» в перетаскивании (иначе блокируются предметы и подсветка зон не гаснет).
+    /// </summary>
+    private void Update()
+    {
+        if (!isDragging) { releasedFrames = 0; return; }
+        bool pressed = Input.touchCount > 0 || Input.GetMouseButton(0);
+        releasedFrames = pressed ? 0 : releasedFrames + 1;
+        if (releasedFrames >= 3) OnEndDrag(null);
+    }
+
+    private void OnApplicationPause(bool paused)
+    {
+        if (paused && isDragging) OnEndDrag(null);
+    }
+
+    private void OnDisable()
+    {
+        if (isDragging) { isDragging = false; IsDraggingAnyCard = false; GlobalDragTracker.EndDrag(); PulseEffectManager.HideAllPlacementPulses(); }
     }
 
     public void OnEndDrag(PointerEventData eventData)

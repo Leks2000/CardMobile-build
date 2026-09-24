@@ -68,7 +68,7 @@ namespace Assets.Scrpits.Map
                 int healed = RunState.Heal(heal);
                 return new NodeResult("Rested", healed > 0 ? $"You feel better.\n{C(UiTheme.Heal, $"+{healed} HP")}" : "You were already at full health.");
             }, () => !HpFull));
-            s.choices.Add(new NodeChoice("Train", "Promote a card: " + C(CardUpgrade.Gold, "Senior +1 ATK +1 HP"), null, CardUpgrade.AnyUpgradable)
+            s.choices.Add(new NodeChoice("Train", "Promote a card: " + C(CardUpgrade.Gold, "Veteran +1 ATK +1 HP"), null, CardUpgrade.AnyUpgradable)
             {
                 pickFilter = CardUpgrade.CanUpgrade,
                 pick = idx =>

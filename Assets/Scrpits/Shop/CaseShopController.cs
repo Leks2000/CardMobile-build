@@ -525,7 +525,7 @@ namespace Assets.Scrpits.Shop
         private Button promoteBtn;
         private TMP_Text promotePrice;
 
-        /// <summary>Прокачка карты за монеты: выбор карты -> оплата -> Senior-версия.</summary>
+        /// <summary>Прокачка карты за монеты: выбор карты -> оплата -> Veteran-версия.</summary>
         private void Promote()
         {
             if (IsBusy) return;

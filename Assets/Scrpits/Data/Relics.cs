@@ -53,6 +53,7 @@ public static class RelicDatabase
     {
         if (Get(id) == null || RunState.Relics.Contains(id)) return false;
         RunState.Relics.Add(id);
+        RunState.Save();
         RelicSystem.OnGranted(id);
         UnityEngine.Debug.Log($"[RELIC] Granted {id}");
         return true;

@@ -16,12 +16,18 @@ namespace Assets.Scrpits.Location
         {
             Time.timeScale = 1.0f;
             // START: продолжить идущий забег, иначе начать новый
-            if (sceneName == Assets.Scrpits.Run.RunState.MapSceneName && !Assets.Scrpits.Run.RunState.IsActive)
+            var target = sceneName;
+            if (sceneName == Assets.Scrpits.Run.RunState.MapSceneName)
             {
-                try { Assets.Scrpits.Run.RunState.StartNewRun(); }
+                try
+                {
+                    // сохранённый забег -> продолжить (прямо в бой/магазин, если вышли из него), иначе новый
+                    if (!Assets.Scrpits.Run.RunState.IsActive) Assets.Scrpits.Run.RunSave.TryLoad();
+                    if (!Assets.Scrpits.Run.RunState.IsActive) Assets.Scrpits.Run.RunState.StartNewRun();
+                    target = Assets.Scrpits.Run.RunState.ResumeSceneName;
+                }
                 catch (System.Exception e) { Debug.LogException(e); }
             }
-            var target = sceneName;
             SceneFade.Out(0.35f, () => SceneManager.LoadScene(target));
         }
 
