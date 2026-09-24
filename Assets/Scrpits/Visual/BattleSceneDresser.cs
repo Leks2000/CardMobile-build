@@ -143,6 +143,29 @@ public class BattleSceneDresser : MonoBehaviour
         view.breathe = 0f;
         typeof(Boss).GetField("view", Flags)?.SetValue(boss, view);
         boss.SendMessage("OnBossDataChanged", SendMessageOptions.DontRequireReceiver);
+        img.preserveAspect = true;
+        SyncBoardBoss(img.sprite);
+    }
+
+    /// <summary>
+    /// Фигура босса на дальнем краю стола (Fon/BossPanel) - тот же арт, что и портрет слева сверху, без растяжения.
+    /// </summary>
+    private static void SyncBoardBoss(Sprite sprite)
+    {
+        if (sprite == null) return;
+        foreach (var t in FindObjectsByType<RectTransform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (t.name != "BossPanel" || t.parent == null || t.parent.name != "Fon") continue;
+            foreach (Transform c in t)
+            {
+                var im = c.GetComponent<Image>();
+                if (im == null || im.sprite == null) continue;
+                var rt = (RectTransform)c;
+                if (rt.sizeDelta.x > 1000f) continue; // большой фон локации не трогаем
+                im.sprite = sprite;
+                im.preserveAspect = true;
+            }
+        }
     }
 
     // ---------------- player / HUD ----------------
@@ -177,7 +200,7 @@ public class BattleSceneDresser : MonoBehaviour
             HideBg(money);
             coinIcon = VisualTheme.Node("V_Coin", money, new Vector2(0, 0.02f), new Vector2(0.3f, 0.98f), Vector2.zero, Vector2.zero);
             var coinImg = VisualTheme.Img(coinIcon, null, Color.white);
-            coinImg.sprite = Resources.Load<Sprite>(BankIcon);
+            coinImg.sprite = ArtLib.UI("coin");
             coinImg.preserveAspect = true;
             coinsText = money.GetComponentInChildren<TMP_Text>(true);
             if (coinsText != null)
@@ -221,11 +244,7 @@ public class BattleSceneDresser : MonoBehaviour
             if (drop != null) manaGem = drop.GetComponent<Image>();
             var power = magic.Find("MagicPower");
             if (power != null && power.TryGetComponent<TMP_Text>(out var pt)) VisualTheme.Style(pt, 54, Color.white);
-            pipRow = VisualTheme.Node("V_ManaPips", magic, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 2), new Vector2(0, 32));
-            var hl = VisualTheme.Ensure<HorizontalLayoutGroup>(pipRow.gameObject);
-            hl.childAlignment = TextAnchor.MiddleCenter; hl.spacing = 6;
-            hl.childControlWidth = hl.childControlHeight = false;
-            hl.childForceExpandWidth = hl.childForceExpandHeight = false;
+            // без точек маны: число «3/3» на капле и так показывает ману
         }
 
         // колода
@@ -352,7 +371,6 @@ public class BattleSceneDresser : MonoBehaviour
     }
 
     private const string HeartIcon = "Images/CardUi/Hurt";
-    private const string BankIcon = "Images/CardUi/Bank";
     private const string SignTexture = "Images/LocationImages/Doors/-a-crooked-wooden-signboard-with-iron-nails-in-dar";
     /// <summary>Доска без цепей (UV-кроп картинки таблички).</summary>
     private static readonly Rect SignPlankUv = new Rect(0.13f, 0.12f, 0.725f, 0.505f);

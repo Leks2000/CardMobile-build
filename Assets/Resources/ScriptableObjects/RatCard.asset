@@ -15,13 +15,16 @@ MonoBehaviour:
   HP: 2
   Damage: 1
   Cost: 1
-  cardInfo: Cheese...
+  cardInfo: 'Pokes whatever stands in front.'
   id: RatCard
-  displayName: Rat
+  displayName: Pikeman
   art: {fileID: 0}
   rarity: 0
   isEnemy: 1
   isStarter: 0
   starterCopies: 1
   inShopPool: 0
+  ability: 0
+  abilityValue: 0
+  artResource: Art/Cards/Pikeman
   statuses: []

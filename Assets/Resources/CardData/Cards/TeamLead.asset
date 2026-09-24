@@ -23,7 +23,7 @@ MonoBehaviour:
   isEnemy: 0
   isStarter: 0
   starterCopies: 1
-  inShopPool: 1
+  inShopPool: 0
   statuses:
   - type: 2
     value: 4

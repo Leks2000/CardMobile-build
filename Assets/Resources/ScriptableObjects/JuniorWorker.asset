@@ -12,16 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
   m_Name: JuniorWorker
   m_EditorClassIdentifier: 
-  HP: 2
-  Damage: 1
+  HP: 3
+  Damage: 2
   Cost: 1
-  cardInfo: Work? Again?...
+  cardInfo: 'Basic swordsman. Cheap and reliable.'
   id: JuniorWorker
-  displayName: Junior Worker
+  displayName: Footman
   art: {fileID: 0}
   rarity: 0
   isEnemy: 0
   isStarter: 1
   starterCopies: 2
   inShopPool: 1
+  ability: 0
+  abilityValue: 0
+  artResource: Art/Cards/Footman
   statuses: []

@@ -87,6 +87,18 @@ namespace Assets.Scrpits.Map
 
         public static string Hex(Color c) => ColorUtility.ToHtmlStringRGB(c);
 
+        /// <summary>Есть нарисованная монета проекта (Resources/Art/UI/coin).</summary>
+        public static bool HasCoinArt => ArtLib.UI("coin") != null;
+
+        /// <summary>Иконка монеты: арт проекта, иначе процедурный золотой круг.</summary>
+        public static Image Coin(string name, Transform parent)
+        {
+            var art = ArtLib.UI("coin");
+            var img = Img(name, parent, art != null ? Color.white : new Color(1f, 0.9f, 0.4f), art != null ? art : Circle);
+            img.preserveAspect = true;
+            return img;
+        }
+
         // ---------------- procedural sprites ----------------
 
         private static readonly Dictionary<string, Sprite> cache = new Dictionary<string, Sprite>();

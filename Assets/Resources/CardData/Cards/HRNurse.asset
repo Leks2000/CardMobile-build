@@ -17,8 +17,8 @@ MonoBehaviour:
   Cost: 2
   cardInfo: 'Heal: adjacent allies get +3 HP when played.'
   id: HRNurse
-  displayName: HR Nurse
-  art: {fileID: 21300000, guid: e86ab04479c488a478934c0cde6748d7, type: 3}
+  displayName: Priest
+  art: {fileID: 0}
   rarity: 1
   isEnemy: 0
   isStarter: 0
@@ -26,4 +26,5 @@ MonoBehaviour:
   inShopPool: 1
   ability: 5
   abilityValue: 3
+  artResource: Art/Cards/Priest
   statuses: []

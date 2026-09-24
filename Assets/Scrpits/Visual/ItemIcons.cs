@@ -42,7 +42,39 @@ public static class ItemIcons
         return s;
     }
 
-    public static Sprite Get(ItemDef item) => item == null ? null : Get(item.icon, item.color);
+    /// <summary>Нарисованные иконки из набора проекта (Resources/Art/UI) для предметов; остальные - процедурные.</summary>
+    private static readonly Dictionary<string, string> Art = new Dictionary<string, string>
+    {
+        ["heal_potion"] = "status_heal",
+        ["iron_skin"] = "status_shield",
+        ["insight_scroll"] = "loc_map",
+        ["holy_water"] = "relic_heal",
+        ["powder_bomb"] = "status_stun",
+        ["venom_flask"] = "status_poison",
+        ["battle_cry"] = "status_atk",
+        ["phoenix_elixir"] = "status_fire",
+        ["hard_hat"] = "relic_shield",
+        ["whetstone"] = "relic_atk",
+        ["first_aid"] = "relic_heal",
+        ["piggy_bank"] = "relic_moneybag",
+        ["venom_vial"] = "relic_poison",
+        ["deck_pouch"] = "relic_banner",
+        ["lucky_clover"] = "relic_skullcoin",
+        ["heart_amulet"] = "relic_amulet",
+        ["vampire_fang"] = "relic_fang",
+        ["golden_ring"] = "relic_ring",
+    };
+
+    public static Sprite Get(ItemDef item)
+    {
+        if (item == null) return null;
+        if (Art.TryGetValue(item.id, out var art))
+        {
+            var s = ArtLib.UI(art);
+            if (s != null) return s;
+        }
+        return Get(item.icon, item.color);
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetCache() => cache.Clear();

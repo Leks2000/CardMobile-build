@@ -81,6 +81,7 @@ public static class ItemSystem
             case ItemEffect.Draw:
                 var gcm = Object.FindAnyObjectByType<GameControlManager>();
                 if (gcm != null && gcm.GetCardInHand <= 0) { reason = "Your hand is full"; return false; }
+                if (gcm != null && gcm.DrawPileCount <= 0) { reason = "Your deck is empty"; return false; }
                 break;
         }
         return true;

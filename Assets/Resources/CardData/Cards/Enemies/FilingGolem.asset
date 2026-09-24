@@ -12,22 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
   m_Name: FilingGolem
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  HP: 5
-  Damage: 1
+  HP: 4
+  Damage: 3
   Cost: 1
-  cardInfo: 2 Shield, Thorns 1.
+  cardInfo: 'Hits very hard, but slowly bleeds out of patience.'
   id: FilingGolem
-  displayName: Filing Golem
+  displayName: Berserker
   art: {fileID: 0}
   rarity: 2
   isEnemy: 1
   isStarter: 0
   starterCopies: 1
   inShopPool: 0
-  statuses:
-  - type: 2
-    value: 2
-    self: 1
-  - type: 4
-    value: 1
-    self: 1
+  ability: 0
+  abilityValue: 0
+  artResource: Art/Cards/Berserker
+  statuses: []

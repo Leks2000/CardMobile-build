@@ -15,15 +15,18 @@ MonoBehaviour:
   HP: 2
   Damage: 2
   Cost: 1
-  cardInfo: Hits apply 2 Bleed.
+  cardInfo: 'Hits apply 2 Bleed.'
   id: StaplerBat
-  displayName: Stapler Bat
+  displayName: Blood Acolyte
   art: {fileID: 0}
   rarity: 1
   isEnemy: 1
   isStarter: 0
   starterCopies: 1
   inShopPool: 0
+  ability: 0
+  abilityValue: 0
+  artResource: Art/Cards/BloodAcolyte
   statuses:
   - type: 0
     value: 2

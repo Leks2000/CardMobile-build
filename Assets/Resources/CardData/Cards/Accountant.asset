@@ -14,16 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   HP: 2
   Damage: 1
-  Cost: 1
-  cardInfo: Hits apply 2 Poison.
+  Cost: 2
+  cardInfo: 'Ranged. Hits apply 2 Poison.'
   id: Accountant
-  displayName: Accountant
+  displayName: Necromancer
   art: {fileID: 0}
-  rarity: 0
+  rarity: 1
   isEnemy: 0
   isStarter: 1
   starterCopies: 1
   inShopPool: 1
+  ability: 1
+  abilityValue: 0
+  artResource: Art/Cards/Necromancer
   statuses:
   - type: 1
     value: 2

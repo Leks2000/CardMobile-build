@@ -156,8 +156,10 @@ public class ResultOverlayView : MonoBehaviour
         {
             ((RectTransform)l.transform).offsetMax = new Vector2(-150, 0);
             var coin = VisualTheme.Centered("Coin", row, new Vector2(1f, 0.5f), new Vector2(size * 0.8f, size * 0.8f), new Vector2(-size * 0.45f, 0));
-            VisualTheme.Img(coin, ProcSprites.Circle, UiTheme.Accent);
-            VisualTheme.Ensure<Outline>(coin.gameObject).effectColor = new Color(0.45f, 0.25f, 0.05f, 1f);
+            var coinArt = ArtLib.UI("coin");
+            var coinImg = VisualTheme.Img(coin, ProcSprites.Circle, UiTheme.Accent);
+            if (coinArt != null) { coinImg.sprite = coinArt; coinImg.color = Color.white; coinImg.preserveAspect = true; }
+            else VisualTheme.Ensure<Outline>(coin.gameObject).effectColor = new Color(0.45f, 0.25f, 0.05f, 1f);
             var v = VisualTheme.Txt(VisualTheme.Node("Value", row, new Vector2(1, 0), new Vector2(1, 1), new Vector2(-150 - size, 0), new Vector2(-size, 0)), value, size, color);
             v.alignment = TextAlignmentOptions.Right;
         }

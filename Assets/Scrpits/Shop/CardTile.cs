@@ -43,9 +43,9 @@ namespace Assets.Scrpits.Shop
             UiKit.Stretch(artBg.rectTransform, 16, 16, 16, 108);
             var mask = artBg.gameObject.AddComponent<RectMask2D>();
             mask.padding = new Vector4(3, 3, 3, 3);
-            if (card != null && card.art != null)
+            if (card != null && card.ArtSprite != null)
             {
-                var art = UiKit.Img("Art", artBg.rectTransform, Color.white, card.art);
+                var art = UiKit.Img("Art", artBg.rectTransform, Color.white, card.ArtSprite);
                 art.preserveAspect = true;
                 UiKit.Stretch(art.rectTransform, 3, 3, 3, 3);
             }

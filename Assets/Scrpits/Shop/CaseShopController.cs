@@ -501,7 +501,7 @@ namespace Assets.Scrpits.Shop
             var plabel = promoteBtn.transform.Find("Text").GetComponent<TMP_Text>();
             UiKit.Stretch(plabel.rectTransform, 24, 130, 0, 12);
             plabel.alignment = TextAlignmentOptions.Left;
-            var pcoin = UiKit.Img("Coin", promoteBtn.transform, new Color(1f, 0.9f, 0.4f), UiKit.Circle);
+            var pcoin = UiKit.Coin("Coin", promoteBtn.transform);
             UiKit.Place(pcoin.rectTransform, new Vector2(1, 0.5f), new Vector2(-100, 4), new Vector2(34, 34));
             promotePrice = UiKit.Text("Price", promoteBtn.transform, "", 36, UiTheme.Background, TextAlignmentOptions.Left);
             UiKit.Place(promotePrice.rectTransform, new Vector2(1, 0.5f), new Vector2(-44, 4), new Vector2(80, 70));
@@ -523,10 +523,9 @@ namespace Assets.Scrpits.Shop
                 var label = btn.transform.Find("Text").GetComponent<TMP_Text>();
                 UiKit.Stretch(label.rectTransform, 16, 100, 0, 0);
                 label.alignment = TextAlignmentOptions.Left;
-                var coin = UiKit.Img("Coin", btn.transform, new Color(1f, 0.9f, 0.4f), UiKit.Circle);
+                var coin = UiKit.Coin("Coin", btn.transform);
                 UiKit.Place(coin.rectTransform, new Vector2(1, 0.5f), new Vector2(-88, 0), new Vector2(32, 32));
-                var ring = UiKit.Img("Ring", coin.rectTransform, new Color(0.75f, 0.45f, 0.05f), UiKit.Ring);
-                UiKit.Stretch(ring.rectTransform, 4, 4, 4, 4);
+                if (!UiKit.HasCoinArt) { var ring = UiKit.Img("Ring", coin.rectTransform, new Color(0.75f, 0.45f, 0.05f), UiKit.Ring); UiKit.Stretch(ring.rectTransform, 4, 4, 4, 4); }
                 var price = UiKit.Text("Price", btn.transform, "", 36, UiTheme.Background, TextAlignmentOptions.Left);
                 UiKit.Place(price.rectTransform, new Vector2(1, 0.5f), new Vector2(-38, 0), new Vector2(76, 70));
                 var warn = UiKit.Text("Warn", parent, "", 26, UiTheme.Damage);
@@ -567,10 +566,9 @@ namespace Assets.Scrpits.Shop
             // coins (top-right)
             var coinBox = UiKit.Img("Coins", root, UiTheme.Panel, UiKit.RoundedRect, true);
             UiKit.Place(coinBox.rectTransform, new Vector2(1, 1), new Vector2(-190, -70), new Vector2(280, 90));
-            var coin = UiKit.Img("CoinIcon", coinBox.rectTransform, UiTheme.Accent, UiKit.Circle);
+            var coin = UiKit.Coin("CoinIcon", coinBox.rectTransform);
             UiKit.Place(coin.rectTransform, new Vector2(0, 0.5f), new Vector2(50, 0), new Vector2(56, 56));
-            var coinIn = UiKit.Img("In", coin.rectTransform, new Color(0.85f, 0.55f, 0.1f, 1f), UiKit.Ring);
-            UiKit.Stretch(coinIn.rectTransform, 8, 8, 8, 8);
+            if (!UiKit.HasCoinArt) { var coinIn = UiKit.Img("In", coin.rectTransform, new Color(0.85f, 0.55f, 0.1f, 1f), UiKit.Ring); UiKit.Stretch(coinIn.rectTransform, 8, 8, 8, 8); }
             coinsIcon = coin.rectTransform;
             coinsText = UiKit.Text("Value", coinBox.rectTransform, "0", 54, UiTheme.Text, TextAlignmentOptions.Left);
             UiKit.Stretch(coinsText.rectTransform, 92, 10, 0, 0);
@@ -646,10 +644,9 @@ namespace Assets.Scrpits.Shop
             var label = btn.transform.Find("Text").GetComponent<TMP_Text>();
             UiKit.Stretch(label.rectTransform, 24, 170, 0, 0);
             label.alignment = TextAlignmentOptions.Left;
-            var coin = UiKit.Img("Coin", btn.transform, new Color(1f, 0.9f, 0.4f), UiKit.Circle);
+            var coin = UiKit.Coin("Coin", btn.transform);
             UiKit.Place(coin.rectTransform, new Vector2(1, 0.5f), new Vector2(-135, 0), new Vector2(40, 40));
-            var coinRing = UiKit.Img("Ring", coin.rectTransform, new Color(0.75f, 0.45f, 0.05f), UiKit.Ring);
-            UiKit.Stretch(coinRing.rectTransform, 5, 5, 5, 5);
+            if (!UiKit.HasCoinArt) { var coinRing = UiKit.Img("Ring", coin.rectTransform, new Color(0.75f, 0.45f, 0.05f), UiKit.Ring); UiKit.Stretch(coinRing.rectTransform, 5, 5, 5, 5); }
             var price = UiKit.Text("Price", btn.transform, def.price.ToString(), 48, UiTheme.Background, TextAlignmentOptions.Left);
             UiKit.Place(price.rectTransform, new Vector2(1, 0.5f), new Vector2(-55, 0), new Vector2(110, 90));
 

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Рука и колода боя. [D] Колода = RunState.Deck (вне забега - CardDatabase.StarterDeck),
-/// перемешанная стопка добора; когда стопка пуста - колода перемешивается заново (тупика нет).
+/// перемешанная стопка добора. Колода конечна: пустая стопка = карты больше не приходят (счётчик на столе).
 /// </summary>
 public class GameControlManager : MonoBehaviour
 {
@@ -92,10 +92,11 @@ public class GameControlManager : MonoBehaviour
     {
         for (var drawn = 0; drawn < count && GetCardInHand > 0; drawn++)
         {
+            // колода конечна: закончилась - новых карт в этом бою нет
             if (drawPile.Count == 0)
             {
-                Reshuffle();
-                if (drawPile.Count == 0) break;
+                CombatFx.TurnBanner("DECK IS EMPTY", UiTheme.TextDim, 0.4f);
+                break;
             }
             var data = drawPile[drawPile.Count - 1];
             drawPile.RemoveAt(drawPile.Count - 1);

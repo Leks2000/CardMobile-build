@@ -242,9 +242,12 @@ namespace Assets.Scrpits.Run
         }
 
         // ---------- scene flow ----------
-        public static void LoadMap() => SceneManager.LoadScene(MapSceneName);
-        public static void LoadBattle() => SceneManager.LoadScene(BattleSceneName);
-        public static void LoadShop() => SceneManager.LoadScene(ShopSceneName);
+        // все переходы - через затемнение (SceneFade), без резких склеек
+        public static void LoadMap() => LoadFaded(MapSceneName);
+        public static void LoadBattle() => LoadFaded(BattleSceneName);
+        public static void LoadShop() => LoadFaded(ShopSceneName);
+
+        public static void LoadFaded(string scene) => SceneFade.Out(0.35f, () => SceneManager.LoadScene(scene));
 
         /// <summary>Потерять HP вне боя (события). Не опускает ниже 1. Возвращает фактическое кол-во.</summary>
         public static int Damage(int amount)
@@ -259,7 +262,7 @@ namespace Assets.Scrpits.Run
         {
             Reset();
             Time.timeScale = 1f;
-            SceneManager.LoadScene(MainMenuSceneName);
+            LoadFaded(MainMenuSceneName);
         }
 
         public static string Describe()

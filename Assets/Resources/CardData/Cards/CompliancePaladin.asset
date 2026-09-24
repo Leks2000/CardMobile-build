@@ -13,20 +13,21 @@ MonoBehaviour:
   m_Name: CompliancePaladin
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   HP: 5
-  Damage: 1
-  Cost: 2
-  cardInfo: 'Guard 2: gains 2 Shield every turn. Starts with 4 Shield.'
+  Damage: 2
+  Cost: 3
+  cardInfo: 'Guard: forges 2 Shield every turn. Starts with 3.'
   id: CompliancePaladin
-  displayName: Compliance Paladin
-  art: {fileID: 21300000, guid: ace34d00d6b31de4fa9af022df9efc80, type: 3}
-  rarity: 1
+  displayName: Blacksmith
+  art: {fileID: 0}
+  rarity: 2
   isEnemy: 0
   isStarter: 0
   starterCopies: 1
   inShopPool: 1
   ability: 4
   abilityValue: 2
+  artResource: Art/Cards/Blacksmith
   statuses:
   - type: 2
-    value: 4
+    value: 3
     self: 1

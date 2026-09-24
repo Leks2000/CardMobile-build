@@ -111,11 +111,12 @@ public class BattleItemBar : MonoBehaviour
         le.preferredWidth = SlotSize; le.preferredHeight = SlotSize;
 
         s.glow = VisualTheme.Img(VisualTheme.Stretch("Glow", s.rt, -26f), ProcSprites.Glow, VisualTheme.WithA(rc, 0f));
-        VisualTheme.Img(VisualTheme.Node("Shadow", s.rt, Vector2.zero, Vector2.one, new Vector2(-10, -16), new Vector2(10, 4)), ProcSprites.SoftShadow, new Color(0, 0, 0, 0.7f), true);
-        s.border = VisualTheme.Img(VisualTheme.Stretch("Border", s.rt), ProcSprites.RoundRect, rc, true);
-        var face = VisualTheme.Img(VisualTheme.Stretch("Face", s.rt, 5f), ProcSprites.RoundRect, Color.Lerp(UiTheme.Panel, rc, 0.18f), true);
+        // круглая «монета» из набора карты (node_empty) вместо плашки; редкость - цветом кольца-свечения
+        s.border = VisualTheme.Img(VisualTheme.Stretch("Border", s.rt, -3f), ProcSprites.Ring, VisualTheme.WithA(rc, 0.9f));
+        var face = VisualTheme.Img(VisualTheme.Stretch("Face", s.rt, 2f), null, Color.white);
+        face.sprite = ArtLib.UI("node_empty");
+        face.preserveAspect = true;
         face.raycastTarget = true;
-        VisualTheme.Img(VisualTheme.Node("Gloss", s.rt, new Vector2(0, 0.55f), new Vector2(1, 1), new Vector2(9, 0), new Vector2(-9, -8)), ProcSprites.Gloss, new Color(1, 1, 1, 0.5f), true);
         s.icon = VisualTheme.Img(VisualTheme.Centered("Icon", s.rt, new Vector2(0.5f, 0.52f), new Vector2(78, 78)), null, Color.white);
         s.icon.sprite = ItemIcons.Get(item);
         s.icon.preserveAspect = true;
@@ -152,9 +153,11 @@ public class BattleItemBar : MonoBehaviour
         info = VisualTheme.Node("Info", root, new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, Vector2.zero);
         info.pivot = new Vector2(1f, 1f);
         info.sizeDelta = new Vector2(440, 250);
-        VisualTheme.Img(VisualTheme.Node("Shadow", info, Vector2.zero, Vector2.one, new Vector2(-24, -34), new Vector2(24, 12)), ProcSprites.SoftShadow, new Color(0, 0, 0, 0.8f), true);
-        infoBorder = VisualTheme.Img(VisualTheme.Stretch("Border", info), ProcSprites.RoundRect, UiTheme.Accent, true);
-        var bg = VisualTheme.Img(VisualTheme.Stretch("Bg", info, 4f), ProcSprites.RoundRect, UiTheme.Panel, true);
+        // рамка из набора UI проекта (тёмная панель с шипами) вместо плоского чёрного прямоугольника
+        infoBorder = VisualTheme.Img(VisualTheme.Stretch("Border", info, -14f), ProcSprites.Glow, Color.clear);
+        var bg = VisualTheme.Img(VisualTheme.Stretch("Bg", info, -18f), null, Color.white);
+        bg.sprite = ArtLib.UI("panel_dark_wide");
+        bg.type = bg.sprite != null && bg.sprite.border != Vector4.zero ? Image.Type.Sliced : Image.Type.Simple;
         bg.raycastTarget = true; // клики по карточке не проваливаются на поле
 
         infoTitle = VisualTheme.Txt(VisualTheme.Node("Title", info, new Vector2(0, 1), new Vector2(1, 1), new Vector2(22, -58), new Vector2(-22, -14)), "", 34, UiTheme.Text);
@@ -201,7 +204,7 @@ public class BattleItemBar : MonoBehaviour
         var rc = RarityColors.Get(item.rarity);
         foreach (var s in slots) s.glow.color = VisualTheme.WithA(RarityColors.Get(ItemDatabase.Get(s.id).rarity), s.id == id ? 0.7f : 0f);
 
-        infoBorder.color = rc;
+        infoBorder.color = VisualTheme.WithA(rc, 0.35f);
         infoTitle.text = item.name;
         infoTitle.color = rc == RarityColors.Get(CardRarity.Common) ? UiTheme.Text : rc;
         infoKind.text = $"{RarityColors.Name(item.rarity).ToUpper()}  ·  x{RunState.ItemCount(id)}";

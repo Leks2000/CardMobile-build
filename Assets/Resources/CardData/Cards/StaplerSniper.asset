@@ -15,9 +15,9 @@ MonoBehaviour:
   HP: 2
   Damage: 2
   Cost: 2
-  cardInfo: 'Ranged: shoots from any row over your cards.'
+  cardInfo: 'Ranged: attacks from the back row over your cards.'
   id: StaplerSniper
-  displayName: Stapler Sniper
+  displayName: Archer
   art: {fileID: 0}
   rarity: 0
   isEnemy: 0
@@ -26,4 +26,5 @@ MonoBehaviour:
   inShopPool: 1
   ability: 1
   abilityValue: 0
+  artResource: Art/Cards/Archer
   statuses: []

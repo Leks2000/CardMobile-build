@@ -150,10 +150,64 @@ namespace Assets.Scrpits.Map
             canvasGo.AddComponent<GraphicRaycaster>();
             var root = (RectTransform)canvasGo.transform;
 
-            var btn = UiKit.Button("Unlocks", root, $"UNLOCKS  ({MetaProgress.Points})", UiTheme.Accent, new Vector2(380, 96), null, 38);
-            UiKit.Place((RectTransform)btn.transform, new Vector2(1, 0), new Vector2(-220, 80), new Vector2(380, 96));
+            var btn = UiKit.Button("Unlocks", root, $"UNLOCKS  ({MetaProgress.Points})", UiTheme.Accent, new Vector2(420, 110), null, 38);
+            UiKit.Place((RectTransform)btn.transform, new Vector2(1, 0), new Vector2(-240, 90), new Vector2(420, 110));
             var label = btn.transform.Find("Text").GetComponent<TMP_Text>();
+            GameButton(btn.GetComponent<Image>(), label, false);
             btn.onClick.AddListener(() => Show(root, label));
+
+            DressStartButtons();
+        }
+
+        /// <summary>
+        /// Кнопка в стиле игры: табличка с черепом из набора UI (Resources/Art/UI/label_skull_*),
+        /// крупный текст с обводкой. light = пергамент (главная кнопка), иначе тёмная.
+        /// </summary>
+        public static void GameButton(Image img, TMP_Text label, bool light)
+        {
+            var art = ArtLib.UI(light ? "label_skull_light" : "label_skull_dark");
+            if (art != null && img != null)
+            {
+                img.sprite = art;
+                img.type = art.border != Vector4.zero ? Image.Type.Sliced : Image.Type.Simple;
+                img.color = Color.white;
+                foreach (var sh in img.GetComponents<Shadow>()) sh.enabled = false;
+            }
+            if (label != null)
+            {
+                VisualTheme.Style(label, label.fontSize > 0 ? Mathf.Max(38f, label.fontSize) : 48f, light ? new Color32(0x2A, 0x16, 0x08, 0xFF) : UiTheme.Text, !light);
+                var lrt = label.rectTransform;
+                lrt.anchorMin = new Vector2(0.2f, 0.12f); lrt.anchorMax = new Vector2(0.97f, 0.95f);
+                lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+                label.enableAutoSizing = true; label.fontSizeMin = 20; label.fontSizeMax = 56;
+            }
+        }
+
+        /// <summary>Кнопка Start меню -> START/CONTINUE в стиле игры + новая кнопка RESTART под ней.</summary>
+        private static void DressStartButtons()
+        {
+            Assets.Scrpits.Location.MainMenuLogic start = null;
+            foreach (var l in UnityEngine.Object.FindObjectsByType<Assets.Scrpits.Location.MainMenuLogic>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                if (l.sceneName == Assets.Scrpits.Run.RunState.MapSceneName && l.GetComponent<Button>() != null) { start = l; break; }
+            if (start == null) return;
+            var rt = (RectTransform)start.transform;
+            var label = start.GetComponentInChildren<TMP_Text>(true);
+            bool active = Assets.Scrpits.Run.RunState.IsActive;
+            if (label != null) label.text = active ? "CONTINUE" : "START";
+            GameButton(start.GetComponent<Image>(), label, true);
+
+            // RESTART - копия кнопки под ней (новый забег с нуля)
+            var copy = UnityEngine.Object.Instantiate(start.gameObject, rt.parent);
+            copy.name = "Restart";
+            var crt = (RectTransform)copy.transform;
+            crt.anchoredPosition = rt.anchoredPosition - new Vector2(0, rt.rect.height * 1.25f);
+            var cbtn = copy.GetComponent<Button>();
+            cbtn.onClick = new Button.ButtonClickedEvent();
+            var logic = copy.GetComponent<Assets.Scrpits.Location.MainMenuLogic>();
+            cbtn.onClick.AddListener(() => { SoundFx.Play(SoundFx.Clip.Click); logic.RestartRun(); });
+            var clabel = copy.GetComponentInChildren<TMP_Text>(true);
+            if (clabel != null) clabel.text = "RESTART";
+            GameButton(copy.GetComponent<Image>(), clabel, false);
         }
 
         private static void Show(RectTransform root, TMP_Text label)

@@ -1,0 +1,4 @@
+UI sounds from the uisfx package (https://uisfx.com, npm "uisfx" 0.4.0).
+Audio: CC0-1.0. Code license (not used here): MIT, Copyright (c) 2026 Yuki Capital.
+Mapping: Click=organic/press, Tick=organic/progress-step, Coin=organic/purchase, Draw=organic/swipe, PlayCard=organic/drop, Block=organic/blocked, Item=cinematic/bonus, Reveal=cinematic/reward, RevealEpic=cinematic/achievement, Win=cinematic/success, Lose=cinematic/error.
+Hit / BossHit / PlayerHit are synthesized in code (SoundFx).

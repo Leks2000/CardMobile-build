@@ -35,9 +35,9 @@ public static class Encounters
     // Босс акта: имя и механика по номеру акта
     private static readonly (string name, BossMechanic mech, int value)[] ActBosses =
     {
-        ("The CEO", BossMechanic.Summoner, 2),
-        ("The CFO", BossMechanic.ManaThief, 1),
-        ("The Board", BossMechanic.RangedShield, 10),
+        ("The Wraith", BossMechanic.Summoner, 2),
+        ("Ghost Wolf", BossMechanic.ManaThief, 1),
+        ("The Fallen King", BossMechanic.RangedShield, 10),
     };
     // Элита: механика по номеру акта
     private static readonly (BossMechanic mech, int value)[] ActElites =
@@ -46,6 +46,34 @@ public static class Encounters
         (BossMechanic.Summoner, 1),
         (BossMechanic.ManaThief, 1),
     };
+
+    /// <summary>Цикл действий босса этого боя (по типу узла).</summary>
+    public static BossAction[] Pattern { get; private set; } = { BossAction.Attack, BossAction.Rest };
+
+    private static readonly Dictionary<MapNodeType, BossAction[]> Patterns = new Dictionary<MapNodeType, BossAction[]>
+    {
+        [MapNodeType.Battle] = new[] { BossAction.Rest, BossAction.Attack },
+        [MapNodeType.Elite] = new[] { BossAction.Attack, BossAction.Guard, BossAction.Rest, BossAction.Rally },
+        [MapNodeType.Boss] = new[] { BossAction.Guard, BossAction.Attack, BossAction.Rest, BossAction.HeavyAttack },
+    };
+
+    // Портреты и имена боссов (новый арт проекта)
+    private const string GuardArt = "Art/Cards/GraveKnight";
+    private const string EliteArt = "Art/Cards/Executioner";
+    private static readonly string[] ActBossArt =
+    {
+        "Images/BossImages/Boss",
+        "Images/BossImages/ghost-wolf-in-cartoon-art-style--ethereal-glowing-",
+        "Images/Cards/EnemyCard/fallen-undead-king-in-rusted-crown-and-decayed-roy",
+    };
+
+    /// <summary>Действие босса в конце раунда N (N = CombatRules.Round, начиная с 1).</summary>
+    public static BossAction ActionForRound(int round)
+    {
+        if (Pattern == null || Pattern.Length == 0) return BossAction.Attack;
+        int i = Mathf.Max(0, round - 1) % Pattern.Length;
+        return Pattern[i];
+    }
 
     public static MapNodeType Type { get; private set; } = MapNodeType.Battle;
     public static Def Current { get; private set; }
@@ -60,6 +88,7 @@ public static class Encounters
         Act = Assets.Scrpits.Run.RunState.IsActive ? Mathf.Clamp(Assets.Scrpits.Run.RunState.Act, 1, 3) : 1;
         Mechanic = BossMechanic.None;
         MechanicValue = 0;
+        Pattern = Patterns.TryGetValue(Type, out var pat) ? pat : Patterns[MapNodeType.Battle];
         if (Type == MapNodeType.Boss) { var b = ActBosses[Act - 1]; Mechanic = b.mech; MechanicValue = b.value; }
         else if (Type == MapNodeType.Elite) { var e = ActElites[Act - 1]; Mechanic = e.mech; MechanicValue = e.value; }
         CombatRules.ResetBattle();
@@ -91,6 +120,10 @@ public static class Encounters
         Boss.maxHP = Mathf.Round(Boss.maxHP * (1f + 0.45f * (Act - 1)));
         Boss.attackPower += Act - 1;
         if (Type == MapNodeType.Boss) Boss.displayName = ActBosses[Act - 1].name;
+        else if (Type == MapNodeType.Elite) Boss.displayName = "The Executioner";
+        else Boss.displayName = "Grave Warden";
+        var art = ArtLib.Get(Type == MapNodeType.Boss ? ActBossArt[Act - 1] : Type == MapNodeType.Elite ? EliteArt : GuardArt);
+        if (art != null) Boss.sprite = art;
         Boss.bossHP = Boss.maxHP;
         typeof(Boss).GetField("bossData", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(boss, Boss);
         boss.UpdateCardDisplay();
@@ -105,6 +138,13 @@ public static class Encounters
         card.CardData.HP += Act - 1;
         if (Act >= 3) card.CardData.Damage += 1;
         card.UpdateCardDisplay();
+    }
+
+    /// <summary>Обновить подпись «что босс сделает дальше» (после каждого хода босса).</summary>
+    public static void RefreshIntent()
+    {
+        var boss = Object.FindAnyObjectByType<Boss>();
+        if (boss != null && Boss != null) ShowIntent(boss);
     }
 
     /// <summary>Телеграф атаки босса: подпись под HP босса.</summary>
@@ -136,7 +176,7 @@ public static class Encounters
             text.raycastTarget = false;
             UiTheme.Apply(text, UiTheme.Damage);
         }
-        text.text = (BossAttack > 0 ? $"{Boss.displayName}: hits you for {BossAttack} each round" : Boss.displayName) +
+        text.text = BossMechanics.DescribeAction(ActionForRound(CombatRules.Round + 1), BossAttack) +
                     (Mechanic != BossMechanic.None ? "\n<color=#FFC44D>" + BossMechanics.Describe(Mechanic, MechanicValue) + "</color>" : "");
     }
 }

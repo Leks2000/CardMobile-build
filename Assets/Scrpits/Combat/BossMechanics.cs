@@ -14,9 +14,71 @@ public enum BossMechanic
     ManaThief,
 }
 
+/// <summary>Что босс делает в свой ход (цикл по Encounters.Pattern, следующее действие показано под HP).</summary>
+public enum BossAction
+{
+    /// <summary>Бьёт тебя на силу атаки.</summary>
+    Attack,
+    /// <summary>Тяжёлый удар: двойная сила атаки.</summary>
+    HeavyAttack,
+    /// <summary>Получает щит (сила атаки + 2).</summary>
+    Guard,
+    /// <summary>Все вражеские карты +1 ATK.</summary>
+    Rally,
+    /// <summary>Передышка: ничего не делает.</summary>
+    Rest,
+}
+
 /// <summary>[Boss] Логика механик босса. Хуки: старт боя, ход босса (конец раунда), старт хода игрока, удар по боссу.</summary>
 public static class BossMechanics
 {
+    public static string DescribeAction(BossAction a, int power) => a switch
+    {
+        BossAction.Attack => $"Next: attacks you for {power}",
+        BossAction.HeavyAttack => $"Next: HEAVY attack for {power * 2}!",
+        BossAction.Guard => $"Next: raises a shield ({power + 2})",
+        BossAction.Rally => "Next: rallies minions (+1 ATK)",
+        _ => "Next: catches breath",
+    };
+
+    /// <summary>Выполнить действие босса этого раунда (конец раунда).</summary>
+    public static IEnumerator DoAction(Boss boss, BossAction action, int power)
+    {
+        switch (action)
+        {
+            case BossAction.Attack:
+            case BossAction.HeavyAttack:
+            {
+                bool heavy = action == BossAction.HeavyAttack;
+                CombatFx.Punch(boss.transform, heavy ? 0.2f : 0.12f, 0.3f);
+                yield return new WaitForSeconds(0.3f);
+                CombatFx.ShakeCamera(heavy ? 1f : 0.6f, 0.3f);
+                CombatRules.DamagePlayer(heavy ? power * 2 : power);
+                yield return new WaitForSeconds(0.5f);
+                break;
+            }
+            case BossAction.Guard:
+                StatusHolder.Of(boss).Add(StatusType.Shield, power + 2);
+                if (boss.bossImage != null) ImpactFx.Ring(boss.bossImage.transform, UiTheme.Shield, 1.4f);
+                SoundFx.Play(SoundFx.Clip.Block);
+                yield return new WaitForSeconds(0.5f);
+                break;
+            case BossAction.Rally:
+                foreach (var c in ItemSystem.EnemyCards())
+                {
+                    c.CardData.Damage += 1;
+                    c.UpdateCardDisplay();
+                    CombatFx.Punch(c.transform, 0.2f, 0.3f);
+                }
+                CombatFx.TurnBanner("ENEMIES RALLY!", VisualTheme.EnemyAccent, 0.4f);
+                yield return new WaitForSeconds(0.6f);
+                break;
+            default:
+                yield return new WaitForSeconds(0.2f);
+                break;
+        }
+    }
+
     public static string Describe(BossMechanic m, int v) => m switch
     {
         BossMechanic.Summoner => $"Summons {v} minion{(v > 1 ? "s" : "")} every 3 turns",

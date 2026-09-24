@@ -15,15 +15,18 @@ MonoBehaviour:
   HP: 3
   Damage: 1
   Cost: 1
-  cardInfo: Hits apply 1 Poison.
+  cardInfo: 'Hits apply 1 Poison.'
   id: MoldSlime
-  displayName: Mold Slime
+  displayName: Plague Doctor
   art: {fileID: 0}
   rarity: 0
   isEnemy: 1
   isStarter: 0
   starterCopies: 1
   inShopPool: 0
+  ability: 0
+  abilityValue: 0
+  artResource: Art/Cards/PlagueDoctor
   statuses:
   - type: 1
     value: 1

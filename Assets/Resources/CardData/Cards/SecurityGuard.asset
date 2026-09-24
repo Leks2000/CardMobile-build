@@ -12,19 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb9818340d018047b28c07ebbced117, type: 3}
   m_Name: SecurityGuard
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  HP: 4
+  HP: 7
   Damage: 1
   Cost: 2
-  cardInfo: Starts with 3 Shield.
+  cardInfo: 'Tank: lots of HP and 2 Shield. Put him in front.'
   id: SecurityGuard
-  displayName: Security Guard
+  displayName: Shield Knight
   art: {fileID: 0}
   rarity: 0
   isEnemy: 0
   isStarter: 1
   starterCopies: 1
   inShopPool: 1
+  ability: 0
+  abilityValue: 0
+  artResource: Art/Cards/ShieldKnight
   statuses:
   - type: 2
-    value: 3
+    value: 2
     self: 1

@@ -137,15 +137,13 @@ public static class CombatRules
     {
         yield return BossMechanics.OnBossTurn(boss); // [Boss] призыв / восстановление щита
         var power = Encounters.BossAttack;
-        if (boss == null || boss.IsDefeated() || power <= 0 || Player.Instance == null || Player.Instance.IsDefeated())
+        if (boss == null || boss.IsDefeated() || Player.Instance == null || Player.Instance.IsDefeated())
         {
             yield break;
         }
-        CombatFx.Punch(boss.transform, 0.12f, 0.3f);
-        yield return new WaitForSeconds(0.3f);
-        CombatFx.ShakeCamera(0.6f, 0.3f);
-        DamagePlayer(power);
-        yield return new WaitForSeconds(0.5f);
+        // [Balance] босс не бьёт каждый раунд: действие по циклу (атака / щит / тяжёлый удар / передышка)
+        yield return BossMechanics.DoAction(boss, Encounters.ActionForRound(Round), Mathf.Max(0, power));
+        Encounters.RefreshIntent();
     }
 
     // ---------- игрок ----------

@@ -17,13 +17,16 @@ MonoBehaviour:
   Cost: 2
   cardInfo: 'Lifesteal 2: heals you on hit.'
   id: Barista
-  displayName: Barista
+  displayName: Succubus
   art: {fileID: 0}
   rarity: 1
   isEnemy: 0
   isStarter: 0
   starterCopies: 1
   inShopPool: 1
+  ability: 0
+  abilityValue: 0
+  artResource: Art/Cards/Succubus
   statuses:
   - type: 3
     value: 2

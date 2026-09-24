@@ -17,7 +17,7 @@ MonoBehaviour:
   Cost: 2
   cardInfo: 'Flank: allies diagonally get +2 ATK when played.'
   id: ScrumMaster
-  displayName: Scrum Master
+  displayName: War Drummer
   art: {fileID: 0}
   rarity: 1
   isEnemy: 0
@@ -26,4 +26,5 @@ MonoBehaviour:
   inShopPool: 1
   ability: 3
   abilityValue: 2
+  artResource: Art/Cards/WarDrummer
   statuses: []

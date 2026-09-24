@@ -111,7 +111,8 @@ public class CardView : MonoBehaviour
 
         if (art != null)
         {
-            art.sprite = d.art != null ? d.art : fallbackArt;
+            var artSprite = d.ArtSprite;
+            art.sprite = artSprite != null ? artSprite : fallbackArt;
             if (artFitter != null && art.sprite != null)
             {
                 artFitter.aspectRatio = art.sprite.rect.width / Mathf.Max(1f, art.sprite.rect.height);
@@ -185,7 +186,7 @@ public class CardView : MonoBehaviour
             artImg.color = Color.white;
             art = artImg;
             artFitter = VisualTheme.Ensure<AspectRatioFitter>(artImg.gameObject);
-            artFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            artFitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent; // арт целиком (персонажи на прозрачном фоне)
             if (artImg.sprite != null) artFitter.aspectRatio = artImg.sprite.rect.width / Mathf.Max(1f, artImg.sprite.rect.height);
         }
         var oldVig = artWindow.Find("V_ArtVignette");

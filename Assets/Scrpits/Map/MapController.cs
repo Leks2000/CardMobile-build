@@ -58,6 +58,17 @@ namespace Assets.Scrpits.Map
         private bool landscape;
         private bool busy;
         private bool actBanner;
+        private readonly HashSet<int> artNodes = new HashSet<int>();
+
+        private static string NodeArt(MapNodeType t) => t switch
+        {
+            MapNodeType.Battle => "node_battle",
+            MapNodeType.Elite => "node_elite",
+            MapNodeType.Event => "node_event",
+            MapNodeType.Shop => "node_shop",
+            MapNodeType.Rest => "node_rest",
+            _ => "node_boss",
+        };
 
         private class Edge
         {
@@ -215,9 +226,20 @@ namespace Assets.Scrpits.Map
                 var status = rt.Find("Status").GetComponent<TMP_Text>();
 
                 float dim = (done || avail || current) ? 1f : 0.45f;
-                Color discC = done ? Color.Lerp(c, new Color(0.22f, 0.2f, 0.26f), 0.6f) : c;
-                disc.color = new Color(discC.r * dim + (1 - dim) * 0.1f, discC.g * dim + (1 - dim) * 0.09f, discC.b * dim + (1 - dim) * 0.13f, 1f);
-                inner.color = Color.Lerp(disc.color, Color.black, 0.3f);
+                if (artNodes.Contains(node.id))
+                {
+                    // круглые иконки узлов из набора проекта: пройденный узел - галочка
+                    disc.sprite = ArtLib.UI(done ? "node_done" : NodeArt(node.type));
+                    float g = avail || current ? 1f : done ? 0.8f : 0.5f;
+                    disc.color = new Color(g, g, g, 1f);
+                    inner.color = Color.clear;
+                }
+                else
+                {
+                    Color discC = done ? Color.Lerp(c, new Color(0.22f, 0.2f, 0.26f), 0.6f) : c;
+                    disc.color = new Color(discC.r * dim + (1 - dim) * 0.1f, discC.g * dim + (1 - dim) * 0.09f, discC.b * dim + (1 - dim) * 0.13f, 1f);
+                    inner.color = Color.Lerp(disc.color, Color.black, 0.3f);
+                }
                 icon.color = new Color(1f, 1f, 1f, done ? 0.55f : (avail || current ? 1f : 0.45f));
                 ring.color = avail ? UiTheme.Accent : current ? Color.white : done ? ColDone : new Color(1, 1, 1, 0.12f);
                 label.color = avail ? UiTheme.Accent : new Color(UiTheme.Text.r, UiTheme.Text.g, UiTheme.Text.b, done || current ? 0.85f : 0.45f);
@@ -791,8 +813,17 @@ namespace Assets.Scrpits.Map
             hudHpFill.fillMethod = Image.FillMethod.Horizontal;
 
             hudCoins = HudChip(bar, "Coins", 200, UiTheme.Accent, UiKit.Circle, "", out hudCoinIcon);
-            var coinRing = UiKit.Img("Ring", hudCoinIcon, new Color(0.8f, 0.5f, 0.08f), UiKit.Ring);
-            UiKit.Stretch(coinRing.rectTransform, 8, 8, 8, 8);
+            var coinArt = ArtLib.UI("coin");
+            if (coinArt != null)
+            {
+                var ci = hudCoinIcon.GetComponent<Image>();
+                ci.sprite = coinArt; ci.color = Color.white; ci.preserveAspect = true;
+            }
+            else
+            {
+                var coinRing = UiKit.Img("Ring", hudCoinIcon, new Color(0.8f, 0.5f, 0.08f), UiKit.Ring);
+                UiKit.Stretch(coinRing.rectTransform, 8, 8, 8, 8);
+            }
             hudDeck = HudChip(bar, "Deck", 200, UiTheme.Mana, UiKit.RoundedRect, "", out var deckIcon);
             deckIcon.sizeDelta = new Vector2(36, 48);
             var deckBack = UiKit.Img("Back", deckIcon, new Color(0.2f, 0.4f, 0.7f), UiKit.RoundedRect);
@@ -901,6 +932,18 @@ namespace Assets.Scrpits.Map
             status.rectTransform.anchoredPosition = new Vector2(0, -48);
             status.rectTransform.sizeDelta = new Vector2(0, 32);
 
+            // арт узла из набора проекта (круг с иконкой): процедурные иконки/корона не нужны
+            var nodeArt = ArtLib.UI(NodeArt(node.type));
+            if (nodeArt != null)
+            {
+                artNodes.Add(node.id);
+                disc.sprite = nodeArt;
+                disc.preserveAspect = true;
+                disc.color = Color.white;
+                icon.gameObject.SetActive(false);
+                var crownT = rt.Find("Crown");
+                if (crownT != null) crownT.gameObject.SetActive(false);
+            }
             rt.gameObject.AddComponent<MapNodeHover>().Init(TypeName(node.type), NodeHint(node.type));
             var btn = rt.gameObject.AddComponent<Button>();
             btn.targetGraphic = disc;

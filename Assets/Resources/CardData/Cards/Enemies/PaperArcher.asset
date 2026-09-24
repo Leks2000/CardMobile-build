@@ -17,7 +17,7 @@ MonoBehaviour:
   Cost: 1
   cardInfo: 'Ranged enemy: shoots over other enemies.'
   id: PaperArcher
-  displayName: Paper Archer
+  displayName: Crossbowman
   art: {fileID: 0}
   rarity: 1
   isEnemy: 1
@@ -26,4 +26,5 @@ MonoBehaviour:
   inShopPool: 0
   ability: 1
   abilityValue: 0
+  artResource: Art/Cards/Crossbowman
   statuses: []

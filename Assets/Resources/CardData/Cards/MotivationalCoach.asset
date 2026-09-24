@@ -15,15 +15,16 @@ MonoBehaviour:
   HP: 3
   Damage: 1
   Cost: 1
-  cardInfo: 'Inspire: the ally in front (or behind) gets +2 ATK when played.'
+  cardInfo: 'Inspire: the card in front of her gets +1 ATK when played.'
   id: MotivationalCoach
-  displayName: Motivational Coach
+  displayName: Banner Bearer
   art: {fileID: 0}
   rarity: 0
   isEnemy: 0
-  isStarter: 0
+  isStarter: 1
   starterCopies: 1
   inShopPool: 1
   ability: 2
-  abilityValue: 2
+  abilityValue: 1
+  artResource: Art/Cards/BannerBearer
   statuses: []

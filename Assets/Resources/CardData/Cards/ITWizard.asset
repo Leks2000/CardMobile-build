@@ -15,10 +15,10 @@ MonoBehaviour:
   HP: 3
   Damage: 3
   Cost: 3
-  cardInfo: 'Ranged. Hits apply 2 Poison.'
+  cardInfo: 'Ranged. Hits burn: apply 2 Bleed.'
   id: ITWizard
-  displayName: IT Wizard
-  art: {fileID: 21300000, guid: 0fa9d513f1c27a84d84fbdf4f5a19c44, type: 3}
+  displayName: Fire Mage
+  art: {fileID: 0}
   rarity: 2
   isEnemy: 0
   isStarter: 0
@@ -26,7 +26,8 @@ MonoBehaviour:
   inShopPool: 1
   ability: 1
   abilityValue: 0
+  artResource: Art/Cards/FireMage
   statuses:
-  - type: 1
+  - type: 0
     value: 2
     self: 0

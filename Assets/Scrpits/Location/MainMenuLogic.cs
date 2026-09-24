@@ -15,11 +15,21 @@ namespace Assets.Scrpits.Location
         public void LoadScene()
         {
             Time.timeScale = 1.0f;
-            if (sceneName == Assets.Scrpits.Run.RunState.MapSceneName)
+            // START: продолжить идущий забег, иначе начать новый
+            if (sceneName == Assets.Scrpits.Run.RunState.MapSceneName && !Assets.Scrpits.Run.RunState.IsActive)
             {
                 Assets.Scrpits.Run.RunState.StartNewRun();
             }
-            SceneManager.LoadScene(sceneName);
+            var target = sceneName;
+            SceneFade.Out(0.35f, () => SceneManager.LoadScene(target));
+        }
+
+        /// <summary>RESTART: бросить текущий забег и начать новый.</summary>
+        public void RestartRun()
+        {
+            Time.timeScale = 1.0f;
+            Assets.Scrpits.Run.RunState.StartNewRun();
+            SceneFade.Out(0.35f, () => SceneManager.LoadScene(Assets.Scrpits.Run.RunState.MapSceneName));
         }
         public void Pause()
         {

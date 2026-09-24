@@ -21,7 +21,7 @@ MonoBehaviour:
   art: {fileID: 0}
   rarity: 0
   isEnemy: 0
-  isStarter: 1
+  isStarter: 0
   starterCopies: 2
-  inShopPool: 1
+  inShopPool: 0
   statuses: []

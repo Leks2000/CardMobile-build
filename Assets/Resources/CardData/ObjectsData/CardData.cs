@@ -20,6 +20,8 @@ public class CardData : ScriptableObject
     public string displayName;
     /// <summary>Арт карты (пользователь подкладывает свой PNG). null = старый арт префаба.</summary>
     public Sprite art;
+    /// <summary>Путь к арту в Resources (например "Art/Cards/Footman"), если art не задан.</summary>
+    public string artResource;
     public CardRarity rarity = CardRarity.Common;
     /// <summary>Карта врага (спавнится на стороне противника).</summary>
     public bool isEnemy;
@@ -44,6 +46,8 @@ public class CardData : ScriptableObject
 
     public string Id => string.IsNullOrEmpty(id) ? name.Replace("(Clone)", "") : id;
     public string Title => string.IsNullOrEmpty(displayName) ? Id : displayName;
+    /// <summary>Арт карты: art или спрайт по artResource.</summary>
+    public Sprite ArtSprite => art != null ? art : ArtLib.Get(artResource);
 
     public void ApplyDamage(int damage)
     {

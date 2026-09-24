@@ -31,11 +31,11 @@ public static class MetaProgress
 
     public static readonly List<StarterDeckDef> Decks = new List<StarterDeckDef>
     {
-        new StarterDeckDef(DefaultDeck, "Open Space", "The classic office crew. Balanced.", 0, null),
-        new StarterDeckDef("it_dept", "IT Department", "Snipers and poison: kill from the back row.", 60,
-            "StaplerSniper", "StaplerSniper", "ITWizard", "Intern", "Intern", "Accountant", "MotivationalCoach", "SecurityGuard"),
-        new StarterDeckDef("security", "Security Team", "Shields, guards and thorns. Hard to break.", 90,
-            "CompliancePaladin", "SysadminWarden", "SecurityGuard", "SecurityGuard", "CactusKeeper", "Intern", "Intern", "HRNurse"),
+        new StarterDeckDef(DefaultDeck, "Vanguard", "Footmen, a Shield Knight, an Archer and a Banner Bearer. Balanced.", 0, null),
+        new StarterDeckDef("it_dept", "Ranged Corps", "Archers, a Fire Mage and a Necromancer: kill from the back row.", 60,
+            "StaplerSniper", "StaplerSniper", "ITWizard", "Accountant", "JuniorWorker", "JuniorWorker", "MotivationalCoach", "SecurityGuard"),
+        new StarterDeckDef("security", "Iron Wall", "Shield Knights, a Blacksmith and a Priest. Hard to break.", 90,
+            "SecurityGuard", "SecurityGuard", "CompliancePaladin", "HRNurse", "JuniorWorker", "JuniorWorker", "MotivationalCoach", "Intern"),
     };
 
     /// <summary>Карты, которые нужно открыть, прежде чем они появятся в магазине и кейсах.</summary>
@@ -44,7 +44,7 @@ public static class MetaProgress
         ["ScrumMaster"] = 30,
         ["HRNurse"] = 30,
         ["ITWizard"] = 45,
-        ["SysadminWarden"] = 45,
+        ["CompliancePaladin"] = 45,
     };
 
     public static int Points => PlayerPrefs.GetInt(PointsKey, 0);

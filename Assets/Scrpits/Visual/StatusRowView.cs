@@ -77,20 +77,36 @@ public class StatusRowView : MonoBehaviour
             if (icons[i].activeSelf != on) icons[i].SetActive(on);
             if (!on) continue;
             var (type, value) = items[i];
-            icons[i].GetComponent<Image>().color = UiTheme.StatusColor(type);
-            icons[i].GetComponentInChildren<TMP_Text>(true).text = UiTheme.StatusGlyph(type) + (value > 0 ? "<size=65%>" + value + "</size>" : "");
+            var img = icons[i].GetComponent<Image>();
+            var sprite = StatusSprite(type);
+            img.sprite = sprite;
+            img.preserveAspect = true;
+            img.color = sprite != null ? Color.white : UiTheme.StatusColor(type);
+            var t = icons[i].GetComponentInChildren<TMP_Text>(true);
+            t.text = sprite != null ? (value > 0 ? value.ToString() : "") : UiTheme.StatusGlyph(type) + (value > 0 ? "<size=65%>" + value + "</size>" : "");
         }
     }
+
+    /// <summary>Иконка статуса из набора проекта (Resources/Art/UI).</summary>
+    public static Sprite StatusSprite(StatusType t) => t switch
+    {
+        StatusType.Bleed => ArtLib.UI("relic_bleed"),
+        StatusType.Poison => ArtLib.UI("status_poison"),
+        StatusType.Shield => ArtLib.UI("status_shield"),
+        StatusType.Lifesteal => ArtLib.UI("relic_lifesteal"),
+        StatusType.Thorns => ArtLib.UI("relic_fang"),
+        _ => null,
+    };
 
     private GameObject MakeIcon(int i)
     {
         var rt = VisualTheme.Centered("Status" + i, transform, new Vector2(0, 0.5f), new Vector2(iconSize, iconSize));
         var le = rt.gameObject.AddComponent<LayoutElement>();
         le.preferredWidth = iconSize; le.preferredHeight = iconSize;
-        VisualTheme.Img(rt, ProcSprites.Circle, Color.white);
-        var ol = rt.gameObject.AddComponent<Outline>();
-        ol.effectColor = VisualTheme.Outline; ol.effectDistance = new Vector2(1, -1);
-        VisualTheme.Txt(VisualTheme.Stretch("Glyph", rt), "", fontSize, Color.white);
+        VisualTheme.Img(rt, null, Color.white);
+        // число стаков - снизу справа поверх иконки, с обводкой
+        var t = VisualTheme.Txt(VisualTheme.Node("Glyph", rt, new Vector2(0.45f, -0.1f), new Vector2(1.2f, 0.55f), Vector2.zero, Vector2.zero), "", fontSize, Color.white);
+        t.alignment = TextAlignmentOptions.Right;
         return rt.gameObject;
     }
 
