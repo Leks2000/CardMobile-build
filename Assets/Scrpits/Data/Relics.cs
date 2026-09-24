@@ -33,6 +33,11 @@ public static class RelicDatabase
         new RelicDef(RelicSystem.FirstAid, "First-Aid Kit", "Heal 6 HP after every won battle.", CardRarity.Common),
         new RelicDef(RelicSystem.PiggyBank, "Piggy Bank", "+10 coins after every won battle.", CardRarity.Common),
         new RelicDef(RelicSystem.VenomVial, "Venom Vial", "Your cards apply 1 Poison on hit.", CardRarity.Rare),
+        new RelicDef(RelicSystem.DeckPouch, "Deck Pouch", "Draw 1 extra card at the start of each battle.", CardRarity.Common),
+        new RelicDef(RelicSystem.LuckyClover, "Lucky Clover", "+50% coins from battles.", CardRarity.Rare),
+        new RelicDef(RelicSystem.HeartAmulet, "Heart Amulet", "+10 max HP.", CardRarity.Rare),
+        new RelicDef(RelicSystem.VampireFang, "Vampire Fang", "Every card you play gains Lifesteal 1.", CardRarity.Epic),
+        new RelicDef(RelicSystem.GoldenRing, "Golden Ring", "Shop prices are 25% lower.", CardRarity.Legendary),
     };
 
     public static RelicDef Get(string id) => All.FirstOrDefault(r => r.id == id);
@@ -48,6 +53,7 @@ public static class RelicDatabase
     {
         if (Get(id) == null || RunState.Relics.Contains(id)) return false;
         RunState.Relics.Add(id);
+        RelicSystem.OnGranted(id);
         UnityEngine.Debug.Log($"[RELIC] Granted {id}");
         return true;
     }
@@ -63,6 +69,9 @@ public static class BattleRewards
     public static readonly List<(string label, int coins)> LastBreakdown = new List<(string label, int coins)>();
     /// <summary>Реликвия, выданная за этот бой (элита/босс), иначе null.</summary>
     public static RelicDef LastRelic;
+    /// <summary>Расходник, выпавший за этот бой (элита/босс - всегда, обычный бой - шанс), иначе null.</summary>
+    public static ItemDef LastItem;
+    public const float BattleItemChance = 0.4f;
 
     private static bool granted;
 
@@ -76,6 +85,7 @@ public static class BattleRewards
         granted = true;
         LastBreakdown.Clear();
         LastRelic = null;
+        LastItem = null;
 
         var type = Encounters.Type;
         switch (type)
@@ -98,6 +108,15 @@ public static class BattleRewards
             LastRelic = RelicDatabase.RandomNotOwned();
             if (LastRelic != null) RelicDatabase.Grant(LastRelic.id);
         }
-        UnityEngine.Debug.Log($"[D] Rewards {type}: +{LastCoins} ({string.Join(", ", LastBreakdown.Select(b => b.label + " " + b.coins))}) relic={LastRelic?.id}");
+
+        // Трофей-расходник: элита/босс - всегда (до Epic/Legendary), обычный бой - шанс (до Rare)
+        bool eliteOrBoss = type != Assets.Scrpits.Map.MapNodeType.Battle;
+        if (RunState.IsActive && (eliteOrBoss || UnityEngine.Random.value < BattleItemChance))
+        {
+            LastItem = ItemDatabase.RollConsumable(type == Assets.Scrpits.Map.MapNodeType.Boss ? CardRarity.Legendary
+                : eliteOrBoss ? CardRarity.Epic : CardRarity.Rare);
+            ItemDatabase.Grant(LastItem);
+        }
+        UnityEngine.Debug.Log($"[D] Rewards {type}: +{LastCoins} ({string.Join(", ", LastBreakdown.Select(b => b.label + " " + b.coins))}) relic={LastRelic?.id} item={LastItem?.id}");
     }
 }

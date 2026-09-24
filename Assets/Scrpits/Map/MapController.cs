@@ -32,7 +32,7 @@ namespace Assets.Scrpits.Map
         private Image fade;
 
         // HUD
-        private TMP_Text hudHp, hudCoins, hudDeck, hudRelics;
+        private TMP_Text hudHp, hudCoins, hudDeck, hudRelics, hudItems;
         private Image hudHpFill;
         private RectTransform hudCoinIcon;
         private int shownCoins = -1;
@@ -365,6 +365,7 @@ namespace Assets.Scrpits.Map
             hudCoins.text = shownCoins.ToString();
             hudDeck.text = RunState.Deck.Count.ToString();
             hudRelics.text = RunState.Relics.Count.ToString();
+            if (hudItems != null) hudItems.text = RunState.TotalItems.ToString();
         }
 
         private void OnCoinsChanged(int coins) => AnimateCoins(shownCoins, coins);
@@ -392,6 +393,11 @@ namespace Assets.Scrpits.Map
             {
                 var r = BattleRewards.LastRelic;
                 lines.Add($"Relic: <color=#{UiKit.Hex(RarityColors.Get(r.rarity))}>{r.name}</color>");
+            }
+            if (BattleRewards.LastItem != null)
+            {
+                var it = BattleRewards.LastItem;
+                lines.Add($"Item: <color=#{UiKit.Hex(RarityColors.Get(it.rarity))}>{it.name}</color>");
             }
             if (lines.Count == 0) lines.Add("The enemy is defeated.");
             toasts.Enqueue(("VICTORY REWARDS", string.Join("\n", lines), null));
@@ -651,7 +657,7 @@ namespace Assets.Scrpits.Map
         private void BuildHud()
         {
             var bar = UiKit.Rect("Hud", root);
-            UiKit.Place(bar, new Vector2(0.5f, 1f), new Vector2(0, -175), new Vector2(1000, 76));
+            UiKit.Place(bar, new Vector2(0.5f, 1f), new Vector2(0, -175), new Vector2(1240, 76));
             var layout = bar.gameObject.AddComponent<HorizontalLayoutGroup>();
             layout.spacing = 22; layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlWidth = false; layout.childControlHeight = false;
@@ -679,6 +685,9 @@ namespace Assets.Scrpits.Map
             hudRelics = HudChip(bar, "Relics", 200, new Color32(0xB0, 0x6C, 0xFF, 0xFF), UiKit.RoundedRect, "", out var relicIcon);
             relicIcon.sizeDelta = new Vector2(38, 38);
             relicIcon.localRotation = Quaternion.Euler(0, 0, 45);
+            // [Items] расходники в сумке (иконка зелья)
+            hudItems = HudChip(bar, "Items", 200, Color.white, ItemIcons.Get(ItemIcons.Potion, new Color32(0xE8, 0x3A, 0x4A, 0xFF)), "", out var itemIcon);
+            itemIcon.GetComponent<Image>().preserveAspect = true;
 
             RefreshHud();
         }

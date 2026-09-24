@@ -4,6 +4,25 @@ using UnityEngine;
 
 namespace Assets.Scrpits.Shop
 {
+    /// <summary>Что выпало из кейса: карта ИЛИ предмет (+ редкость для цвета).</summary>
+    public struct CaseDrop
+    {
+        public CardData card;
+        public ItemDef item;
+
+        public CaseDrop(CardData card) { this.card = card; item = null; }
+        public CaseDrop(ItemDef item) { card = null; this.item = item; }
+
+        public bool IsEmpty => card == null && item == null;
+        public CardRarity Rarity => card != null ? card.rarity : item != null ? item.rarity : CardRarity.Common;
+        public string Title => card != null ? card.Title : item != null ? item.name : "???";
+        public string Id => card != null ? card.Id : item != null ? item.id : "none";
+
+        /// <summary>Плитка для ленты / показа (карта или предмет).</summary>
+        public RectTransform BuildTile(Transform parent, float scale, bool glow = false) =>
+            item != null ? ItemTile.Build(parent, item, scale, glow) : CardTile.Build(parent, card, scale, glow);
+    }
+
     /// <summary>Кейс магазина: цена в монетах (Wallet) + таблица дропа по редкостям (веса в %).</summary>
     public class CaseDef
     {
@@ -14,11 +33,21 @@ namespace Assets.Scrpits.Shop
         public Color bands;
         public Color glow;
         public (CardRarity rarity, float weight)[] odds;
+        /// <summary>true - кейс с предметами (расходники + пассивки), false - с картами.</summary>
+        public bool items;
+        /// <summary>Для кейса предметов: шанс, что выпадет пассивка (если есть неполученные этой редкости).</summary>
+        public float passiveChance = 0.35f;
 
         public CaseDef(string id, string name, int price, Color body, Color bands, Color glow, params (CardRarity, float)[] odds)
         {
             this.id = id; this.name = name; this.price = price; this.body = body; this.bands = bands; this.glow = glow; this.odds = odds;
         }
+
+        /// <summary>Цена с учётом скидок (Golden Ring).</summary>
+        public int Price => RelicSystem.ShopPrice(price);
+
+        /// <summary>Случайный дроп этого кейса (карта или предмет).</summary>
+        public CaseDrop Roll() => items ? new CaseDrop(ItemDatabase.Roll(RollRarity(), passiveChance)) : new CaseDrop(RollCard());
 
         public float TotalWeight => odds.Sum(o => o.weight);
 
@@ -53,7 +82,18 @@ namespace Assets.Scrpits.Shop
                 (CardRarity.Epic, 70f), (CardRarity.Legendary, 30f)),
         };
 
-        public static CaseDef Get(string id) => All.FirstOrDefault(c => c.id == id);
+        /// <summary>Кейсы с предметами (вкладка ITEMS).</summary>
+        public static readonly CaseDef[] Items =
+        {
+            new CaseDef("pouch", "Traveler's Pouch", 25, new Color32(0x6E, 0x4A, 0x2E, 0xFF), new Color32(0xC8, 0x9A, 0x5A, 0xFF), new Color32(0x9A, 0xE0, 0x6A, 0xFF),
+                (CardRarity.Common, 70f), (CardRarity.Rare, 25f), (CardRarity.Epic, 4.5f), (CardRarity.Legendary, 0.5f)) { items = true, passiveChance = 0.25f },
+            new CaseDef("satchel", "Alchemist Satchel", 60, new Color32(0x2E, 0x6A, 0x5A, 0xFF), new Color32(0xB8, 0xC4, 0xD0, 0xFF), new Color32(0x3D, 0xE0, 0xC8, 0xFF),
+                (CardRarity.Rare, 65f), (CardRarity.Epic, 28f), (CardRarity.Legendary, 7f)) { items = true, passiveChance = 0.4f },
+            new CaseDef("relic_chest", "Relic Chest", 130, new Color32(0x2A, 0x24, 0x3A, 0xFF), new Color32(0xFF, 0x7A, 0x3D, 0xFF), new Color32(0xFF, 0x5A, 0x8A, 0xFF),
+                (CardRarity.Epic, 65f), (CardRarity.Legendary, 35f)) { items = true, passiveChance = 0.6f },
+        };
+
+        public static CaseDef Get(string id) => All.FirstOrDefault(c => c.id == id) ?? Items.FirstOrDefault(c => c.id == id);
 
         /// <summary>
         /// Карта нужной редкости: ShopPool(rarity) -> любая карта игрока этой редкости ->
@@ -83,7 +123,7 @@ namespace Assets.Scrpits.Shop
         }
 
         public static string Describe() =>
-            string.Join(" | ", All.Select(c => $"{c.id} {c.name} {c.price}c [{string.Join(",", c.odds.Select(o => $"{o.rarity}:{o.weight}"))}]")) +
+            string.Join(" | ", All.Concat(Items).Select(c => $"{c.id} {c.name} {c.price}c [{string.Join(",", c.odds.Select(o => $"{o.rarity}:{o.weight}"))}]")) +
             $" | pools: " + string.Join(",", System.Enum.GetValues(typeof(CardRarity)).Cast<CardRarity>().Select(r => $"{r}={CardDatabase.ShopPool(r).Count()}"));
     }
 }

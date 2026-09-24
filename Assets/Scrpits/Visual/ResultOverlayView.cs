@@ -122,6 +122,13 @@ public class ResultOverlayView : MonoBehaviour
                 if (!string.IsNullOrEmpty(BattleRewards.LastRelic.description))
                     AddRow(BattleRewards.LastRelic.description, null, UiTheme.TextDim, 26, false);
             }
+            if (BattleRewards.LastItem != null)
+            {
+                var ic = RarityColors.Get(BattleRewards.LastItem.rarity);
+                AddDivider();
+                AddRow("Item: " + BattleRewards.LastItem.name, null, ic, 36, false);
+                AddRow(BattleRewards.LastItem.description, null, UiTheme.TextDim, 26, false);
+            }
             AddRow("Wallet  " + Wallet.Coins, null, UiTheme.TextDim, 26, true);
         }
         else

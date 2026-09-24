@@ -37,6 +37,10 @@ namespace Assets.Scrpits.Run
         public static readonly List<CardData> Deck = new List<CardData>();
         /// <summary>Id реликвий/пассивок, собранных за забег.</summary>
         public static readonly List<string> Relics = new List<string>();
+        /// <summary>Расходники забега: id предмета -> количество (ItemDatabase / ItemSystem).</summary>
+        public static readonly Dictionary<string, int> Items = new Dictionary<string, int>();
+        /// <summary>Инвентарь расходников изменился (HUD боя / карты).</summary>
+        public static event System.Action ItemsChanged;
         /// <summary>Монеты, заработанные за текущий забег (для статистики; сами монеты в Wallet).</summary>
         public static int CoinsEarned;
 
@@ -52,13 +56,47 @@ namespace Assets.Scrpits.Run
             if (card != null) Deck.Add(card);
         }
 
+        public static int ItemCount(string id) => id != null && Items.TryGetValue(id, out var n) ? n : 0;
+
+        public static int TotalItems
+        {
+            get
+            {
+                int n = 0;
+                foreach (var kv in Items) n += kv.Value;
+                return n;
+            }
+        }
+
+        public static void AddItem(string id, int count = 1)
+        {
+            if (string.IsNullOrEmpty(id) || count <= 0) return;
+            Items[id] = ItemCount(id) + count;
+            ItemsChanged?.Invoke();
+        }
+
+        /// <summary>Списать один расходник. false - такого нет.</summary>
+        public static bool ConsumeItem(string id)
+        {
+            int n = ItemCount(id);
+            if (n <= 0) return false;
+            if (n == 1) Items.Remove(id);
+            else Items[id] = n - 1;
+            ItemsChanged?.Invoke();
+            return true;
+        }
+
         public static MapNodeType CurrentNodeType =>
             MapGraph.TryGet(CurrentNodeId, out var n) ? n.type : MapNodeType.Battle;
 
         public static bool IsCurrentNodeBattle => MapGraph.IsBattle(CurrentNodeType) && CurrentNodeId >= 0;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => Reset();
+        private static void ResetStatics()
+        {
+            ItemsChanged = null;
+            Reset();
+        }
 
         public static void StartNewRun()
         {
@@ -85,6 +123,8 @@ namespace Assets.Scrpits.Run
             PlayerHPMax = -1;
             Deck.Clear();
             Relics.Clear();
+            Items.Clear();
+            ItemsChanged?.Invoke();
             CoinsEarned = 0;
             PendingBattleReward = false;
             PendingToasts.Clear();
@@ -167,7 +207,7 @@ namespace Assets.Scrpits.Run
         public static string Describe()
         {
             return $"active={IsActive} current={CurrentNodeId}({CurrentNodeType}) completed=[{string.Join(",", CompletedNodes)}] " +
-                   $"available=[{string.Join(",", GetAvailableNodes())}] outcome={Outcome} hp={PlayerHP}/{PlayerHPMax} deck={Deck.Count} relics=[{string.Join(",", Relics)}] coins={Wallet.Coins} " +
+                   $"available=[{string.Join(",", GetAvailableNodes())}] outcome={Outcome} hp={PlayerHP}/{PlayerHPMax} deck={Deck.Count} relics=[{string.Join(",", Relics)}] items=[{string.Join(",", Items.Keys)}] coins={Wallet.Coins} " +
                    $"scene={SceneManager.GetActiveScene().name}";
         }
     }

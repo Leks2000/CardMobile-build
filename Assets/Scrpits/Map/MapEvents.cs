@@ -79,7 +79,7 @@ namespace Assets.Scrpits.Map
         /// <summary>Случайное событие.</summary>
         public static NodeScenario RandomEvent()
         {
-            var all = new Func<NodeScenario>[] { BloodAltar, Wagon, WishingWell };
+            var all = new Func<NodeScenario>[] { BloodAltar, Wagon, WishingWell, Peddler };
             return all[UnityEngine.Random.Range(0, all.Length)]();
         }
 
@@ -88,6 +88,7 @@ namespace Assets.Scrpits.Map
             "altar" => BloodAltar(),
             "wagon" => Wagon(),
             "well" => WishingWell(),
+            "peddler" => Peddler(),
             _ => RandomEvent(),
         };
 
@@ -142,6 +143,35 @@ namespace Assets.Scrpits.Map
                 return new NodeResult("It's a trap!", $"A rat bites you.\n{C(UiTheme.Damage, $"-{lost} HP")}");
             }, () => RunState.PlayerHP > trap));
             s.choices.Add(new NodeChoice("Leave", "Walk away", () => Leave("Abandoned Wagon")));
+            return s;
+        }
+
+        /// <summary>[Items] Бродячий торговец: предметы за монеты или за кровь.</summary>
+        private static NodeScenario Peddler()
+        {
+            const int price = 15;
+            int blood = Mathf.Max(2, Pct(15));
+            var s = new NodeScenario
+            {
+                title = "Wandering Peddler",
+                body = "A hooded figure opens a coat full of vials.\n\"Something for the road, friend?\""
+            };
+            s.choices.Add(new NodeChoice("Mystery vial", C(UiTheme.Accent, $"Pay {price} coins") + "  ->  random " + C(RarityColors.Get(CardRarity.Rare), "item"), () =>
+            {
+                if (!Wallet.TrySpend(price)) return new NodeResult("Wandering Peddler", "Not enough coins.");
+                var item = ItemDatabase.RollConsumable(CardRarity.Rare);
+                ItemDatabase.Grant(item);
+                return new NodeResult("A fine choice", $"{C(RarityColors.Get(item.rarity), item.name)} goes into your bag.\n<size=80%>{item.description}</size>");
+            }, () => Wallet.Coins >= price));
+            s.choices.Add(new NodeChoice("Pay in blood", C(UiTheme.Damage, $"Pay {blood} HP") + "  ->  " + C(RarityColors.Get(CardRarity.Epic), "rare item or relic"), () =>
+            {
+                int lost = RunState.Damage(blood);
+                var item = ItemDatabase.Roll(UnityEngine.Random.value < 0.3f ? CardRarity.Epic : CardRarity.Rare, 0.4f);
+                ItemDatabase.Grant(item);
+                return new NodeResult("The deal is done", $"{C(UiTheme.Damage, $"-{lost} HP")}\n{C(RarityColors.Get(item.rarity), item.name)}" +
+                    (item.IsPassive ? " (passive)" : " goes into your bag.") + $"\n<size=80%>{item.description}</size>");
+            }, () => RunState.PlayerHP > blood));
+            s.choices.Add(new NodeChoice("Leave", "Walk away", () => Leave("Wandering Peddler")));
             return s;
         }
 

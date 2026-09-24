@@ -41,16 +41,22 @@ public class BattleHud : MonoBehaviour
 
     private void Awake()
     {
-        if (endTurn != null)
-        {
-            clickedField = typeof(EndTurnCamera).GetField("hasClicked", BindingFlags.Instance | BindingFlags.NonPublic);
-        }
+        clickedField = typeof(EndTurnCamera).GetField("hasClicked", BindingFlags.Instance | BindingFlags.NonPublic);
     }
 
     private void OnEnable()
     {
         Wallet.Changed += OnCoins;
         OnCoins(Wallet.Coins);
+    }
+
+    /// <summary>Поля назначены после AddComponent (BattleSceneDresser) - показать текущие значения.</summary>
+    public void Bind()
+    {
+        shownCoins = int.MinValue;
+        OnCoins(Wallet.Coins);
+        shownMana = shownMax = -1;
+        shownEnabled = null;
     }
 
     private void OnDisable() => Wallet.Changed -= OnCoins;

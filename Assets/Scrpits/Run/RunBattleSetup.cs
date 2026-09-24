@@ -29,6 +29,7 @@ namespace Assets.Scrpits.Run
             Encounters.Setup(inRun ? RunState.CurrentNodeType : MapNodeType.Battle);
             if (inRun) ApplyPlayerHp();
             RelicSystem.OnBattleStart();
+            BattleSceneDresser.Install(); // [V] HUD / фон / босс / панель предметов (кодом, сцену не трогаем)
         }
 
         public static void ApplyPlayerHp()
@@ -38,17 +39,14 @@ namespace Assets.Scrpits.Run
             var data = typeof(Player).GetField("playerData", Flags)?.GetValue(player) as PlayerData;
             if (data == null || !player.gameObject.activeInHierarchy) return;
 
-            if (RunState.PlayerHP < 0)
-            {
-                RunState.PlayerHP = data.playerHP;
-                RunState.PlayerHPMax = data.playerHPMAX;
-            }
-            else
-            {
-                data.playerHP = Mathf.Clamp(RunState.PlayerHP, 1, data.playerHPMAX);
-                RunState.PlayerHPMax = data.playerHPMAX;
-                player.UpdatePlayerDisplay();
-            }
+            // [Items] бонус к макс. HP от реликвий (Heart Amulet); data - свежий клон ассета на каждый бой
+            data.playerHPMAX += RelicSystem.BonusMaxHp;
+            data.playerHP = RunState.PlayerHP < 0
+                ? Mathf.Min(data.playerHP, data.playerHPMAX)
+                : Mathf.Clamp(RunState.PlayerHP, 1, data.playerHPMAX);
+            RunState.PlayerHP = data.playerHP;
+            RunState.PlayerHPMax = data.playerHPMAX;
+            player.UpdatePlayerDisplay();
         }
 
         /// <summary>Сохранить HP игрока после победы.</summary>

@@ -56,7 +56,7 @@ public class GameControlManager : MonoBehaviour
         Reshuffle();
         Debug.Log($"[D] Battle deck: {deckList.Count} cards");
 
-        DrawCards(startingHand);
+        DrawCards(startingHand + RelicSystem.ExtraStartingCards);
         RefillMana();
     }
 
@@ -76,6 +76,14 @@ public class GameControlManager : MonoBehaviour
         RelicSystem.OnRoundStart();
         DrawCards(cardsPerRound);
         RefillMana();
+    }
+
+    /// <summary>[Items] Добрать карты вне начала хода (свиток). Возвращает сколько карт реально пришло.</summary>
+    public int DrawExtra(int count)
+    {
+        var before = playerDeck.childCount;
+        DrawCards(count);
+        return playerDeck.childCount - before;
     }
 
     private void DrawCards(int count)

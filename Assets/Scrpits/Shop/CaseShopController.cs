@@ -10,9 +10,12 @@ using UnityEngine.UI;
 namespace Assets.Scrpits.Shop
 {
     /// <summary>
-    /// Магазин кейсов (CardShopScene). Строит весь UI из кода внутри своего RectTransform (Canvas).
-    /// Открытие кейса: Wallet.TrySpend -> ролл карты -> рулетка (CS:GO-стиль) -> reveal -> RunState.AddCard.
-    /// Eval: Assets.Scrpits.Shop.CaseShopController.Open("wood"|"iron"|"royal"), .Continue(), .Leave(), .State()
+    /// Магазин (CardShopScene). Строит весь UI из кода внутри своего RectTransform (Canvas).
+    /// Вкладки: CARD CASES (3 кейса карт), ITEM CASES (3 кейса предметов), MERCHANT (прямая покупка предметов).
+    /// Открытие кейса: Wallet.TrySpend -> ролл (карта/предмет) -> рулетка (CS:GO-стиль) -> reveal -> колода / инвентарь.
+    /// Цвет рамки/свечения/подписи - по редкости (RarityColors).
+    /// Eval: Assets.Scrpits.Shop.CaseShopController.Open("wood"|"iron"|"royal"|"pouch"|"satchel"|"relic_chest"),
+    ///       .Buy(0..5), .Tab(0..2), .Continue(), .Leave(), .State()
     /// </summary>
     public class CaseShopController : MonoBehaviour
     {
@@ -31,6 +34,34 @@ namespace Assets.Scrpits.Shop
         private readonly List<(CaseDef def, Button btn, Image btnImg, TMP_Text price, RectTransform panel, TMP_Text warn)> caseUis =
             new List<(CaseDef, Button, Image, TMP_Text, RectTransform, TMP_Text)>();
 
+        // tabs
+        private static readonly string[] TabNames = { "CARD CASES", "ITEM CASES", "MERCHANT" };
+        private static readonly string[] TabSubtitles =
+        {
+            "Open a case - win a card for your deck",
+            "Open a case - win a usable item or a passive relic",
+            "Buy items directly. Usable items go to your battle bag",
+        };
+        private readonly List<(Image face, TMP_Text label)> tabUis = new List<(Image, TMP_Text)>();
+        private readonly RectTransform[] tabRoots = new RectTransform[3];
+        private int currentTab;
+        private TMP_Text subtitleText;
+
+        // merchant
+        private readonly List<StockSlot> stock = new List<StockSlot>();
+
+        private class StockSlot
+        {
+            public ItemDef item;
+            public bool sold;
+            public RectTransform tile;
+            public Button btn;
+            public Image btnImg;
+            public TMP_Text label;
+            public TMP_Text price;
+            public TMP_Text warn;
+        }
+
         // roulette / reveal
         private GameObject overlay;
         private CanvasGroup overlayGroup;
@@ -44,8 +75,8 @@ namespace Assets.Scrpits.Shop
         private TMP_Text revealRarity, revealTitle, revealStats, revealNote;
         private Button continueBtn;
 
-        private readonly List<CardData> wonThisVisit = new List<CardData>();
-        private CardData pendingCard;
+        private readonly List<CaseDrop> wonThisVisit = new List<CaseDrop>();
+        private readonly List<ItemDef> boughtThisVisit = new List<ItemDef>();
         public bool IsBusy { get; private set; }
         public string Phase { get; private set; } = "idle";
 
@@ -78,12 +109,16 @@ namespace Assets.Scrpits.Shop
             return def != null && Instance.TryOpen(def);
         }
 
+        public static bool Buy(int slot) => Instance != null && Instance.TryBuy(slot);
+        public static void Tab(int index) { if (Instance != null) Instance.ShowTab(index); }
         public static void Continue() { if (Instance != null) Instance.CloseOverlay(); }
         public static void Leave() { if (Instance != null) Instance.LeaveShop(); }
 
         public static string State() =>
             Instance == null ? "no shop" :
-            $"phase={Instance.Phase} busy={Instance.IsBusy} coins={Wallet.Coins} deck={RunState.Deck.Count} won=[{string.Join(",", Instance.wonThisVisit.ConvertAll(c => c != null ? $"{c.Id}:{c.rarity}" : "null"))}]";
+            $"phase={Instance.Phase} tab={Instance.currentTab} busy={Instance.IsBusy} coins={Wallet.Coins} deck={RunState.Deck.Count} items={RunState.TotalItems} " +
+            $"won=[{string.Join(",", Instance.wonThisVisit.ConvertAll(d => $"{d.Id}:{d.Rarity}"))}] " +
+            $"stock=[{string.Join(",", Instance.stock.ConvertAll(st => $"{st.item.id}{(st.sold ? "(sold)" : "")}"))}]";
 
         // ---------------- logic ----------------
 
@@ -91,39 +126,40 @@ namespace Assets.Scrpits.Shop
         {
             if (IsBusy) return false;
             var ui = caseUis.Find(u => u.def == def);
-            if (!Wallet.TrySpend(def.price))
+            int price = def.Price;
+            if (!Wallet.TrySpend(price))
             {
                 // нет денег - встряхнуть панель и подсветить цену
                 if (ui.panel != null)
                 {
                     ui.panel.DOKill(true);
                     ui.panel.DOShakeAnchorPos(0.4f, new Vector2(18, 0), 20, 0).SetLink(ui.panel.gameObject);
-                    ui.warn.text = $"Need {def.price - Wallet.Coins} more coins";
+                    ui.warn.text = $"Need {price - Wallet.Coins} more coins";
                     ui.warn.DOKill();
                     ui.warn.alpha = 1f;
                     ui.warn.DOFade(0f, 0.6f).SetDelay(1.4f).SetLink(ui.warn.gameObject);
                 }
-                Debug.Log($"[SHOP] Not enough coins for {def.id} ({Wallet.Coins}/{def.price})");
+                Debug.Log($"[SHOP] Not enough coins for {def.id} ({Wallet.Coins}/{price})");
                 return false;
             }
 
-            var card = def.RollCard();
-            if (card == null)
+            var drop = def.Roll();
+            if (drop.IsEmpty)
             {
-                Wallet.Add(def.price); // вернуть - карт нет вообще
-                Debug.LogWarning("[SHOP] No cards to drop, refunded");
+                Wallet.Add(price); // вернуть - дропать нечего
+                Debug.LogWarning("[SHOP] Nothing to drop, refunded");
                 return false;
             }
-            // карта выдаётся сразу (даже если сцену закроют во время анимации)
-            RunState.AddCard(card);
-            wonThisVisit.Add(card);
-            pendingCard = card;
-            Debug.Log($"[SHOP] Opened {def.id} for {def.price}: {card.Id} ({card.rarity}). Deck={RunState.Deck.Count}");
-            StartSpin(def, card);
+            // награда выдаётся сразу (даже если сцену закроют во время анимации)
+            if (drop.card != null) RunState.AddCard(drop.card);
+            else ItemDatabase.Grant(drop.item);
+            wonThisVisit.Add(drop);
+            Debug.Log($"[SHOP] Opened {def.id} for {price}: {drop.Id} ({drop.Rarity}). Deck={RunState.Deck.Count} Items={RunState.TotalItems}");
+            StartSpin(def, drop);
             return true;
         }
 
-        private void StartSpin(CaseDef def, CardData won)
+        private void StartSpin(CaseDef def, CaseDrop won)
         {
             IsBusy = true;
             Phase = "spin";
@@ -139,8 +175,8 @@ namespace Assets.Scrpits.Shop
             var tiles = new List<RectTransform>();
             for (int i = 0; i < stripLength; i++)
             {
-                var c = i == winIndex ? won : def.RollCard();
-                var t = CardTile.Build(strip, c, tileScale);
+                var c = i == winIndex ? won : Filler(def);
+                var t = c.BuildTile(strip, tileScale);
                 t.anchorMin = t.anchorMax = new Vector2(0, 0.5f);
                 t.anchoredPosition = new Vector2(i * Step + Step * 0.5f, 0);
                 tiles.Add(t);
@@ -169,16 +205,27 @@ namespace Assets.Scrpits.Shop
             seq.OnComplete(() => Reveal(won, tiles[winIndex]));
         }
 
-        private void Reveal(CardData card, RectTransform fromTile)
+        /// <summary>Плитка-«пустышка» для ленты: без побочных эффектов (пассивки не выдаются).</summary>
+        private static CaseDrop Filler(CaseDef def)
+        {
+            if (!def.items) return new CaseDrop(def.RollCard());
+            var r = def.RollRarity();
+            var pool = new List<ItemDef>();
+            foreach (var i in ItemDatabase.All) if (i.rarity == r) pool.Add(i);
+            return pool.Count > 0 ? new CaseDrop(pool[Random.Range(0, pool.Count)]) : new CaseDrop(ItemDatabase.Roll(r));
+        }
+
+        private void Reveal(CaseDrop drop, RectTransform fromTile)
         {
             Phase = "reveal";
-            Color rc = RarityColors.Get(card.rarity);
+            var rarity = drop.Rarity;
+            Color rc = RarityColors.Get(rarity);
             revealRoot.SetActive(true);
             stripViewport.gameObject.SetActive(false);
             overlayTitle.gameObject.SetActive(false);
 
             for (int i = revealCardHolder.childCount - 1; i >= 0; i--) Destroy(revealCardHolder.GetChild(i).gameObject);
-            var big = CardTile.Build(revealCardHolder, card, 1f, true);
+            var big = drop.BuildTile(revealCardHolder, 1f, true);
             big.anchoredPosition = Vector2.zero;
             big.localScale = Vector3.one * tileScale;
             big.DOScale(1.75f, 0.55f).SetEase(Ease.OutBack).SetTarget(this);
@@ -186,7 +233,7 @@ namespace Assets.Scrpits.Shop
             big.DORotate(Vector3.zero, 0.5f).SetEase(Ease.OutBack).SetTarget(this);
 
             revealRays.color = new Color(rc.r, rc.g, rc.b, 0f);
-            revealRays.DOFade(card.rarity >= CardRarity.Epic ? 0.95f : 0.6f, 0.4f).SetTarget(this);
+            revealRays.DOFade(rarity >= CardRarity.Epic ? 0.95f : 0.6f, 0.4f).SetTarget(this);
             revealRays.rectTransform.localScale = Vector3.one * 0.3f;
             revealRays.rectTransform.DOScale(1f, 0.6f).SetEase(Ease.OutBack).SetTarget(this);
             revealRays.rectTransform.DORotate(new Vector3(0, 0, -360), 14f, RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(-1).SetTarget(this);
@@ -197,15 +244,27 @@ namespace Assets.Scrpits.Shop
             revealGlow.rectTransform.DOScale(2.2f, 0.7f).SetEase(Ease.OutCubic).SetTarget(this);
             revealGlow.DOFade(0.35f, 0.8f).SetDelay(0.3f).SetTarget(this);
 
-            string exclaim = card.rarity == CardRarity.Legendary ? "LEGENDARY!" : card.rarity == CardRarity.Epic ? "EPIC!" : RarityColors.Name(card.rarity).ToUpper();
+            string exclaim = rarity == CardRarity.Legendary ? "LEGENDARY!" : rarity == CardRarity.Epic ? "EPIC!" : RarityColors.Name(rarity).ToUpper();
             revealRarity.text = exclaim;
             revealRarity.color = rc;
             revealRarity.transform.localScale = Vector3.zero;
             revealRarity.transform.DOScale(1f, 0.45f).SetEase(Ease.OutBack).SetDelay(0.25f).SetTarget(this);
 
-            revealTitle.text = card.Title;
-            revealStats.text = $"<color=#{UiKit.Hex(UiTheme.Mana)}>Cost {card.Cost}</color>    <color=#{UiKit.Hex(UiTheme.Damage)}>Dmg {card.Damage}</color>    <color=#{UiKit.Hex(UiTheme.Heal)}>HP {card.HP}</color>";
-            revealNote.text = $"Added to your deck  ({RunState.Deck.Count} cards)";
+            revealTitle.text = drop.Title;
+            if (drop.card != null)
+            {
+                var card = drop.card;
+                revealStats.text = $"<color=#{UiKit.Hex(UiTheme.Mana)}>Cost {card.Cost}</color>    <color=#{UiKit.Hex(UiTheme.Damage)}>Dmg {card.Damage}</color>    <color=#{UiKit.Hex(UiTheme.Heal)}>HP {card.HP}</color>";
+                revealNote.text = $"Added to your deck  ({RunState.Deck.Count} cards)";
+            }
+            else
+            {
+                var item = drop.item;
+                revealStats.text = item.description;
+                revealNote.text = item.IsPassive
+                    ? "Passive unlocked - works automatically"
+                    : $"Added to your bag  (x{RunState.ItemCount(item.id)}) - use it in battle";
+            }
             foreach (var t in new[] { revealTitle, revealStats, revealNote })
             {
                 t.alpha = 0f;
@@ -214,6 +273,7 @@ namespace Assets.Scrpits.Shop
             continueBtn.transform.localScale = Vector3.zero;
             continueBtn.transform.DOScale(1f, 0.35f).SetEase(Ease.OutBack).SetDelay(0.6f).SetTarget(this)
                 .OnComplete(() => Phase = "revealed");
+            if (rarity >= CardRarity.Epic) Camera.main?.DOShakePosition(0.35f, 0.15f, 12).SetTarget(this);
             RefreshDeck();
         }
 
@@ -221,7 +281,6 @@ namespace Assets.Scrpits.Shop
         {
             if (!overlay.activeSelf) return;
             DOTween.Kill(this);
-            pendingCard = null;
             overlay.SetActive(false);
             IsBusy = false;
             Phase = "idle";
@@ -235,10 +294,20 @@ namespace Assets.Scrpits.Shop
             {
                 if (RunState.CurrentNodeType == MapNodeType.Shop && !RunState.IsCompleted(RunState.CurrentNodeId))
                     RunState.CompleteCurrentNode();
-                if (wonThisVisit.Count > 0)
-                    RunState.QueueMapToast($"Shop: +{wonThisVisit.Count} card{(wonThisVisit.Count > 1 ? "s" : "")} added to your deck", wonThisVisit[wonThisVisit.Count - 1]);
+                int cards = wonThisVisit.FindAll(d => d.card != null).Count;
+                int items = wonThisVisit.Count - cards + boughtThisVisit.Count;
+                var lastCard = wonThisVisit.FindLast(d => d.card != null).card;
+                if (cards + items > 0)
+                {
+                    var parts = new List<string>();
+                    if (cards > 0) parts.Add($"+{cards} card{(cards > 1 ? "s" : "")}");
+                    if (items > 0) parts.Add($"+{items} item{(items > 1 ? "s" : "")}");
+                    RunState.QueueMapToast("Shop: " + string.Join(", ", parts), lastCard);
+                }
                 else
+                {
                     RunState.QueueMapToast("You leave the merchant empty-handed");
+                }
                 RunState.LoadMap();
             }
             else
@@ -261,18 +330,169 @@ namespace Assets.Scrpits.Shop
             if (coinsText != null) coinsText.text = Wallet.Coins.ToString();
             foreach (var u in caseUis)
             {
-                bool can = Wallet.Coins >= u.def.price;
+                int price = u.def.Price;
+                bool can = Wallet.Coins >= price;
                 u.btnImg.color = can ? UiTheme.Accent : new Color(0.38f, 0.35f, 0.42f, 1f);
+                u.price.text = price.ToString();
                 u.price.color = can ? UiTheme.Background : UiTheme.Damage;
                 var label = u.btn.transform.Find("Text").GetComponent<TMP_Text>();
                 label.color = can ? UiTheme.Background : UiTheme.TextDim;
+            }
+            foreach (var st in stock)
+            {
+                bool owned = st.item.IsPassive && RunState.Relics.Contains(st.item.id);
+                bool closed = st.sold || owned;
+                int price = RelicSystem.ShopPrice(st.item.price);
+                bool can = !closed && Wallet.Coins >= price;
+                st.btn.interactable = !closed;
+                st.btnImg.color = closed ? new Color(0.25f, 0.23f, 0.3f, 1f) : can ? UiTheme.Accent : new Color(0.38f, 0.35f, 0.42f, 1f);
+                st.label.text = st.sold ? "SOLD" : owned ? "OWNED" : "BUY";
+                st.label.color = can ? UiTheme.Background : UiTheme.TextDim;
+                st.price.gameObject.SetActive(!closed);
+                st.price.transform.parent.Find("Coin")?.gameObject.SetActive(!closed);
+                st.price.text = price.ToString();
+                st.price.color = can ? UiTheme.Background : UiTheme.Damage;
+                var cg = st.tile.GetComponent<CanvasGroup>();
+                if (cg == null) cg = st.tile.gameObject.AddComponent<CanvasGroup>();
+                cg.alpha = closed ? 0.45f : 1f;
             }
             RefreshDeck();
         }
 
         private void RefreshDeck()
         {
-            if (deckText != null) deckText.text = $"Deck: {RunState.Deck.Count} cards";
+            if (deckText != null) deckText.text = $"Deck: {RunState.Deck.Count}   Items: {RunState.TotalItems}   Passives: {RunState.Relics.Count}";
+        }
+
+        // ---------------- tabs ----------------
+
+        private void ShowTab(int index)
+        {
+            if (IsBusy || index < 0 || index >= tabRoots.Length) return;
+            bool changed = index != currentTab;
+            currentTab = index;
+            for (int i = 0; i < tabRoots.Length; i++)
+            {
+                if (tabRoots[i] != null) tabRoots[i].gameObject.SetActive(i == index);
+                if (i < tabUis.Count)
+                {
+                    tabUis[i].face.color = i == index ? UiTheme.Accent : UiTheme.PanelLight;
+                    tabUis[i].label.color = i == index ? UiTheme.Background : UiTheme.TextDim;
+                }
+            }
+            if (subtitleText != null) subtitleText.text = TabSubtitles[index];
+            if (changed && tabRoots[index] != null)
+            {
+                var cg = tabRoots[index].GetComponent<CanvasGroup>();
+                if (cg == null) cg = tabRoots[index].gameObject.AddComponent<CanvasGroup>();
+                cg.alpha = 0f;
+                cg.DOFade(1f, 0.25f).SetLink(cg.gameObject);
+                tabRoots[index].anchoredPosition = new Vector2(0, -30);
+                tabRoots[index].DOAnchorPosY(0f, 0.3f).SetEase(Ease.OutCubic).SetLink(cg.gameObject);
+            }
+        }
+
+        // ---------------- merchant ----------------
+
+        /// <summary>Ассортимент на визит: 3 разных расходника + до 3 ещё не собранных пассивок.</summary>
+        private void RollStock()
+        {
+            stock.Clear();
+            var cons = new List<ItemDef>(ItemDatabase.Consumables);
+            for (int i = 0; i < 3 && cons.Count > 0; i++)
+            {
+                var pick = ItemDatabase.RollConsumable(CardRarity.Legendary);
+                if (!cons.Contains(pick)) pick = cons[Random.Range(0, cons.Count)];
+                cons.Remove(pick);
+                stock.Add(new StockSlot { item = pick });
+            }
+            var pas = ItemDatabase.Passives.FindAll(p => !RunState.Relics.Contains(p.id));
+            for (int i = 0; i < 3 && pas.Count > 0; i++)
+            {
+                var pick = pas[Random.Range(0, pas.Count)];
+                pas.Remove(pick);
+                stock.Add(new StockSlot { item = pick });
+            }
+            // пассивки кончились - добить расходниками
+            while (stock.Count < 6 && cons.Count > 0)
+            {
+                var pick = cons[Random.Range(0, cons.Count)];
+                cons.Remove(pick);
+                stock.Add(new StockSlot { item = pick });
+            }
+        }
+
+        private bool TryBuy(int index)
+        {
+            if (IsBusy || index < 0 || index >= stock.Count) return false;
+            var st = stock[index];
+            bool owned = st.item.IsPassive && RunState.Relics.Contains(st.item.id);
+            if (st.sold || owned) return false;
+            int price = RelicSystem.ShopPrice(st.item.price);
+            if (!Wallet.TrySpend(price))
+            {
+                st.tile.DOKill(true);
+                st.tile.DOShakeAnchorPos(0.4f, new Vector2(14, 0), 20, 0).SetLink(st.tile.gameObject);
+                st.warn.text = $"Need {price - Wallet.Coins} more";
+                st.warn.DOKill();
+                st.warn.alpha = 1f;
+                st.warn.DOFade(0f, 0.6f).SetDelay(1.2f).SetLink(st.warn.gameObject);
+                return false;
+            }
+            ItemDatabase.Grant(st.item);
+            st.sold = true;
+            boughtThisVisit.Add(st.item);
+            Debug.Log($"[SHOP] Bought {st.item.id} for {price}. Items={RunState.TotalItems} Relics={RunState.Relics.Count}");
+
+            // «покупка»: вспышка редкости + подпрыгивание плитки
+            var rc = RarityColors.Get(st.item.rarity);
+            var flash = UiKit.Img("BuyFlash", st.tile, new Color(rc.r, rc.g, rc.b, 0.8f), UiKit.Glow);
+            UiKit.Place(flash.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, CardTile.BaseSize * 1.6f);
+            flash.transform.SetAsFirstSibling();
+            flash.DOFade(0f, 0.7f).SetLink(flash.gameObject).OnComplete(() => Destroy(flash.gameObject));
+            st.tile.DOKill(true);
+            st.tile.DOPunchScale(Vector3.one * 0.12f, 0.4f, 6, 0.6f).SetLink(st.tile.gameObject);
+            RefreshAffordability();
+            return true;
+        }
+
+        private void BuildMerchant(RectTransform parent)
+        {
+            RollStock();
+            float scale = 1.05f;
+            float w = CardTile.BaseSize.x * scale, gap = 42f;
+            for (int i = 0; i < stock.Count; i++)
+            {
+                var st = stock[i];
+                float x = (i - (stock.Count - 1) * 0.5f) * (w + gap);
+                var holder = UiKit.Rect("Stock_" + i, parent);
+                UiKit.Place(holder, new Vector2(0.5f, 0.5f), new Vector2(x, 20), CardTile.BaseSize * scale);
+                st.tile = ItemTile.Build(holder, st.item, scale);
+                st.tile.anchorMin = st.tile.anchorMax = new Vector2(0.5f, 0.5f);
+                st.tile.anchoredPosition = Vector2.zero;
+
+                int idx = i;
+                var btn = UiKit.Button("Buy", parent, "BUY", UiTheme.Accent, new Vector2(w, 80), () => TryBuy(idx), 36);
+                UiKit.Place((RectTransform)btn.transform, new Vector2(0.5f, 0.5f), new Vector2(x, -200), new Vector2(w, 80));
+                var label = btn.transform.Find("Text").GetComponent<TMP_Text>();
+                UiKit.Stretch(label.rectTransform, 16, 100, 0, 0);
+                label.alignment = TextAlignmentOptions.Left;
+                var coin = UiKit.Img("Coin", btn.transform, new Color(1f, 0.9f, 0.4f), UiKit.Circle);
+                UiKit.Place(coin.rectTransform, new Vector2(1, 0.5f), new Vector2(-88, 0), new Vector2(32, 32));
+                var ring = UiKit.Img("Ring", coin.rectTransform, new Color(0.75f, 0.45f, 0.05f), UiKit.Ring);
+                UiKit.Stretch(ring.rectTransform, 4, 4, 4, 4);
+                var price = UiKit.Text("Price", btn.transform, "", 36, UiTheme.Background, TextAlignmentOptions.Left);
+                UiKit.Place(price.rectTransform, new Vector2(1, 0.5f), new Vector2(-38, 0), new Vector2(76, 70));
+                var warn = UiKit.Text("Warn", parent, "", 26, UiTheme.Damage);
+                UiKit.Place(warn.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(x, -265), new Vector2(w + 30, 40));
+                warn.alpha = 0f;
+
+                st.btn = btn;
+                st.btnImg = (Image)btn.targetGraphic;
+                st.label = label;
+                st.price = price;
+                st.warn = warn;
+            }
         }
 
         // ---------------- UI ----------------
@@ -294,8 +514,9 @@ namespace Assets.Scrpits.Shop
             UiKit.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -90), new Vector2(1000, 120));
             var tsh = title.gameObject.AddComponent<Shadow>();
             tsh.effectColor = new Color(0, 0, 0, 0.6f); tsh.effectDistance = new Vector2(0, -5);
-            var sub = UiKit.Text("Subtitle", root, "Open a case - win a card for your deck", 40, UiTheme.TextDim);
-            UiKit.Place(sub.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -170), new Vector2(1200, 60));
+            var sub = UiKit.Text("Subtitle", root, TabSubtitles[0], 40, UiTheme.TextDim);
+            UiKit.Place(sub.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -170), new Vector2(1400, 60));
+            subtitleText = sub;
 
             // coins (top-right)
             var coinBox = UiKit.Img("Coins", root, UiTheme.Panel, UiKit.RoundedRect, true);
@@ -308,27 +529,47 @@ namespace Assets.Scrpits.Shop
             coinsText = UiKit.Text("Value", coinBox.rectTransform, "0", 54, UiTheme.Text, TextAlignmentOptions.Left);
             UiKit.Stretch(coinsText.rectTransform, 92, 10, 0, 0);
 
-            deckText = UiKit.Text("Deck", root, "", 40, UiTheme.Text, TextAlignmentOptions.Left);
-            UiKit.Place(deckText.rectTransform, new Vector2(0, 1), new Vector2(230, -70), new Vector2(400, 70));
+            deckText = UiKit.Text("Deck", root, "", 32, UiTheme.Text, TextAlignmentOptions.Left);
+            UiKit.Place(deckText.rectTransform, new Vector2(0, 1), new Vector2(330, -70), new Vector2(600, 70));
+
+            // tabs
+            float tabW = 330f;
+            for (int i = 0; i < TabNames.Length; i++)
+            {
+                int idx = i;
+                var tb = UiKit.Button("Tab_" + i, root, TabNames[i], UiTheme.PanelLight, new Vector2(tabW, 72), () => ShowTab(idx), 34);
+                UiKit.Place((RectTransform)tb.transform, new Vector2(0.5f, 1f), new Vector2((i - 1) * (tabW + 24f), -245), new Vector2(tabW, 72));
+                tabUis.Add(((Image)tb.targetGraphic, tb.transform.Find("Text").GetComponent<TMP_Text>()));
+                tabRoots[i] = UiKit.Rect("TabRoot_" + i, root);
+                UiKit.Stretch(tabRoots[i]);
+            }
 
             // cases
             float w = 470f, gap = 60f;
             for (int i = 0; i < CaseDefs.All.Length; i++)
             {
                 float x = (i - (CaseDefs.All.Length - 1) * 0.5f) * (w + gap);
-                BuildCase(CaseDefs.All[i], new Vector2(x, -10), new Vector2(w, 640), i);
+                BuildCase(CaseDefs.All[i], tabRoots[0], new Vector2(x, -75), new Vector2(w, 640), i);
             }
+            for (int i = 0; i < CaseDefs.Items.Length; i++)
+            {
+                float x = (i - (CaseDefs.Items.Length - 1) * 0.5f) * (w + gap);
+                BuildCase(CaseDefs.Items[i], tabRoots[1], new Vector2(x, -75), new Vector2(w, 640), i);
+            }
+            BuildMerchant(tabRoots[2]);
 
             var leave = UiKit.Button("Leave", root, "Leave shop", UiTheme.PanelLight, new Vector2(380, 100), LeaveShop, 46);
             leave.transform.Find("Text").GetComponent<TMP_Text>().color = UiTheme.Text;
             UiKit.Place((RectTransform)leave.transform, new Vector2(0.5f, 0), new Vector2(0, 80), new Vector2(380, 100));
 
             BuildOverlay();
+            currentTab = -1;
+            ShowTab(0);
         }
 
-        private void BuildCase(CaseDef def, Vector2 pos, Vector2 size, int index)
+        private void BuildCase(CaseDef def, RectTransform parent, Vector2 pos, Vector2 size, int index)
         {
-            var panel = UiKit.Img("Case_" + def.id, root, UiTheme.Panel, UiKit.RoundedRect, true);
+            var panel = UiKit.Img("Case_" + def.id, parent, UiTheme.Panel, UiKit.RoundedRect, true);
             UiKit.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), pos, size);
             var psh = panel.gameObject.AddComponent<Shadow>();
             psh.effectColor = new Color(0, 0, 0, 0.5f); psh.effectDistance = new Vector2(0, -8);
