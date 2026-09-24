@@ -140,6 +140,8 @@ public static class CardAbilities
         target.CardData.HP += hp;
         target.UpdateCardDisplay();
         CombatFx.Punch(target.transform, 0.2f, 0.3f);
+        if (atk > 0) StatusFx.Atk(target.transform, atk);
+        if (hp > 0) StatusFx.Hp(target.transform, hp);
         ImpactFx.Sparkle(target.transform, atk > 0 ? LabelColor(CardAbility.BuffFront) : UiTheme.Heal, 6, 0.8f);
     }
 

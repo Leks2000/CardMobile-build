@@ -217,6 +217,14 @@ namespace Assets.Scrpits.Run
             Debug.Log($"[RUN] Starter deck {deckId}: {Deck.Count} cards");
         }
 
+        /// <summary>Начислить очки славы за забег (один раз).</summary>
+        public static void AwardRenown()
+        {
+            if (RenownAwarded) return;
+            RenownAwarded = true;
+            MetaProgress.AddPoints(RunScore);
+        }
+
         /// <summary>Очки мета-прогрессии за этот забег.</summary>
         public static int RunScore => NodesCleared * 3 + ElitesKilled * 10 + BossesKilled * 30 + (Outcome == RunOutcome.Won ? 60 : 0);
 
@@ -229,6 +237,7 @@ namespace Assets.Scrpits.Run
         public static void FailRun()
         {
             Outcome = RunOutcome.Failed;
+            AwardRenown();
             Debug.Log("[RUN] Run failed");
         }
 

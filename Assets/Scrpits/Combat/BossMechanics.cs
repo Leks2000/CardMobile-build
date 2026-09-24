@@ -68,6 +68,7 @@ public static class BossMechanics
                 {
                     c.CardData.Damage += 1;
                     c.UpdateCardDisplay();
+                    StatusFx.Atk(c.transform, 1);
                     CombatFx.Punch(c.transform, 0.2f, 0.3f);
                 }
                 CombatFx.TurnBanner("ENEMIES RALLY!", VisualTheme.EnemyAccent, 0.4f);

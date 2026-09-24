@@ -124,6 +124,7 @@ public static class RelicSystem
         {
             card.CardData.Damage += 2;
             card.UpdateCardDisplay();
+            StatusFx.Atk(card.transform, 2);
             CombatFx.Punch(card.transform, 0.2f, 0.3f);
         }
     }

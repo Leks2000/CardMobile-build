@@ -1048,7 +1048,12 @@ namespace Assets.Scrpits.Map
             endStats = UiKit.Text("Stats", dim.rectTransform, "", 40, UiTheme.Text);
             UiKit.Place(endStats.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 20), new Vector2(1500, 120));
 
-            var btn = UiKit.Button("MainMenu", dim.rectTransform, "Main Menu", UiTheme.Accent, new Vector2(420, 120), GoToMainMenu, 54);
+            // конец забега: сразу новый забег (без выхода в меню) или открытия
+            var btn = UiKit.Button("NewRun", dim.rectTransform, "NEW RUN", UiTheme.Accent, new Vector2(420, 120), () =>
+            {
+                RunState.StartNewRun();
+                RunState.LoadMap();
+            }, 54);
             UiKit.Place((RectTransform)btn.transform, new Vector2(0.5f, 0.5f), new Vector2(-240, -150), new Vector2(420, 120));
             var unlocks = UiKit.Button("Unlocks", dim.rectTransform, "Unlocks", UiTheme.PanelLight, new Vector2(420, 120), () => MetaScreen.Show(root), 54);
             unlocks.transform.Find("Text").GetComponent<TMP_Text>().color = UiTheme.Text;

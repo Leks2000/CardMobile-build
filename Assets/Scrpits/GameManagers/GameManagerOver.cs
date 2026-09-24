@@ -44,6 +44,10 @@ public class GameManagerOver : MonoBehaviour
         {
             BattleRewards.Grant();
         }
+        else if (RunState.IsActive)
+        {
+            RunState.AwardRenown(); // экран поражения показывает начисленную славу
+        }
 
         buttonNextScene.interactable = false;
         var view = GetComponent<ResultOverlayView>();
@@ -128,7 +132,9 @@ public class GameManagerOver : MonoBehaviour
             }
             else
             {
+                // поражение: очки славы начислены, сразу новый забег (выбор команды - на карте)
                 RunState.FailRun();
+                RunState.StartNewRun();
             }
             RunState.LoadMap();
             yield break;
@@ -138,8 +144,13 @@ public class GameManagerOver : MonoBehaviour
     }
 
 
+    /// <summary>Экран результата уже показан (второй вызов GameOver игнорируется).</summary>
+    public bool IsShown { get; private set; }
+
     public void GameOver(bool result)
     {
+        if (IsShown) return;
+        IsShown = true;
         isWin = result;
         resPanel.gameObject.SetActive(true);
         resultGame.text = result ? "VICTORY!" : "DEFEAT...";

@@ -16,6 +16,8 @@ public class StatusHolder : MonoBehaviour
 
     public IReadOnlyDictionary<StatusType, int> Stacks => stacks;
     public event System.Action Changed;
+    /// <summary>Статус наложен (для эффектов StatusFx): holder, тип, сколько добавлено.</summary>
+    public static event System.Action<StatusHolder, StatusType, int> Added;
 
     public int Get(StatusType type) => stacks.TryGetValue(type, out var v) ? v : 0;
 
@@ -26,6 +28,7 @@ public class StatusHolder : MonoBehaviour
         if (value == 0) stacks.Remove(type);
         else stacks[type] = value;
         Changed?.Invoke();
+        if (amount > 0) Added?.Invoke(this, type, amount);
     }
 
     public void Clear()

@@ -59,7 +59,10 @@ public static class CombatRules
     public static int DamagePlayer(int damage, bool ignoreShield = false)
     {
         var player = Player.Instance;
-        if (player == null || damage <= 0) return 0;
+        if (player == null || damage <= 0 || player.IsDefeated()) return 0;
+        // [Rules] босс уже повержен - игрок больше не получает урон (добивать босса ради сверхурона можно)
+        var boss = Object.FindAnyObjectByType<Boss>();
+        if (boss != null && boss.IsDefeated()) return 0;
         if (!ignoreShield) damage = StatusHolder.Of(player).AbsorbWithShield(damage);
         if (damage > 0)
         {
@@ -67,6 +70,7 @@ public static class CombatRules
             DamageTaken += damage;
             SoundFx.Play(SoundFx.Clip.PlayerHit);
             SoundFx.Vibrate();
+            if (player.IsDefeated()) EndBattleLost();
         }
         return damage;
     }
@@ -101,9 +105,11 @@ public static class CombatRules
         foreach (var card in Object.FindObjectsByType<Card>(FindObjectsSortMode.None))
         {
             if (card.Statuses == null) continue;
+            bool poisoned = card.Statuses.Get(StatusType.Poison) > 0;
             var dot = card.Statuses.TickDamageOverTime();
             if (dot > 0)
             {
+                StatusFx.Tick(card.transform, poisoned ? StatusType.Poison : StatusType.Bleed);
                 card.TakeDamage(dot, true);
                 any = true;
             }
@@ -144,6 +150,28 @@ public static class CombatRules
         // [Balance] босс не бьёт каждый раунд: действие по циклу (атака / щит / тяжёлый удар / передышка)
         yield return BossMechanics.DoAction(boss, Encounters.ActionForRound(Round), Mathf.Max(0, power));
         Encounters.RefreshIntent();
+    }
+
+    /// <summary>
+    /// [Rules] HP игрока = 0: бой заканчивается сразу, не дожидаясь атак остальных линий.
+    /// Останавливает ход (атаки/движение), возвращает камеру и показывает поражение.
+    /// </summary>
+    public static void EndBattleLost()
+    {
+        var over = Object.FindAnyObjectByType<GameManagerOver>();
+        if (over == null || over.IsShown) return;
+        var line = Object.FindAnyObjectByType<LineAttackMoveActivation>();
+        if (line != null) line.StopAllCoroutines();
+        foreach (var atk in Object.FindObjectsByType<CardForwardAttack>(FindObjectsSortMode.None)) atk.StopAllCoroutines();
+        CombatFx.StartRoutine(LostRoutine(over));
+    }
+
+    private static IEnumerator LostRoutine(GameManagerOver over)
+    {
+        yield return new WaitForSeconds(0.6f);
+        var cam = Object.FindAnyObjectByType<EndTurnCamera>();
+        if (cam != null) yield return cam.StartCoroutine(cam.ReturnToInitialPosition());
+        if (over != null && !over.IsShown) over.GameOver(false);
     }
 
     // ---------- игрок ----------

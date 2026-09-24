@@ -173,9 +173,14 @@ namespace Assets.Scrpits.Shop
 
             for (int i = strip.childCount - 1; i >= 0; i--) Destroy(strip.GetChild(i).gameObject);
             var tiles = new List<RectTransform>();
+            string prev = null, prev2 = null;
             for (int i = 0; i < stripLength; i++)
             {
-                var c = i == winIndex ? won : Filler(def);
+                // рядом с выигрышем иногда самая редкая плитка кейса - «чуть-чуть не хватило»
+                bool tease = (i == winIndex + 1 || i == winIndex - 1) && Random.value < 0.45f;
+                var c = i == winIndex ? won : Filler(def, prev, prev2, tease);
+                prev2 = prev;
+                prev = c.Id;
                 var t = c.BuildTile(strip, tileScale);
                 t.anchorMin = t.anchorMax = new Vector2(0, 0.5f);
                 t.anchoredPosition = new Vector2(i * Step + Step * 0.5f, 0);
@@ -207,13 +212,38 @@ namespace Assets.Scrpits.Shop
         }
 
         /// <summary>Плитка-«пустышка» для ленты: без побочных эффектов (пассивки не выдаются).</summary>
-        private static CaseDrop Filler(CaseDef def)
+        /// <summary>
+        /// Плитка-«пустышка» для ленты (без побочных эффектов): случайная карта/предмет из всего пула кейса,
+        /// редкость по шансам кейса, но редкие мелькают чаще (для азарта) и без повторов с двумя предыдущими.
+        /// </summary>
+        private static CaseDrop Filler(CaseDef def, string avoidA = null, string avoidB = null, bool tease = false)
         {
-            if (!def.items) return new CaseDrop(def.RollCard());
-            var r = def.RollRarity();
-            var pool = new List<ItemDef>();
-            foreach (var i in ItemDatabase.All) if (i.rarity == r) pool.Add(i);
-            return pool.Count > 0 ? new CaseDrop(pool[Random.Range(0, pool.Count)]) : new CaseDrop(ItemDatabase.Roll(r));
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                var r = tease ? def.odds[def.odds.Length - 1].rarity : def.RollRarity();
+                // визуально поднять редкость в ~25% плиток
+                if (!tease && Random.value < 0.25f && (int)r < (int)CardRarity.Legendary) r = (CardRarity)((int)r + 1);
+                CaseDrop drop;
+                if (def.items)
+                {
+                    var pool = new List<ItemDef>();
+                    foreach (var i in ItemDatabase.All) if (i.rarity == r) pool.Add(i);
+                    if (pool.Count == 0) foreach (var i in ItemDatabase.All) pool.Add(i);
+                    drop = new CaseDrop(pool[Random.Range(0, pool.Count)]);
+                }
+                else
+                {
+                    var pool = new List<CardData>();
+                    foreach (var c in CardDatabase.PlayerCards)
+                        if (c.inShopPool && MetaProgress.IsCardUnlocked(c.Id) && c.rarity == r) pool.Add(c);
+                    if (pool.Count == 0)
+                        foreach (var c in CardDatabase.PlayerCards)
+                            if (c.inShopPool && MetaProgress.IsCardUnlocked(c.Id)) pool.Add(c);
+                    drop = pool.Count > 0 ? new CaseDrop(pool[Random.Range(0, pool.Count)]) : new CaseDrop(def.RollCard());
+                }
+                if (drop.Id != avoidA && drop.Id != avoidB) return drop;
+            }
+            return def.items ? new CaseDrop(ItemDatabase.Roll(def.RollRarity())) : new CaseDrop(def.RollCard());
         }
 
         private void Reveal(CaseDrop drop, RectTransform fromTile)

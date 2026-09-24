@@ -166,6 +166,7 @@ public static class ItemSystem
                 {
                     c.CardData.Damage += item.value;
                     c.UpdateCardDisplay();
+                    StatusFx.Atk(c.transform, item.value);
                     CombatFx.Punch(c.transform, 0.2f, 0.3f);
                 }
                 return $"+{item.value} ATK x{cards.Count}";

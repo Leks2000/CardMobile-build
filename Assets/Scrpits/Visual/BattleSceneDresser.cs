@@ -222,12 +222,15 @@ public class BattleSceneDresser : MonoBehaviour
             var glowRt = VisualTheme.Node("V_EndTurnGlow", panel, end.anchorMin, end.anchorMax, new Vector2(-20, -20), new Vector2(20, 20));
             glowRt.SetSiblingIndex(end.GetSiblingIndex());
             endGlow = VisualTheme.Img(glowRt, ProcSprites.Glow, Color.clear);
-            HideBg(end);
-            endSign = Sign(end);
+            // объёмная игровая кнопка (как UNLOCK/OWNED), цвет меняет BattleHud: золотая - твой ход, серая - ход врага
+            endFace = BevelButton(end, BattleHud.EndTurnOn);
             endLabel = end.GetComponentInChildren<TMP_Text>(true);
             if (endLabel != null)
             {
-                VisualTheme.Style(endLabel, 40, UiTheme.Text);
+                VisualTheme.Style(endLabel, 40, new Color32(0x2A, 0x16, 0x08, 0xFF), false);
+                var lrt = endLabel.rectTransform;
+                lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+                lrt.offsetMin = new Vector2(8, 10); lrt.offsetMax = new Vector2(-8, -2);
                 endLabel.transform.SetAsLastSibling();
             }
         }
@@ -278,13 +281,16 @@ public class BattleSceneDresser : MonoBehaviour
     {
         var c = FindCanvas("CanvasSetBTN");
         var pause = c != null ? c.transform.Find("Pause") as RectTransform : null;
-        if (pause == null || pause.Find("V_Sign") != null) return;
-        HideBg(pause);
-        Sign(pause);
+        if (pause == null || pause.Find("V_Bevel") != null) return;
+        BevelButton(pause, UiTheme.PanelLight);
+        new GameObject("V_Bevel", typeof(RectTransform)).transform.SetParent(pause, false);
         var t = pause.GetComponentInChildren<TMP_Text>(true);
         if (t != null)
         {
-            VisualTheme.Style(t, 30, UiTheme.Text);
+            VisualTheme.Style(t, 30, UiTheme.Text, false);
+            var trt = t.rectTransform;
+            trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(6, 6); trt.offsetMax = new Vector2(-6, -2);
             t.transform.SetAsLastSibling();
         }
     }
@@ -320,9 +326,10 @@ public class BattleSceneDresser : MonoBehaviour
             raw.uvRect = new Rect(0, 0, i == 0 ? 1.5f : 2.2f, 1);
             bg.fog.Add(new BattleBackground.FogLayer { image = raw, speed = i == 0 ? 0.008f : -0.013f, bob = 0.02f });
         }
-        // без летающих угольков - только лёгкий туман
-        bg.emberRoot = null;
-        bg.emberCount = 0;
+        // горение: угольки поднимаются над столом
+        bg.emberRoot = VisualTheme.Stretch("Embers", root);
+        bg.emberCount = 18;
+        bg.emberColor = new Color(1f, 0.55f, 0.22f, 0.6f);
     }
 
     private static void DressPostFx()
@@ -382,6 +389,24 @@ public class BattleSceneDresser : MonoBehaviour
         if (img != null) img.color = new Color(1, 1, 1, 0f);
         var ol = rt.GetComponent<Outline>();
         if (ol != null) ol.enabled = false;
+    }
+
+    /// <summary>Объёмная игровая кнопка (UiKit.ButtonShape) на месте старой плашки.</summary>
+    private static Image BevelButton(RectTransform rt, Color color)
+    {
+        var old = rt.Find("V_Sign");
+        if (old != null) old.gameObject.SetActive(false);
+        var img = rt.GetComponent<Image>();
+        if (img == null) img = rt.gameObject.AddComponent<Image>();
+        img.sprite = Assets.Scrpits.Map.UiKit.ButtonShape;
+        img.type = Image.Type.Sliced;
+        img.color = color;
+        var ol = rt.GetComponent<Outline>();
+        if (ol != null) ol.enabled = false;
+        var sh = VisualTheme.Ensure<Shadow>(rt.gameObject);
+        sh.effectColor = new Color(0, 0, 0, 0.45f);
+        sh.effectDistance = new Vector2(0, -5);
+        return img;
     }
 
     /// <summary>Деревянная табличка проекта (как у дверей локаций) под кнопкой.</summary>

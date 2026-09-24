@@ -72,7 +72,43 @@ public class CardView : MonoBehaviour
         BuildVisuals();
     }
 
-    private void Start() => Refresh();
+    private void Start()
+    {
+        Refresh();
+        EnsureUpright();
+    }
+
+    private void OnTransformParentChanged()
+    {
+        if (Application.isPlaying && isActiveAndEnabled) EnsureUpright();
+    }
+
+    /// <summary>
+    /// Карты врага стоят на поле повёрнутыми на 180° (так они «смотрят» и бьют в твою сторону). Чтобы игрок
+    /// читал их нормально, визуальная часть переворачивается обратно (контейнер V_Flip); сама карта, её коллайдеры
+    /// и направление атаки (transform.up) не меняются.
+    /// </summary>
+    public void EnsureUpright()
+    {
+        var canvas = GetComponentInParent<Canvas>();
+        if (canvas == null) return;
+        bool upsideDown = Vector3.Dot(transform.up, canvas.transform.up) < 0f;
+        var flip = transform.Find("V_Flip") as RectTransform;
+        if (!upsideDown && flip == null) return;
+        if (flip == null)
+        {
+            flip = VisualTheme.Stretch("V_Flip", transform);
+            var move = new List<Transform>();
+            foreach (Transform c in transform)
+            {
+                if (c == flip || c.GetComponent<Collider>() != null || c.name == "V_Intent" || c.name == "V_Threat") continue;
+                move.Add(c);
+            }
+            foreach (var c in move) c.SetParent(flip, false);
+            flip.SetAsFirstSibling();
+        }
+        flip.localEulerAngles = new Vector3(0f, 0f, upsideDown ? 180f : 0f);
+    }
 
     /// <summary>Show this CardData (title, art, rarity frame, stats, statuses).</summary>
     public void Bind(CardData data)

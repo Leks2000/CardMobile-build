@@ -21,7 +21,7 @@ public class IntentOverlay : MonoBehaviour
     private void Start() => sword = Resources.Load<Sprite>(SwordIcon);
 
     private readonly HashSet<Transform> danger = new HashSet<Transform>();
-    private static Sprite beamSprite;
+    private readonly Dictionary<Transform, int> dangerDmg = new Dictionary<Transform, int>();
 
     private void Update()
     {
@@ -53,68 +53,67 @@ public class IntentOverlay : MonoBehaviour
 
     private void PulseZones()
     {
-        float k = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f);
+        float t = Time.unscaledTime;
+        float k = 0.6f + 0.4f * Mathf.Sin(t * 5f);
         foreach (var slot in FindObjectsByType<DropCard>(FindObjectsSortMode.None))
         {
-            foreach (var n in new[] { "V_Danger", "V_DropZone" })
+            foreach (var n in ZoneNames)
             {
                 var z = slot.transform.Find(n);
                 if (z == null || !z.gameObject.activeSelf) continue;
-                var baseC = n == "V_Danger" ? DangerColor : DropColor;
-                foreach (var img in z.GetComponentsInChildren<Image>(true))
+                var c = n == "V_Danger" ? DangerColor : DropColor;
+                foreach (var img in z.GetComponentsInChildren<Graphic>(true))
                 {
-                    float a = img.name == "Beam" ? 0.55f : 0.45f;
-                    img.color = new Color(baseC.r, baseC.g, baseC.b, a * k);
+                    float a = img.name switch
+                    {
+                        "Flat" => 0.35f * k,
+                        "Fill" => 0.28f,
+                        "Rim" => 0.75f + 0.25f * k,
+                        _ => 1f,
+                    };
+                    img.color = new Color(img.name == "Icon" || img.name == "Dmg" ? 1f : c.r, img.name == "Icon" || img.name == "Dmg" ? 1f : c.g, img.name == "Icon" || img.name == "Dmg" ? 1f : c.b, a);
                 }
+                // «карточка» парит над клеткой (к камере)
+                var lift = z.Find("Lift");
+                if (lift != null) lift.localPosition = new Vector3(0f, 0f, -16f - 6f * Mathf.Sin(t * 2.5f));
             }
         }
     }
 
+    private static readonly string[] ZoneNames = { "V_Danger", "V_DropZone" };
+
     /// <summary>
-    /// Зона на клетке: плоское свечение + «стена» света, стоящая вверх из поля (повёрнута на 90° к полю,
-    /// в камерном канвасе это настоящий 3D-объём).
+    /// Зона на клетке в форме карточки: мягкое свечение на столе + светящаяся карточка-силуэт (заливка + кайма),
+    /// приподнятая над клеткой к камере. У красной зоны - скрещенные мечи и урон.
     /// </summary>
     private static Transform Zone(Transform slot, string name, Color color)
     {
         var root = VisualTheme.Stretch(name, slot);
-        var flat = VisualTheme.Img(VisualTheme.Stretch("Flat", root, -10f), ProcSprites.Glow, color);
+        var flat = VisualTheme.Img(VisualTheme.Stretch("Flat", root, -14f), ProcSprites.Glow, color);
         flat.raycastTarget = false;
-        var beamRt = VisualTheme.Node("BeamRoot", root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-        var slotRt = (RectTransform)slot;
-        beamRt.sizeDelta = new Vector2(slotRt.rect.width * 0.95f, slotRt.rect.height * 0.9f);
-        beamRt.pivot = new Vector2(0.5f, 0f);
-        beamRt.anchoredPosition = new Vector2(0f, -slotRt.rect.height * 0.1f);
-        beamRt.localEulerAngles = new Vector3(-90f, 0f, 0f); // встаёт из плоскости поля к камере
-        var beam = VisualTheme.Img(VisualTheme.Stretch("Beam", beamRt), null, color);
-        beam.sprite = BeamSprite();
-        beam.raycastTarget = false;
+        var lift = VisualTheme.Stretch("Lift", root, 2f);
+        var fill = VisualTheme.Img(VisualTheme.Stretch("Fill", lift), ProcSprites.RoundRectSmall, color, true);
+        fill.raycastTarget = false;
+        var rim = VisualTheme.Img(VisualTheme.Stretch("Rim", lift, -2f), ProcSprites.RoundOutline, color, true);
+        rim.raycastTarget = false;
+        if (name == "V_Danger")
+        {
+            var icon = VisualTheme.Img(VisualTheme.Node("Icon", lift, new Vector2(0.18f, 0.35f), new Vector2(0.82f, 0.8f), Vector2.zero, Vector2.zero), null, Color.white);
+            icon.sprite = ArtLib.UI("loc_swords");
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            var dmg = VisualTheme.Txt(VisualTheme.Node("Dmg", lift, new Vector2(0f, 0.08f), new Vector2(1f, 0.36f), Vector2.zero, Vector2.zero), "", 30, Color.white);
+            dmg.raycastTarget = false;
+        }
         root.SetAsFirstSibling(); // под картой
         return root;
-    }
-
-    /// <summary>Вертикальный градиент: яркий у основания, прозрачный сверху.</summary>
-    private static Sprite BeamSprite()
-    {
-        if (beamSprite != null) return beamSprite;
-        var tex = new Texture2D(8, 64, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.DontSave };
-        var px = new Color32[8 * 64];
-        for (int y = 0; y < 64; y++)
-            for (int x = 0; x < 8; x++)
-            {
-                float t = y / 63f;
-                float edge = Mathf.Sin((x + 0.5f) / 8f * Mathf.PI);
-                px[y * 8 + x] = new Color(1, 1, 1, (1f - t) * (1f - t) * (0.6f + 0.4f * edge));
-            }
-        tex.SetPixels32(px);
-        tex.Apply();
-        beamSprite = Sprite.Create(tex, new Rect(0, 0, 8, 64), new Vector2(0.5f, 0f), 100f);
-        return beamSprite;
     }
 
     private void Refresh()
     {
         incoming.Clear();
         danger.Clear();
+        dangerDmg.Clear();
         var cards = FindObjectsByType<Card>(FindObjectsSortMode.None);
         foreach (var c in cards)
         {
@@ -133,12 +132,12 @@ public class IntentOverlay : MonoBehaviour
             {
                 incoming.TryGetValue(targetCard, out var sum);
                 incoming[targetCard] = sum + dmg;
-                if (targetCard.transform.parent != null) danger.Add(targetCard.transform.parent);
+                if (targetCard.transform.parent != null) AddDanger(targetCard.transform.parent, dmg);
             }
             else if (hitsPlayer)
             {
                 var slot = EmptySlotOnPath(c);
-                if (slot != null) danger.Add(slot);
+                if (slot != null) AddDanger(slot, dmg);
             }
         }
 
@@ -150,6 +149,13 @@ public class IntentOverlay : MonoBehaviour
             if (!on) { if (z != null) z.gameObject.SetActive(false); continue; }
             if (z == null) z = Zone(slot.transform, "V_Danger", DangerColor);
             z.gameObject.SetActive(true);
+            // на пустой клетке - парящая красная карточка с мечами и уроном (сюда придёт удар по тебе);
+            // под твоей картой - только красное свечение (метка урона уже на карте)
+            bool empty = slot.GetComponentInChildren<Card>() == null;
+            var lift = z.Find("Lift");
+            if (lift != null) lift.gameObject.SetActive(empty);
+            var dmgT = z.Find("Lift/Dmg");
+            if (dmgT != null && dangerDmg.TryGetValue(slot.transform, out var dd)) dmgT.GetComponent<TMP_Text>().text = $"-{dd} YOU";
         }
 
         foreach (var c in cards)
@@ -168,6 +174,13 @@ public class IntentOverlay : MonoBehaviour
             bool lethal = dmg >= c.CardData.HP;
             text.text = lethal ? $"-{dmg}!" : $"-{dmg}";
         }
+    }
+
+    private void AddDanger(Transform slot, int dmg)
+    {
+        danger.Add(slot);
+        dangerDmg.TryGetValue(slot, out var sum);
+        dangerDmg[slot] = sum + dmg;
     }
 
     /// <summary>Пустая клетка игрока, через которую враг бьёт тебя (первая клетка DropCard на луче).</summary>
