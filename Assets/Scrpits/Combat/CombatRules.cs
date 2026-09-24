@@ -43,7 +43,10 @@ public static class CombatRules
         if (BossMechanics.BlocksHit(attacker, boss)) return; // [Boss] щит держит ближний бой
         var holder = StatusHolder.Of(boss);
         var dealt = holder.AbsorbWithShield(attacker.CardData.Damage);
-        if (dealt > 0) boss.TakeDamage(dealt);
+        // число урона сначала на клетке ударившей карты, потом летит к боссу - босс реагирует по прилёту
+        var bossTarget = boss.bossImage != null ? boss.bossImage.transform : boss.transform;
+        float fxDelay = BoardDamagePop.Fly(attacker.transform, dealt, bossTarget, dealt > 0 ? (Color?)null : UiTheme.Shield);
+        if (dealt > 0) boss.TakeDamage(dealt, fxDelay);
         SoundFx.Play(dealt > 0 ? SoundFx.Clip.BossHit : SoundFx.Clip.Block);
         AfterHit(attacker, holder, dealt);
     }

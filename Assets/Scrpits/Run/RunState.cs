@@ -68,6 +68,17 @@ namespace Assets.Scrpits.Run
             if (card != null) Deck.Add(card);
         }
 
+        /// <summary>Сообщить подписчикам об изменении инвентаря; ошибка одного подписчика не ломает забег.</summary>
+        private static void NotifyItems()
+        {
+            if (ItemsChanged == null) return;
+            foreach (System.Action h in ItemsChanged.GetInvocationList())
+            {
+                try { h(); }
+                catch (System.Exception e) { Debug.LogWarning("[RUN] ItemsChanged handler failed: " + e.Message); }
+            }
+        }
+
         public static int ItemCount(string id) => id != null && Items.TryGetValue(id, out var n) ? n : 0;
 
         public static int TotalItems
@@ -84,7 +95,7 @@ namespace Assets.Scrpits.Run
         {
             if (string.IsNullOrEmpty(id) || count <= 0) return;
             Items[id] = ItemCount(id) + count;
-            ItemsChanged?.Invoke();
+            NotifyItems();
         }
 
         /// <summary>Списать один расходник. false - такого нет.</summary>
@@ -94,7 +105,7 @@ namespace Assets.Scrpits.Run
             if (n <= 0) return false;
             if (n == 1) Items.Remove(id);
             else Items[id] = n - 1;
-            ItemsChanged?.Invoke();
+            NotifyItems();
             return true;
         }
 
@@ -146,7 +157,7 @@ namespace Assets.Scrpits.Run
             Deck.Clear();
             Relics.Clear();
             Items.Clear();
-            ItemsChanged?.Invoke();
+            NotifyItems();
             CoinsEarned = 0;
             PendingBattleReward = false;
             PendingToasts.Clear();

@@ -18,6 +18,8 @@ public class CardData : ScriptableObject
     /// <summary>Уникальный id (для колоды забега и дропа из кейсов). Пусто = имя ассета.</summary>
     public string id;
     public string displayName;
+    /// <summary>Кто это (роль в отряде), одна строка. Пусто = CardLore по id.</summary>
+    public string role;
     /// <summary>Арт карты (пользователь подкладывает свой PNG). null = старый арт префаба.</summary>
     public Sprite art;
     /// <summary>Путь к арту в Resources (например "Art/Cards/Footman"), если art не задан.</summary>
@@ -46,6 +48,9 @@ public class CardData : ScriptableObject
 
     public string Id => string.IsNullOrEmpty(id) ? name.Replace("(Clone)", "") : id;
     public string Title => string.IsNullOrEmpty(displayName) ? Id : displayName;
+    public string Role => string.IsNullOrEmpty(role) ? CardLore.RoleOf(Id) : role;
+    /// <summary>Что делает карта: текст карты или описание способности.</summary>
+    public string EffectText => string.IsNullOrEmpty(cardInfo) ? CardAbilities.Describe(this) : cardInfo;
     /// <summary>Арт карты: art или спрайт по artResource.</summary>
     public Sprite ArtSprite => art != null ? art : ArtLib.Get(artResource);
 

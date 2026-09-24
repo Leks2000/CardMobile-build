@@ -46,6 +46,7 @@ public class BattleSceneDresser : MonoBehaviour
         Safe("atmosphere", DressAtmosphere);
         Safe("post", DressPostFx);
         Safe("intents", () => { if (FindAnyObjectByType<IntentOverlay>() == null) gameObject.AddComponent<IntentOverlay>(); });
+        Safe("watchdog", () => { if (FindAnyObjectByType<BattleWatchdog>() == null) gameObject.AddComponent<BattleWatchdog>(); });
         if (uiRoot != null)
         {
             Safe("items", () => { if (FindAnyObjectByType<BattleItemBar>() == null) BattleItemBar.Create(uiRoot); });
@@ -114,6 +115,7 @@ public class BattleSceneDresser : MonoBehaviour
         {
             var hpText = hpBox.Find("HP") != null ? hpBox.Find("HP").GetComponent<TMP_Text>() : null;
             hpBar = BuildStatBar(hpBox, hpText, BossHpColor, "{0}/{1}", 42);
+            hpBar.allowNegative = true; // сверхурон виден: -5/40
             var intent = hpBox.Find("D_BossIntent") as RectTransform;
             if (intent != null && intent.TryGetComponent<TMP_Text>(out var it))
             {
@@ -279,7 +281,13 @@ public class BattleSceneDresser : MonoBehaviour
 
     private static void DressPause()
     {
+        // пауза и настройки - поверх HUD (GameUI = 6) и экрана результата (7), иначе HUD перекрывает их клики
+        var menu = FindCanvas("CanvasPauseMenuPanel");
+        if (menu != null) menu.sortingOrder = 30;
+        var settings = FindCanvas("CanvasSettings");
+        if (settings != null) settings.sortingOrder = 31;
         var c = FindCanvas("CanvasSetBTN");
+        if (c != null) c.sortingOrder = 8;
         var pause = c != null ? c.transform.Find("Pause") as RectTransform : null;
         if (pause == null || pause.Find("V_Bevel") != null) return;
         BevelButton(pause, UiTheme.PanelLight);
@@ -398,6 +406,21 @@ public class BattleSceneDresser : MonoBehaviour
         if (old != null) old.gameObject.SetActive(false);
         var img = rt.GetComponent<Image>();
         if (img == null) img = rt.gameObject.AddComponent<Image>();
+        img.enabled = true;        // в сцене у кнопок Image бывает выключен - тогда кликать не по чему
+        img.raycastTarget = true;
+        var b = rt.GetComponent<Button>();
+        if (b != null)
+        {
+            b.targetGraphic = img;
+            // тинт из сцены (тёмный/прозрачный Normal) не должен перекрашивать кнопку
+            var cb = b.colors;
+            cb.normalColor = Color.white;
+            cb.selectedColor = Color.white;
+            cb.highlightedColor = new Color(1.08f, 1.08f, 1.08f, 1f);
+            cb.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.colorMultiplier = 1f;
+            b.colors = cb;
+        }
         img.sprite = Assets.Scrpits.Map.UiKit.ButtonShape;
         img.type = Image.Type.Sliced;
         img.color = color;

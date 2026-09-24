@@ -34,7 +34,11 @@ public static class CardDatabase
         PlayerCards.Where(c => c.isStarter).SelectMany(c => Enumerable.Repeat(c, Mathf.Max(1, c.starterCopies))); // [D]
     /// <summary>Карты магазина/кейсов этой редкости (закрытые мета-прогрессией не выпадают).</summary>
     public static IEnumerable<CardData> ShopPool(CardRarity rarity) =>
-        PlayerCards.Where(c => c.inShopPool && c.rarity == rarity && MetaProgress.IsCardUnlocked(c.Id));
+        Obtainable.Where(c => c.rarity == rarity);
+
+    /// <summary>Все карты, которые можно получить (в пуле магазина, открыты мета-прогрессией и с артом).</summary>
+    public static IEnumerable<CardData> Obtainable =>
+        PlayerCards.Where(c => c.inShopPool && c.ArtSprite != null && MetaProgress.IsCardUnlocked(c.Id));
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetCache() => all = null;

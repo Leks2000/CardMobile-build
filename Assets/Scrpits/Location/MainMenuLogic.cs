@@ -18,7 +18,8 @@ namespace Assets.Scrpits.Location
             // START: продолжить идущий забег, иначе начать новый
             if (sceneName == Assets.Scrpits.Run.RunState.MapSceneName && !Assets.Scrpits.Run.RunState.IsActive)
             {
-                Assets.Scrpits.Run.RunState.StartNewRun();
+                try { Assets.Scrpits.Run.RunState.StartNewRun(); }
+                catch (System.Exception e) { Debug.LogException(e); }
             }
             var target = sceneName;
             SceneFade.Out(0.35f, () => SceneManager.LoadScene(target));

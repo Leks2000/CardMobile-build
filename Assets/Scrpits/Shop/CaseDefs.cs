@@ -105,11 +105,10 @@ namespace Assets.Scrpits.Shop
             {
                 var pool = CardDatabase.ShopPool((CardRarity)r).ToList();
                 if (pool.Count > 0) return pool[Random.Range(0, pool.Count)];
-                var byRarity = CardDatabase.PlayerCards.Where(c => c.rarity == (CardRarity)r && !c.isStarter && MetaProgress.IsCardUnlocked(c.Id)).ToList();
-                if (byRarity.Count > 0) return byRarity[Random.Range(0, byRarity.Count)];
             }
-            var any = CardDatabase.PlayerCards.ToList();
-            if (any.Count == 0) any = CardDatabase.All.ToList();
+            // только карты с артом из пула (старые карты без картинок не выпадают)
+            var any = CardDatabase.Obtainable.ToList();
+            if (any.Count == 0) any = CardDatabase.PlayerCards.Where(c => c.ArtSprite != null).ToList();
             return any.Count > 0 ? any[Random.Range(0, any.Count)] : null;
         }
 

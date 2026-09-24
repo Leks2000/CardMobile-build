@@ -157,7 +157,6 @@ namespace Assets.Scrpits.Map
             label.fontSizeMax = 40;
             btn.onClick.AddListener(() => Show(root, label));
 
-            DressStartButtons();
         }
 
         /// <summary>
@@ -185,20 +184,6 @@ namespace Assets.Scrpits.Map
                 lrt.offsetMin = new Vector2(12, 12); lrt.offsetMax = new Vector2(-12, -4);
                 label.enableAutoSizing = true; label.fontSizeMin = 20; label.fontSizeMax = 56;
             }
-        }
-
-        /// <summary>Кнопка Start меню -> START / CONTINUE в стиле игры (рестарт - на экране поражения, не здесь).</summary>
-        private static void DressStartButtons()
-        {
-            Assets.Scrpits.Location.MainMenuLogic start = null;
-            foreach (var l in UnityEngine.Object.FindObjectsByType<Assets.Scrpits.Location.MainMenuLogic>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-                if (l.sceneName == Assets.Scrpits.Run.RunState.MapSceneName && l.GetComponent<Button>() != null) { start = l; break; }
-            if (start == null) return;
-            var label = start.GetComponentInChildren<TMP_Text>(true);
-            if (label != null) label.text = Assets.Scrpits.Run.RunState.IsActive ? "CONTINUE" : "START";
-            GameButton(start.GetComponent<Image>(), label, true);
-            var rt = (RectTransform)start.transform;
-            if (rt.anchorMin == rt.anchorMax && rt.rect.height < 90f) rt.sizeDelta = new Vector2(Mathf.Max(rt.sizeDelta.x, 420f), Mathf.Max(rt.sizeDelta.y, 110f));
         }
 
         private static void Show(RectTransform root, TMP_Text label)

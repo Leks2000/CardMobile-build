@@ -71,7 +71,13 @@ public class BattlePassiveRow : MonoBehaviour
     private void Rebuild()
     {
         shownCount = RunState.Relics.Count;
-        for (int i = row.childCount - 1; i >= 0; i--) Destroy(row.GetChild(i).gameObject);
+        for (int i = row.childCount - 1; i >= 0; i--)
+        {
+            var c = row.GetChild(i);
+            c.gameObject.SetActive(false);
+            c.SetParent(null, false);
+            Destroy(c.gameObject);
+        }
         var owned = new List<ItemDef>();
         foreach (var id in RunState.Relics)
         {

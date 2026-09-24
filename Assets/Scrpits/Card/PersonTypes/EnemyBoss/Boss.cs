@@ -55,10 +55,21 @@ public class Boss : MonoBehaviour
         maxSeen = 0f;
         if (view != null) { view.ApplyData(bossData); view.SetHp(HP, MaxHP, false); }
     }
-    public void TakeDamage(int damage)
+    /// <param name="fxDelay">Через сколько показать реакцию (число урона долетает с клетки поля - BoardDamagePop).</param>
+    public void TakeDamage(int damage, float fxDelay = 0f)
+    {
+        bossData.ApplyDamage(damage); // логика - сразу, визуал - когда число долетит
+        if (fxDelay > 0f)
+        {
+            DOTween.Sequence().SetLink(gameObject).AppendInterval(fxDelay).AppendCallback(() => PlayDamageFx(damage));
+            return;
+        }
+        PlayDamageFx(damage);
+    }
+
+    private void PlayDamageFx(int damage)
     {
         takeDamage.text = "-" + damage.ToString();
-        bossData.ApplyDamage(damage);
         UpdateCardDisplay();
         damageAnimator.Animate(takeDamage, damage);
         if (view != null) view.PlayHit(damage);

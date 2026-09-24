@@ -86,8 +86,16 @@ public class BattleItemBar : MonoBehaviour
 
     private void Rebuild()
     {
-        if (slotsRoot == null) return;
-        foreach (var s in slots) Destroy(s.rt.gameObject);
+        if (this == null || slotsRoot == null) return;
+        // старые слоты: сначала отцепить (Destroy отложен до конца кадра, а новый слот с тем же именем
+        // иначе найдётся через Find и будет удалён вместо старого - так пропадали остальные предметы)
+        foreach (var s in slots)
+        {
+            if (s.rt == null) continue;
+            s.rt.gameObject.SetActive(false);
+            s.rt.SetParent(null, false);
+            Destroy(s.rt.gameObject);
+        }
         slots.Clear();
 
         int n = 0;
@@ -257,7 +265,7 @@ public class BattleItemBar : MonoBehaviour
         {
             slot.rt.DOKill(true);
             slot.rt.DOShakeAnchorPos(0.3f, new Vector2(10, 0), 20, 0).SetLink(slot.rt.gameObject);
-            if (!string.IsNullOrEmpty(reason)) Float(slot.rt, reason, UiTheme.Damage);
+            if (!string.IsNullOrEmpty(reason)) Float(slot.rt.position, reason, UiTheme.Damage);
             return;
         }
 
@@ -271,7 +279,7 @@ public class BattleItemBar : MonoBehaviour
 
         // иконка летит в босса, эффект - по прилёту
         busy = true;
-        var proj = VisualTheme.Centered("Thrown_" + id, root.parent, new Vector2(0.5f, 0.5f), new Vector2(84, 84));
+        var proj = VisualTheme.Centered("Thrown_" + id + "_" + (floatSeq++), root.parent, new Vector2(0.5f, 0.5f), new Vector2(84, 84));
         var pimg = VisualTheme.Img(proj, null, Color.white);
         pimg.sprite = ItemIcons.Get(item);
         pimg.preserveAspect = true;
@@ -293,13 +301,17 @@ public class BattleItemBar : MonoBehaviour
 
     private void Resolve(string id, Slot slot)
     {
+        // позицию берём до TryUse: списание пересобирает панель и старый слот уже отцеплен
+        Vector3 at = slot != null && slot.rt != null ? slot.rt.position : root.position;
         if (!ItemSystem.TryUse(id, out var result))
         {
-            if (slot != null && !string.IsNullOrEmpty(result)) Float(slot.rt, result, UiTheme.Damage);
+            if (!string.IsNullOrEmpty(result)) Float(at, result, UiTheme.Damage);
             return;
         }
-        if (slot != null) Float(slot.rt, result, ItemDatabase.Get(id).color);
+        Float(at, result, ItemDatabase.Get(id).color);
     }
+
+    private static int floatSeq;
 
     private void OnUsed(ItemDef item)
     {
@@ -347,11 +359,12 @@ public class BattleItemBar : MonoBehaviour
     }
 
     /// <summary>Всплывающий текст над слотом.</summary>
-    private void Float(RectTransform at, string text, Color color)
+    private void Float(Vector3 at, string text, Color color)
     {
         if (string.IsNullOrEmpty(text)) return;
-        var rt = VisualTheme.Centered("Float", root.parent, new Vector2(0.5f, 0.5f), new Vector2(420, 60));
-        rt.position = at.position;
+        // уникальное имя: VisualTheme.Centered переиспользует объект с тем же именем (прошлая надпись ещё летит)
+        var rt = VisualTheme.Centered("Float_" + (floatSeq++), root.parent, new Vector2(0.5f, 0.5f), new Vector2(420, 60));
+        rt.position = at;
         rt.anchoredPosition += new Vector2(-240f, 0f);
         var t = VisualTheme.Txt(rt, text, 38, color);
         t.alignment = TextAlignmentOptions.Right;

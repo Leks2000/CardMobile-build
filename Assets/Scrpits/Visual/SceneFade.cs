@@ -18,7 +18,17 @@ public static class SceneFade
         var img = Ensure();
         img.raycastTarget = true; // во время перехода клики не проходят
         img.DOKill();
-        img.DOFade(1f, duration).SetEase(Ease.InQuad).SetUpdate(true).OnComplete(() => then?.Invoke());
+        img.DOFade(1f, duration).SetEase(Ease.InQuad).SetUpdate(true).OnComplete(() =>
+        {
+            try { then?.Invoke(); }
+            catch (Exception e)
+            {
+                // переход сорвался - не оставлять игрока с чёрным экраном
+                Debug.LogException(e);
+                img.raycastTarget = false;
+                img.DOFade(0f, 0.3f).SetUpdate(true);
+            }
+        });
     }
 
     private static Image Ensure()
@@ -47,6 +57,7 @@ public static class SceneFade
         if (black == null) return;
         var img = black;
         img.DOKill();
+        img.raycastTarget = false; // сцена загружена - клики уже не блокируем
         img.DOFade(0f, 0.45f).SetDelay(0.05f).SetEase(Ease.OutQuad).SetUpdate(true).OnComplete(() =>
         {
             SceneManager.sceneLoaded -= OnLoaded;

@@ -42,9 +42,20 @@ public class Tooltip : MonoBehaviour
 
         currentTween?.Kill();
 
-        tooltipTextAbility.text = string.IsNullOrEmpty(cardData.cardInfo) ? CardAbilities.Describe(cardData) : cardData.cardInfo;
-        tooltipTextInfo.text = cardData.name;
-        tooltipTextStatus.text = $"Dmg {cardData.Damage} / Hp {cardData.Cost}";
+        // имя без "(Clone)", под ним - кто это; ниже - что делает карта
+        string role = cardData.Role;
+        tooltipTextInfo.richText = true;
+        if (!tooltipTextInfo.enableAutoSizing)
+        {
+            // строка роли не должна вылезать за рамку подсказки
+            tooltipTextInfo.fontSizeMax = tooltipTextInfo.fontSize;
+            tooltipTextInfo.fontSizeMin = 8;
+            tooltipTextInfo.enableAutoSizing = true;
+            tooltipTextInfo.textWrappingMode = TextWrappingModes.Normal;
+        }
+        tooltipTextInfo.text = string.IsNullOrEmpty(role) ? cardData.Title : $"{cardData.Title}\n<size=70%><i>{role}</i></size>";
+        tooltipTextAbility.text = cardData.EffectText;
+        tooltipTextStatus.text = $"ATK {cardData.Damage}  /  HP {cardData.HP}  /  Mana {cardData.Cost}";
 
         PositionTooltip(targetTransform);
 

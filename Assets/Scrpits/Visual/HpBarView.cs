@@ -17,13 +17,25 @@ public class HpBarView : MonoBehaviour
     public Color lowColor = new Color32(0xFF, 0x6A, 0x2A, 0xFF);
     public Color healColor = new Color32(0x5E, 0xE0, 0x7A, 0xFF);
 
+    /// <summary>HP может уйти в минус (босс: сверхурон = доп. монеты) - число показывается красным.</summary>
+    public bool allowNegative;
+    public Color negativeColor = new Color32(0xFF, 0x4D, 0x4D, 0xFF);
+
     private float shown = -1f;
     private Tween trailTween;
+    private Color? labelColor;
 
     public void Set(float current, float max, bool animate = true)
     {
         float t = max > 0 ? Mathf.Clamp01(current / max) : 0f;
-        if (label != null) label.text = string.Format(format, Mathf.Max(0, Mathf.RoundToInt(current)), Mathf.RoundToInt(max));
+        if (label != null)
+        {
+            int hp = Mathf.RoundToInt(current);
+            if (!allowNegative) hp = Mathf.Max(0, hp);
+            label.text = string.Format(format, hp, Mathf.RoundToInt(max));
+            if (labelColor == null) labelColor = label.color;
+            label.color = hp < 0 ? negativeColor : labelColor.Value;
+        }
         if (fill == null) return;
         fill.color = t <= 0.3f ? lowColor : fillColor;
 

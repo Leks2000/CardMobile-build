@@ -11,7 +11,7 @@ namespace Assets.Scrpits.Shop
 {
     /// <summary>
     /// Магазин (CardShopScene). Строит весь UI из кода внутри своего RectTransform (Canvas).
-    /// Вкладки: CARD CASES (3 кейса карт), ITEM CASES (3 кейса предметов), MERCHANT (прямая покупка предметов).
+    /// Вкладки: CARD SLOTS (слот-машина карт, SlotMachine), ITEM CASES (3 кейса предметов), MERCHANT (прямая покупка предметов).
     /// Открытие кейса: Wallet.TrySpend -> ролл (карта/предмет) -> рулетка (CS:GO-стиль) -> reveal -> колода / инвентарь.
     /// Цвет рамки/свечения/подписи - по редкости (RarityColors).
     /// Eval: Assets.Scrpits.Shop.CaseShopController.Open("wood"|"iron"|"royal"|"pouch"|"satchel"|"relic_chest"),
@@ -21,9 +21,9 @@ namespace Assets.Scrpits.Shop
     {
         public static CaseShopController Instance { get; private set; }
 
-        [SerializeField] private float spinDuration = 5.2f;
-        [SerializeField] private int stripLength = 46;
-        [SerializeField] private int winIndex = 39;
+        [SerializeField] private float spinDuration = 8f;
+        [SerializeField] private int stripLength = 50;
+        [SerializeField] private int winIndex = 42;
         [SerializeField] private float tileScale = 0.8f;
         [SerializeField] private float tileSpacing = 16f;
 
@@ -35,10 +35,10 @@ namespace Assets.Scrpits.Shop
             new List<(CaseDef, Button, Image, TMP_Text, RectTransform, TMP_Text)>();
 
         // tabs
-        private static readonly string[] TabNames = { "CARD CASES", "ITEM CASES", "MERCHANT" };
+        private static readonly string[] TabNames = { "CARD SLOTS", "ITEM CASES", "MERCHANT" };
         private static readonly string[] TabSubtitles =
         {
-            "Open a case - win a card for your deck",
+            "Pull the lever: three same cards - the card is yours. 6-6-6 pays 666 coins!",
             "Open a case - win a usable item or a passive relic",
             "Buy items directly. Usable items go to your battle bag",
         };
@@ -193,7 +193,7 @@ namespace Assets.Scrpits.Shop
             strip.anchoredPosition = new Vector2(start, 0);
             int lastIdx = -1;
             var seq = DOTween.Sequence().SetTarget(this);
-            seq.Append(strip.DOAnchorPosX(target, spinDuration).SetEase(Ease.OutQuart).OnUpdate(() =>
+            seq.Append(strip.DOAnchorPosX(target, spinDuration).SetEase(Ease.OutCubic).OnUpdate(() =>
             {
                 int idx = Mathf.FloorToInt(-strip.anchoredPosition.x / Step);
                 if (idx != lastIdx)
@@ -234,11 +234,10 @@ namespace Assets.Scrpits.Shop
                 else
                 {
                     var pool = new List<CardData>();
-                    foreach (var c in CardDatabase.PlayerCards)
-                        if (c.inShopPool && MetaProgress.IsCardUnlocked(c.Id) && c.rarity == r) pool.Add(c);
+                    foreach (var c in CardDatabase.Obtainable)
+                        if (c.rarity == r) pool.Add(c);
                     if (pool.Count == 0)
-                        foreach (var c in CardDatabase.PlayerCards)
-                            if (c.inShopPool && MetaProgress.IsCardUnlocked(c.Id)) pool.Add(c);
+                        foreach (var c in CardDatabase.Obtainable) pool.Add(c);
                     drop = pool.Count > 0 ? new CaseDrop(pool[Random.Range(0, pool.Count)]) : new CaseDrop(def.RollCard());
                 }
                 if (drop.Id != avoidA && drop.Id != avoidB) return drop;
@@ -288,7 +287,8 @@ namespace Assets.Scrpits.Shop
             {
                 var card = drop.card;
                 revealStats.text = $"<color=#{UiKit.Hex(UiTheme.Mana)}>Cost {card.Cost}</color>    <color=#{UiKit.Hex(UiTheme.Damage)}>Dmg {card.Damage}</color>    <color=#{UiKit.Hex(UiTheme.Heal)}>HP {card.HP}</color>";
-                revealNote.text = $"Added to your deck  ({RunState.Deck.Count} cards)";
+                string role = card.Role;
+                revealNote.text = (string.IsNullOrEmpty(role) ? "" : $"<i>{role}</i>\n") + $"Added to your deck  ({RunState.Deck.Count} cards)";
             }
             else
             {
@@ -308,6 +308,29 @@ namespace Assets.Scrpits.Shop
                 .OnComplete(() => Phase = "revealed");
             if (rarity >= CardRarity.Epic) Camera.main?.DOShakePosition(0.35f, 0.15f, 12).SetTarget(this);
             RefreshDeck();
+        }
+
+        // ---------------- slots ----------------
+
+        private SlotMachine slots;
+
+        internal void RecordWin(CaseDrop drop) => wonThisVisit.Add(drop);
+
+        internal void SetSlotsBusy(bool busy)
+        {
+            IsBusy = busy;
+            Phase = busy ? "slots" : "idle";
+            if (!busy) RefreshAffordability();
+        }
+
+        /// <summary>Слоты выбили карту: тот же экран выигрыша, что у кейса (Continue закрывает).</summary>
+        internal void ShowSlotWin(CaseDrop drop, RectTransform fromTile)
+        {
+            IsBusy = true;
+            overlay.SetActive(true);
+            overlayGroup.alpha = 0f;
+            overlayGroup.DOFade(1f, 0.25f).SetTarget(this);
+            Reveal(drop, fromTile);
         }
 
         private void CloseOverlay()
@@ -397,6 +420,7 @@ namespace Assets.Scrpits.Shop
                 promotePrice.text = pp.ToString();
                 promotePrice.color = canP ? UiTheme.Background : UiTheme.Damage;
             }
+            if (slots != null) slots.RefreshPrice();
             RefreshDeck();
         }
 
@@ -619,12 +643,9 @@ namespace Assets.Scrpits.Shop
             }
 
             // cases
+            // карты - слот-машина с рычагом, предметы - кейсы
+            slots = SlotMachine.Build(tabRoots[0], this);
             float w = 470f, gap = 60f;
-            for (int i = 0; i < CaseDefs.All.Length; i++)
-            {
-                float x = (i - (CaseDefs.All.Length - 1) * 0.5f) * (w + gap);
-                BuildCase(CaseDefs.All[i], tabRoots[0], new Vector2(x, -75), new Vector2(w, 640), i);
-            }
             for (int i = 0; i < CaseDefs.Items.Length; i++)
             {
                 float x = (i - (CaseDefs.Items.Length - 1) * 0.5f) * (w + gap);
@@ -758,7 +779,8 @@ namespace Assets.Scrpits.Shop
             revealStats = UiKit.Text("Stats", rrt, "", 40, UiTheme.Text);
             UiKit.Place(revealStats.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, -235), new Vector2(1000, 60));
             revealNote = UiKit.Text("Note", rrt, "", 34, UiTheme.TextDim);
-            UiKit.Place(revealNote.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, -290), new Vector2(1000, 50));
+            UiKit.Place(revealNote.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, -292), new Vector2(1000, 64));
+            revealNote.enableAutoSizing = true; revealNote.fontSizeMin = 18; revealNote.fontSizeMax = 34;
             continueBtn = UiKit.Button("Continue", rrt, "Continue", UiTheme.Accent, new Vector2(360, 100), CloseOverlay, 48);
             UiKit.Place((RectTransform)continueBtn.transform, new Vector2(0.5f, 0.5f), new Vector2(0, -390), new Vector2(360, 100));
 

@@ -124,17 +124,25 @@ public class GameManagerOver : MonoBehaviour
         // Забег: результат боя -> обратно на карту (победа над боссом / поражение показываются там)
         if (RunState.IsActive)
         {
-            if (isWin)
+            try
             {
-                RunBattleSetup.StorePlayerHp();
-                RunState.CompleteCurrentNode();
-                RunState.PendingBattleReward = true; // [M] карта покажет тост BattleRewards.Last*
+                if (isWin)
+                {
+                    RunBattleSetup.StorePlayerHp();
+                    RunState.CompleteCurrentNode();
+                    RunState.PendingBattleReward = true; // [M] карта покажет тост BattleRewards.Last*
+                }
+                else
+                {
+                    // поражение: очки славы начислены, сразу новый забег (выбор команды - на карте)
+                    RunState.FailRun();
+                    RunState.StartNewRun();
+                }
             }
-            else
+            catch (System.Exception e)
             {
-                // поражение: очки славы начислены, сразу новый забег (выбор команды - на карте)
-                RunState.FailRun();
-                RunState.StartNewRun();
+                // ошибка в подписчиках не должна оставлять чёрный экран - карта всё равно загружается
+                Debug.LogException(e);
             }
             RunState.LoadMap();
             yield break;
@@ -152,6 +160,9 @@ public class GameManagerOver : MonoBehaviour
         if (IsShown) return;
         IsShown = true;
         isWin = result;
+        // кнопка паузы лежит выше экрана результата - на нём она не нужна
+        foreach (var c in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+            if (c.name == "CanvasSetBTN") c.gameObject.SetActive(false);
         resPanel.gameObject.SetActive(true);
         resultGame.text = result ? "VICTORY!" : "DEFEAT...";
         SoundFx.Play(result ? SoundFx.Clip.Win : SoundFx.Clip.Lose, 1f, 0f);
