@@ -34,6 +34,9 @@ public class HandLayoutController : MonoBehaviour
             spacing = grid.spacing.x;
             grid.enabled = false;
         }
+        // карта руки = 100 ед. ширины: ячейка не уже карты + зазор, чтобы карты не наезжали друг на друга
+        cellSize.x = Mathf.Max(cellSize.x, 100f);
+        spacing = Mathf.Max(spacing, 12f);
         foreach (Transform child in hand)
         {
             PrepareCard((RectTransform)child);

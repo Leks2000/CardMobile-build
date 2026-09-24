@@ -126,8 +126,9 @@ public class CardView : MonoBehaviour
     /// Builds / re-styles the visual hierarchy on this card. Idempotent (re-uses existing nodes);
     /// runs on every spawn so the look is defined here, not by what was baked into the prefab.
     /// Never touches gameplay components, colliders, tags or the Card text references.
-    /// Layout (100x145): art window on top, name plate, cost gem on the top-left corner,
-    /// ATK / HP discs on the bottom corners, rarity dot between them.
+    /// Layout (100x145): art window on top, name plate, cost gem in the top-left of the art,
+    /// ATK / HP discs in the bottom strip, rarity dot between them. Everything stays inside the card
+    /// rect so neighbouring cards in the hand never overlap.
     /// </summary>
     public void BuildVisuals()
     {
@@ -143,9 +144,9 @@ public class CardView : MonoBehaviour
         var artImg = FindDeep(transform, "ImageCard")?.GetComponent<Image>();
         if (artImg != null && fallbackArt == null) fallbackArt = artImg.sprite;
 
-        glow = VisualTheme.Img(VisualTheme.Stretch("V_Glow", root, -14f), ProcSprites.Glow, new Color(1, 1, 1, 0));
-        var shadowRt = VisualTheme.Node("V_Shadow", root, Vector2.zero, Vector2.one, new Vector2(-10, -16), new Vector2(10, 4));
-        shadow = VisualTheme.Img(shadowRt, ProcSprites.SoftShadow, new Color(0, 0, 0, 0.7f), true);
+        glow = VisualTheme.Img(VisualTheme.Stretch("V_Glow", root, -6f), ProcSprites.Glow, new Color(1, 1, 1, 0));
+        var shadowRt = VisualTheme.Node("V_Shadow", root, Vector2.zero, Vector2.one, new Vector2(-4, -8), new Vector2(4, 2));
+        shadow = VisualTheme.Img(shadowRt, ProcSprites.SoftShadow, new Color(0, 0, 0, 0.6f), true);
         frame = VisualTheme.Img(VisualTheme.Stretch("V_Frame", root), ProcSprites.RoundRectSmall, Color.white, true);
         var frameOl = VisualTheme.Ensure<Outline>(frame.gameObject);
         frameOl.effectColor = VisualTheme.Outline; frameOl.effectDistance = new Vector2(1.5f, -1.5f);
@@ -154,7 +155,7 @@ public class CardView : MonoBehaviour
         inner = VisualTheme.Img(VisualTheme.Stretch("V_Inner", root, 3f), ProcSprites.RoundRectSmall, isEnemy ? EnemyInner : PlayerInner, true);
 
         // Art window (top ~70%): dark backdrop + mask + art (envelope fit) + light vignette.
-        artWindow = VisualTheme.Node("V_ArtWindow", root, new Vector2(0, 0.3f), new Vector2(1, 1), new Vector2(6, 0), new Vector2(-6, -6));
+        artWindow = VisualTheme.Node("V_ArtWindow", root, new Vector2(0, 0.31f), new Vector2(1, 1), new Vector2(5, 0), new Vector2(-5, -5));
         VisualTheme.Img(artWindow, ProcSprites.RoundRectSmall, new Color32(0x0E, 0x0C, 0x13, 0xFF), true);
         if (artWindow.GetComponent<Mask>() == null) artWindow.gameObject.AddComponent<Mask>().showMaskGraphic = true;
         if (artImg != null)
@@ -178,7 +179,7 @@ public class CardView : MonoBehaviour
         vig.transform.SetAsLastSibling();
 
         // Name plate: dark steel pill, rarity-coloured rim (Outline).
-        var plate = VisualTheme.Node("V_NamePlate", root, new Vector2(0, 0.19f), new Vector2(1, 0.33f), new Vector2(4, 0), new Vector2(-4, 0));
+        var plate = VisualTheme.Node("V_NamePlate", root, new Vector2(0, 0.19f), new Vector2(1, 0.3f), new Vector2(5, 0), new Vector2(-5, 0));
         namePlate = VisualTheme.Img(plate, ProcSprites.RoundRectSmall, PlayerPlate, true);
         var plateOl = VisualTheme.Ensure<Outline>(plate.gameObject);
         plateOl.effectColor = new Color(0, 0, 0, 0.9f); plateOl.effectDistance = new Vector2(1.2f, -1.2f);
@@ -188,18 +189,18 @@ public class CardView : MonoBehaviour
         title.overflowMode = TextOverflowModes.Ellipsis;
 
         // Status row sits on the bottom edge of the art window.
-        statusRow = VisualTheme.Node("V_StatusRow", root, new Vector2(0, 0.33f), new Vector2(1, 0.33f), new Vector2(8, 2), new Vector2(-8, 20));
+        statusRow = VisualTheme.Node("V_StatusRow", root, new Vector2(0, 0.31f), new Vector2(1, 0.31f), new Vector2(8, 2), new Vector2(-8, 20));
         StatusRowView.Setup(statusRow, 17, 11);
 
         // Stat badges: reuse the existing containers/text (Card.cs keeps writing into the same TMP objects).
-        costGem = RestyleBadge("Magic", "MagicCost", card != null ? card.cardCost : null, new Vector2(0.11f, 0.93f), ProcSprites.Gem, UiTheme.Mana, new Vector2(34, 34), 20);
-        atkBadge = RestyleBadge("DmgCard", "SwordImage", card != null ? card.cardDmg : null, new Vector2(0.13f, 0.09f), ProcSprites.Circle, VisualTheme.AttackBadge, new Vector2(31, 31), 19);
-        hpBadge = RestyleBadge("HP", "HPImage", card != null ? card.cardHp : null, new Vector2(0.87f, 0.09f), ProcSprites.Circle, VisualTheme.HpBadge, new Vector2(31, 31), 19);
+        costGem = RestyleBadge("Magic", "MagicCost", card != null ? card.cardCost : null, new Vector2(0.18f, 0.9f), ProcSprites.Gem, UiTheme.Mana, new Vector2(28, 28), 17);
+        atkBadge = RestyleBadge("DmgCard", "SwordImage", card != null ? card.cardDmg : null, new Vector2(0.17f, 0.095f), ProcSprites.Circle, VisualTheme.AttackBadge, new Vector2(24, 24), 16);
+        hpBadge = RestyleBadge("HP", "HPImage", card != null ? card.cardHp : null, new Vector2(0.83f, 0.095f), ProcSprites.Circle, VisualTheme.HpBadge, new Vector2(24, 24), 16);
 
         // Old baked divider is gone; a small rarity dot sits between the stat discs instead.
         var oldBar = root.Find("V_BottomBar");
         if (oldBar != null) oldBar.gameObject.SetActive(false);
-        var dot = VisualTheme.Centered("V_RarityDot", root, new Vector2(0.5f, 0.09f), new Vector2(9, 9));
+        var dot = VisualTheme.Centered("V_RarityDot", root, new Vector2(0.5f, 0.095f), new Vector2(8, 8));
         rarityDot = VisualTheme.Img(dot, ProcSprites.Circle, Color.white);
         VisualTheme.Ensure<Outline>(dot.gameObject).effectColor = VisualTheme.Outline;
 

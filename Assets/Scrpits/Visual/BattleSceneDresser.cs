@@ -10,9 +10,9 @@ using UnityEngine.UI;
 
 /// <summary>
 /// [V] Оформление боя кодом (сцену EnemyScene не трогаем - работает и со старой, и с уже оформленной сценой):
-///  - HUD: панель босса (аура, парение, HP-бар с «хвостом» урона, статусы), панель игрока (HP-бар, монеты,
+///  - HUD: панель босса (статичный портрет, HP-бар с «хвостом» урона, статусы), панель игрока (HP-бар, монеты,
 ///    мана-кристаллы, End Turn), единый шрифт и палитра;
-///  - атмосфера: виньетка, туман, угольки поверх стола, затемнение стола;
+///  - атмосфера: лёгкая виньетка и туман (стол не затемняется, босс не анимируется);
 ///  - цветокоррекция URP (Volume: Color Adjustments / Bloom / Vignette);
 ///  - панели предметов (<see cref="BattleItemBar"/>) и пассивок (<see cref="BattlePassiveRow"/>).
 /// Каждая часть ставится, только если её ещё нет. Вызывается из RunBattleSetup при загрузке боя.
@@ -106,16 +106,8 @@ public class BattleSceneDresser : MonoBehaviour
         imgRt.offsetMin = imgRt.offsetMax = Vector2.zero;
         img.preserveAspect = true;
 
-        var shadow = VisualTheme.Node("V_BossShadow", panel, new Vector2(rig.anchorMin.x, rig.anchorMin.y), new Vector2(rig.anchorMax.x, rig.anchorMin.y),
-            new Vector2(40f, -10f), new Vector2(-40f, 26f));
-        var shadowImg = VisualTheme.Img(shadow, ProcSprites.Glow, new Color(0, 0, 0, 0.75f));
-        var auraOuter = VisualTheme.Img(VisualTheme.Node("V_AuraOuter", panel, rig.anchorMin, rig.anchorMax, new Vector2(-50, -30), new Vector2(50, 50)), ProcSprites.Ring, Color.clear);
-        var aura = VisualTheme.Img(VisualTheme.Node("V_Aura", panel, rig.anchorMin, rig.anchorMax, new Vector2(-40, -20), new Vector2(40, 30)), ProcSprites.Glow, Color.clear);
-        auraOuter.preserveAspect = true;
-        int idx = rig.GetSiblingIndex();
-        shadow.SetSiblingIndex(idx);
-        auraOuter.transform.SetSiblingIndex(idx + 1);
-        aura.transform.SetSiblingIndex(idx + 2);
+        // Без анимаций/ауры: портрет стоит неподвижно (BossView только рисует HP, имя и реакцию на удар).
+        Image aura = null, auraOuter = null, shadowImg = null;
 
         // подпись типа боя (BOSS / ELITE / GUARDIAN)
         var subRt = VisualTheme.Node("V_Subtitle", panel, new Vector2(0, 0.77f), new Vector2(1, 0.82f), new Vector2(8, 0), new Vector2(-8, 0));
@@ -154,6 +146,8 @@ public class BattleSceneDresser : MonoBehaviour
         view.subtitleText = subtitle;
         view.hpBar = hpBar;
         view.statusRow = statusRow;
+        view.floatAmplitude = 0f;
+        view.breathe = 0f;
         typeof(Boss).GetField("view", Flags)?.SetValue(boss, view);
         boss.SendMessage("OnBossDataChanged", SendMessageOptions.DontRequireReceiver);
     }
@@ -296,7 +290,7 @@ public class BattleSceneDresser : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         var root = (RectTransform)go.transform;
 
-        var vig = VisualTheme.Img(VisualTheme.Stretch("Vignette", root, -40f), ProcSprites.Vignette, new Color(1, 1, 1, 0.55f));
+        var vig = VisualTheme.Img(VisualTheme.Stretch("Vignette", root, -40f), ProcSprites.Vignette, new Color(1, 1, 1, 0.22f));
         vig.raycastTarget = false;
 
         var bg = go.AddComponent<BattleBackground>();
@@ -311,18 +305,9 @@ public class BattleSceneDresser : MonoBehaviour
             raw.uvRect = new Rect(0, 0, i == 0 ? 1.5f : 2.2f, 1);
             bg.fog.Add(new BattleBackground.FogLayer { image = raw, speed = i == 0 ? 0.008f : -0.013f, bob = 0.02f });
         }
-        var embers = VisualTheme.Stretch("Embers", root);
-        bg.emberRoot = embers;
-        bg.emberCount = 14;
-        bg.emberColor = new Color(1f, 0.55f, 0.25f, 0.45f);
-
-        // стол темнее и холоднее - карты и HUD читаются лучше
-        foreach (var r in FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
-        {
-            if (r.name != "Plane" || r.sharedMaterial == null || !r.enabled) continue;
-            var m = r.material;
-            m.color = m.color * new Color(0.62f, 0.56f, 0.66f, 1f);
-        }
+        // без летающих угольков - только лёгкий туман
+        bg.emberRoot = null;
+        bg.emberCount = 0;
     }
 
     private static void DressPostFx()
@@ -337,10 +322,9 @@ public class BattleSceneDresser : MonoBehaviour
         profile.name = "V_BattleGrade (runtime)";
 
         var color = profile.Add<ColorAdjustments>(true);
-        color.postExposure.Override(0.1f);
-        color.contrast.Override(14f);
-        color.saturation.Override(8f);
-        color.colorFilter.Override(new Color(1f, 0.95f, 0.9f, 1f));
+        color.postExposure.Override(0.25f);
+        color.contrast.Override(6f);
+        color.saturation.Override(10f);
 
         var bloom = profile.Add<Bloom>(true);
         bloom.threshold.Override(0.95f);
@@ -348,7 +332,7 @@ public class BattleSceneDresser : MonoBehaviour
         bloom.scatter.Override(0.65f);
 
         var vignette = profile.Add<Vignette>(true);
-        vignette.intensity.Override(0.3f);
+        vignette.intensity.Override(0.12f);
         vignette.smoothness.Override(0.45f);
         vignette.color.Override(new Color(0.05f, 0.02f, 0.06f, 1f));
 
